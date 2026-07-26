@@ -1,0 +1,65 @@
+#ifndef EVENT_H
+#define EVENT_H
+
+#include <stdbool.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*==========================================================
+ * Types
+ *=========================================================*/
+
+typedef enum
+{
+    EVENT_NONE = 0,
+
+    EVENT_CLIMATE_UPDATE,
+
+    EVENT_RELAY_ON,
+    EVENT_RELAY_OFF,
+
+    EVENT_TIMER_1S,
+
+    EVENT_QUIT
+
+} event_type_t;
+
+typedef struct
+{
+    event_type_t type;
+
+    union
+    {
+        float temperature;
+        bool relay_state;
+        int value;
+
+    } data;
+
+} event_t;
+
+/*==========================================================
+ * API
+ *=========================================================*/
+
+void event_init(void);
+
+bool event_post(const event_t *event);
+
+bool event_get(event_t *event);
+
+bool event_is_empty(void);
+
+bool event_is_full(void);
+
+void event_clear(void);
+
+const char *event_type_to_string(event_type_t type);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* EVENT_H */

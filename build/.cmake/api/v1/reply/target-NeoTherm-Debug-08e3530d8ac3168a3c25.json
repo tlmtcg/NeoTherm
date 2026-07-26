@@ -36,19 +36,19 @@
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 70,
+				"line" : 81,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 50,
+				"line" : 60,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 38,
+				"line" : 44,
 				"parent" : 0
 			}
 		]
@@ -79,10 +79,18 @@
 				{
 					"backtrace" : 3,
 					"define" : "APP_VERSION=\"0.1.0\""
+				},
+				{
+					"backtrace" : 3,
+					"define" : "DEBUG"
 				}
 			],
 			"includes" : 
 			[
+				{
+					"backtrace" : 4,
+					"path" : "C:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/app"
+				},
 				{
 					"backtrace" : 4,
 					"path" : "C:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/logger"
@@ -94,6 +102,18 @@
 				{
 					"backtrace" : 4,
 					"path" : "C:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/debug"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "C:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/event"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "C:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/climate"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "C:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/scheduler"
 				}
 			],
 			"language" : "C",
@@ -110,7 +130,12 @@
 				0,
 				1,
 				2,
-				3
+				3,
+				4,
+				5,
+				6,
+				7,
+				8
 			]
 		}
 	],
@@ -146,7 +171,12 @@
 				0,
 				1,
 				2,
-				3
+				3,
+				4,
+				5,
+				6,
+				7,
+				8
 			]
 		}
 	],
@@ -156,6 +186,12 @@
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
 			"path" : "src/app/main.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/app/app.c",
 			"sourceGroupIndex" : 0
 		},
 		{
@@ -174,6 +210,30 @@
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
 			"path" : "src/debug/debug.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/event/event.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/climate/climate.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/scheduler/scheduler.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/scheduler/scheduler_debug.c",
 			"sourceGroupIndex" : 0
 		}
 	],

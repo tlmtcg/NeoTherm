@@ -26,9 +26,15 @@ add_executable(
     NeoTherm
 
     src/app/main.c
+    src/app/app.c
+
     src/logger/logger.c
     src/config/config.c
     src/debug/debug.c
+    src/event/event.c
+    src/climate/climate.c
+    src/scheduler/scheduler.c
+    src/scheduler/scheduler_debug.c
 )
 
 # ==========================================================
@@ -38,9 +44,13 @@ add_executable(
 target_include_directories(
     NeoTherm
     PRIVATE
+        src/app
         src/logger
         src/config
         src/debug
+        src/event
+        src/climate
+        src/scheduler
 )
 
 # ==========================================================
@@ -51,6 +61,7 @@ target_compile_definitions(
     NeoTherm
     PRIVATE
         APP_VERSION="${PROJECT_VERSION}"
+        DEBUG
 )
 
 # ==========================================================
