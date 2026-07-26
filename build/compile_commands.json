@@ -1,0 +1,26 @@
+[
+{
+  "directory": "C:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\gcc.exe -DAPP_VERSION=\\\"0.1.0\\\" -IC:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/logger -IC:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/config -IC:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/debug -g -std=gnu17 -Wall -Wextra -Wpedantic -o CMakeFiles\\NeoTherm.dir\\src\\app\\main.c.obj -c C:\\Users\\TLMTC\\AndroidStudioProjects\\NeoTherm\\NeoTherm\\src\\app\\main.c",
+  "file": "C:\\Users\\TLMTC\\AndroidStudioProjects\\NeoTherm\\NeoTherm\\src\\app\\main.c",
+  "output": "CMakeFiles\\NeoTherm.dir\\src\\app\\main.c.obj"
+},
+{
+  "directory": "C:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\gcc.exe -DAPP_VERSION=\\\"0.1.0\\\" -IC:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/logger -IC:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/config -IC:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/debug -g -std=gnu17 -Wall -Wextra -Wpedantic -o CMakeFiles\\NeoTherm.dir\\src\\logger\\logger.c.obj -c C:\\Users\\TLMTC\\AndroidStudioProjects\\NeoTherm\\NeoTherm\\src\\logger\\logger.c",
+  "file": "C:\\Users\\TLMTC\\AndroidStudioProjects\\NeoTherm\\NeoTherm\\src\\logger\\logger.c",
+  "output": "CMakeFiles\\NeoTherm.dir\\src\\logger\\logger.c.obj"
+},
+{
+  "directory": "C:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\gcc.exe -DAPP_VERSION=\\\"0.1.0\\\" -IC:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/logger -IC:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/config -IC:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/debug -g -std=gnu17 -Wall -Wextra -Wpedantic -o CMakeFiles\\NeoTherm.dir\\src\\config\\config.c.obj -c C:\\Users\\TLMTC\\AndroidStudioProjects\\NeoTherm\\NeoTherm\\src\\config\\config.c",
+  "file": "C:\\Users\\TLMTC\\AndroidStudioProjects\\NeoTherm\\NeoTherm\\src\\config\\config.c",
+  "output": "CMakeFiles\\NeoTherm.dir\\src\\config\\config.c.obj"
+},
+{
+  "directory": "C:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\gcc.exe -DAPP_VERSION=\\\"0.1.0\\\" -IC:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/logger -IC:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/config -IC:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/debug -g -std=gnu17 -Wall -Wextra -Wpedantic -o CMakeFiles\\NeoTherm.dir\\src\\debug\\debug.c.obj -c C:\\Users\\TLMTC\\AndroidStudioProjects\\NeoTherm\\NeoTherm\\src\\debug\\debug.c",
+  "file": "C:\\Users\\TLMTC\\AndroidStudioProjects\\NeoTherm\\NeoTherm\\src\\debug\\debug.c",
+  "output": "CMakeFiles\\NeoTherm.dir\\src\\debug\\debug.c.obj"
+}
+]

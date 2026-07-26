@@ -1,0 +1,78 @@
+cmake_minimum_required(VERSION 3.20)
+
+project(
+    NeoTherm
+    VERSION 0.1.0
+    DESCRIPTION "NeoTherm Simulator"
+    LANGUAGES C
+)
+
+# ==========================================================
+# Standard C
+# ==========================================================
+
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+# Autorise les extensions GNU (__VA_ARGS__, etc.)
+# Très proche du mode de compilation utilisé par ESP-IDF.
+set(CMAKE_C_EXTENSIONS ON)
+
+# ==========================================================
+# Exécutable
+# ==========================================================
+
+add_executable(
+    NeoTherm
+
+    src/app/main.c
+    src/logger/logger.c
+    src/config/config.c
+    src/debug/debug.c
+)
+
+# ==========================================================
+# Répertoires d'inclusion
+# ==========================================================
+
+target_include_directories(
+    NeoTherm
+    PRIVATE
+        src/logger
+        src/config
+        src/debug
+)
+
+# ==========================================================
+# Défines
+# ==========================================================
+
+target_compile_definitions(
+    NeoTherm
+    PRIVATE
+        APP_VERSION="${PROJECT_VERSION}"
+)
+
+# ==========================================================
+# Options de compilation
+# ==========================================================
+
+if (MSVC)
+
+    target_compile_options(
+        NeoTherm
+        PRIVATE
+            /W4
+    )
+
+else()
+
+    target_compile_options(
+        NeoTherm
+        PRIVATE
+            -Wall
+            -Wextra
+            -Wpedantic
+    )
+
+endif()

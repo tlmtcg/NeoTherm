@@ -1,0 +1,10 @@
+# ninja log v7
+11	192	8067177941083836	CMakeFiles/NeoTherm.dir/src/logger/logger.c.obj	6a26bf8bff4c4d0
+4	133	8067184700071224	CMakeFiles/NeoTherm.dir/src/app/main.c.obj	f945540464791b8e
+189	379	8067552784160874	NeoTherm.exe	2be915de8dcf7ee9
+10	188	8067552782364342	CMakeFiles/NeoTherm.dir/src/config/config.c.obj	42740c6c822f823f
+12	277	8067569268372439	CMakeFiles/NeoTherm.dir/src/logger/logger.c.obj	a7cdc9f0b50e00c5
+25	300	8067569268517217	CMakeFiles/NeoTherm.dir/src/debug/debug.c.obj	e988e59be4fb5883
+18	332	8067569268462618	CMakeFiles/NeoTherm.dir/src/config/config.c.obj	95695d46deec7edb
+7	219	8067570431495682	CMakeFiles/NeoTherm.dir/src/app/main.c.obj	c9bedac15bab6472
+226	572	8067570433754016	NeoTherm.exe	75102d9457c72925
