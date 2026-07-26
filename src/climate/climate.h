@@ -24,6 +24,7 @@ void climate_update(void);
  */
 float climate_get_temperature(void);
 
+void climate_test_set_temperature(float temperature);
 
 #ifdef __cplusplus
 }

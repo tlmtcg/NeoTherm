@@ -35,6 +35,10 @@ add_executable(
     src/climate/climate.c
     src/scheduler/scheduler.c
     src/scheduler/scheduler_debug.c
+    src/relay/relay.c
+    src/thermostat/thermostat.c
+    src/thermostat/thermostat_test.c
+    src/storage/storage.c
 )
 
 # ==========================================================
@@ -51,6 +55,9 @@ target_include_directories(
         src/event
         src/climate
         src/scheduler
+        src/relay
+        src/thermostat
+        src/storage
 )
 
 # ==========================================================
