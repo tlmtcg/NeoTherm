@@ -40,6 +40,10 @@ add_executable(
     src/thermostat/thermostat_test.c
     src/storage/storage.c
     src/thermal/thermal_model.c
+    src/history/history.c
+    src/history/history_debug.c
+    src/history/history_csv.c
+    src/clock/clock.c
 )
 
 # ==========================================================
@@ -60,6 +64,8 @@ target_include_directories(
         src/thermostat
         src/storage
         src/thermal
+        src/history
+        src/clock
 )
 
 # ==========================================================

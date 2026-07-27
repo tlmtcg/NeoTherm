@@ -12,11 +12,10 @@
 #include "relay.h"
 #include "thermostat.h"
 #include "storage.h"
-// #include "thermostat_test.h"
-
-#include "event.h"
-#include "scheduler.h"
-#include "logger.h"
+#include "history_debug.h"
+#include "history.h"
+#include "clock.h"
+#include "history_csv.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -68,9 +67,16 @@ bool app_init(void)
     relay_init();
 
     /*
+     * History
+     */
+    history_init();
+
+    /*
      * Storage
      */
     storage_init();
+
+    clock_init();
 
     /*
      * Thermostat
@@ -126,11 +132,15 @@ void app_run(void)
     LOG_INFO("APP",
              "Application running.");
 
+    uint32_t tick = 0;
+
     while (1)
     {
         /*
          * Exécution scheduler
          */
+
+        clock_tick(1);
 
         scheduler_update();
 
@@ -147,7 +157,7 @@ void app_run(void)
             case EVENT_CLIMATE_UPDATE:
 
                 LOG_INFO("APP",
-                         "Temperature event %.1f C",
+                         "Temperature event %.2f C",
                          event.data.temperature);
 
                 break;
@@ -175,65 +185,27 @@ void app_run(void)
         /*
          * Simulation 100 ms
          */
+#if APP_SIMULATION_MODE
+
+        tick++;
+
+        if (tick >= APP_SIMULATION_TICKS)
+        {
+            break;
+        }
+
+#endif
 
 #ifdef _WIN32
         Sleep(100);
 #endif
     }
+
+    history_dump();
+
+    history_export_csv(
+    "../history.csv");
+
+    LOG_INFO("APP",
+             "Simulation finished.");
 }
-
-// void app_run(void)
-// {
-//     /*
-//      * Pour l'instant :
-//      * boucle de test simple
-//      */
-
-//     for (int i = 0; i < 100; i++)
-//     {
-//         scheduler_update();
-//     }
-
-//     event_t event;
-
-//     while (event_get(&event))
-//     {
-
-//         switch (event.type)
-//         {
-
-//         case EVENT_CLIMATE_UPDATE:
-
-//             LOG_INFO("APP",
-//                      "Temperature event %.1f C",
-//                      event.data.temperature);
-
-//             break;
-
-//         case EVENT_RELAY_ON:
-
-//             LOG_INFO("APP",
-//                      "Relay event : ON");
-
-//             break;
-
-//         case EVENT_RELAY_OFF:
-
-//             LOG_INFO("APP",
-//                      "Relay event : OFF");
-
-//             break;
-
-//         default:
-
-//             LOG_WARN("APP",
-//                      "Unhandled event %d",
-//                      event.type);
-
-//             break;
-//         }
-//     }
-
-//     LOG_INFO("APP",
-//              "Application ready.");
-// }

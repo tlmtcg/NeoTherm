@@ -5,6 +5,8 @@
 #include "relay.h"
 #include "config.h"
 #include "storage.h"
+#include "history.h"
+#include "thermal_model.h"
 
 #define HORS_GEL_SETPOINT 7.0f
 #define HORS_GEL_HYSTERESIS 1.0f
@@ -24,7 +26,7 @@ static bool s_manual_relay = false;
  * Fonctions privées
  *=========================================================*/
 
-static const char *thermostat_mode_name(
+const char *thermostat_mode_name(
     thermostat_mode_t mode)
 {
     switch (mode)
@@ -93,7 +95,7 @@ bool thermostat_init(void)
     s_manual_relay = false;
 
     LOG_INFO("THERMO",
-             "Thermostat initialized : %.2f C +/- %.1f Mode=%s",
+             "Thermostat initialized : %.2f C +/- %.2f Mode=%s",
              s_status.setpoint,
              s_status.hysteresis,
              thermostat_mode_name(s_status.mode));
@@ -209,13 +211,20 @@ void thermostat_update(void)
         relay_get();
 
     LOG_INFO("THERMO",
-             "Mode=%s Temp=%.1f Set=%.2f Relay=%s HeatReq=%s",
+             "Mode=%s Temp=%.2f Set=%.2f Relay=%s HeatReq=%s",
              thermostat_mode_name(s_status.mode),
              s_status.temperature,
              s_status.setpoint,
              s_status.relay_state ? "ON" : "OFF",
-             s_status.heating_request ? "YES" : "NO"
-            );
+             s_status.heating_request ? "YES" : "NO");
+
+    history_add(
+        temperature,
+        thermal_model_get_outside_temperature(),
+        thermostat_get_setpoint(),
+        thermostat_get_mode(),
+        relay_get(),
+        s_status.heating_request);
 }
 
 /*==========================================================

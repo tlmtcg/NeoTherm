@@ -68,6 +68,9 @@ bool thermostat_set_setpoint(float value);
 
 bool thermostat_manual_set_relay(bool state);
 
+const char *thermostat_mode_name(
+    thermostat_mode_t mode);
+
 #ifdef __cplusplus
 }
 #endif
