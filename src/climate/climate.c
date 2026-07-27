@@ -3,6 +3,7 @@
 #include "event.h"
 #include "logger.h"
 #include "relay.h"
+#include "thermal_model.h"
 
 static float s_temperature = 20.5f;
 
@@ -12,6 +13,7 @@ static float s_temperature = 20.5f;
 
 void climate_init(void)
 {
+    thermal_model_init();
     s_temperature = 20.5f;
 
     LOG_INFO("CLIMATE",
@@ -30,16 +32,10 @@ void climate_update(void)
      * la température monte doucement
      */
 
-    bool heating = relay_get();
-
-    if (heating)
-    {
-        s_temperature += 0.1f;
-    }
-    else
-    {
-        s_temperature -= 0.1f;
-    }
+    s_temperature =
+        thermal_model_update(
+            s_temperature,
+            relay_get());
 
     event_t event;
 

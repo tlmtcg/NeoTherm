@@ -17,6 +17,25 @@ typedef enum
 
 } thermostat_mode_t;
 
+typedef struct
+{
+    thermostat_mode_t mode;
+
+    float temperature;
+
+    float setpoint;
+
+    float hysteresis;
+
+    bool relay_state;
+
+    bool heating_request;
+
+} thermostat_status_t;
+
+
+const thermostat_status_t *thermostat_get_status(void);
+
 /*==========================================================
  * Initialisation
  *=========================================================*/

@@ -82,8 +82,6 @@ bool app_init(void)
      */
     scheduler_init();
 
-    thermostat_set_mode(THERMOSTAT_AUTO);
-
     if (!scheduler_register(
             "Climate",
             climate_update,
@@ -115,10 +113,10 @@ bool app_init(void)
 
     // thermostat_test_run();
 
-    thermostat_set_mode(
-        THERMOSTAT_MANUAL);
+    // thermostat_set_mode(
+    //     THERMOSTAT_MANUAL);
 
-    thermostat_set_setpoint(22.0f);
+    // thermostat_set_setpoint(22.0f);
 
     return true;
 }

@@ -9,11 +9,14 @@
 #define HORS_GEL_SETPOINT 7.0f
 #define HORS_GEL_HYSTERESIS 1.0f
 
-static float s_setpoint = 20.0f;
-
-static float s_hysteresis = 0.2f;
-
-static thermostat_mode_t s_mode = THERMOSTAT_AUTO;
+static thermostat_status_t s_status =
+    {
+        .mode = THERMOSTAT_AUTO,
+        .temperature = 0.0f,
+        .setpoint = 20.0f,
+        .hysteresis = 0.2f,
+        .relay_state = false,
+        .heating_request = false};
 
 static bool s_manual_relay = false;
 
@@ -49,32 +52,51 @@ static const char *thermostat_mode_name(
 
 bool thermostat_init(void)
 {
-    if (!storage_load_setpoint(&s_setpoint))
+
+    /*
+     * Restauration consigne
+     */
+
+    if (!storage_load_setpoint(&s_status.setpoint))
     {
         config_get_float(
             "thermostat",
             "consigne",
-            &s_setpoint);
+            &s_status.setpoint);
     }
 
-    if (!storage_load_mode(&s_mode))
+    /*
+     * Restauration mode
+     */
+
+    if (!storage_load_mode(&s_status.mode))
     {
-        s_mode = THERMOSTAT_AUTO;
+        s_status.mode = THERMOSTAT_AUTO;
     }
+
+    /*
+     * Hystérésis configuration
+     */
 
     config_get_float(
         "thermostat",
         "hysteresis",
-        &s_hysteresis);
+        &s_status.hysteresis);
 
-    s_mode = THERMOSTAT_AUTO;
+    s_status.temperature =
+        climate_get_temperature();
+
+    s_status.relay_state = false;
+
+    s_status.heating_request = false;
 
     s_manual_relay = false;
 
     LOG_INFO("THERMO",
-             "Thermostat initialized : %.1f C +/- %.1f",
-             s_setpoint,
-             s_hysteresis);
+             "Thermostat initialized : %.2f C +/- %.1f Mode=%s",
+             s_status.setpoint,
+             s_status.hysteresis,
+             thermostat_mode_name(s_status.mode));
 
     return true;
 }
@@ -85,90 +107,115 @@ bool thermostat_init(void)
 
 void thermostat_update(void)
 {
-    float temperature =
+
+    s_status.temperature =
         climate_get_temperature();
 
-    switch (s_mode)
+    float temperature =
+        s_status.temperature;
+
+    switch (s_status.mode)
     {
 
-        /*----------------------------------
-         * Arrêt complet
-         *---------------------------------*/
+        /*
+         * Arrêt forcé
+         */
 
     case THERMOSTAT_OFF:
 
         relay_set(false);
 
+        s_status.heating_request = false;
+
         break;
 
-        /*----------------------------------
-         * Commande manuelle
-         *---------------------------------*/
+        /*
+         * Mode manuel
+         */
 
     case THERMOSTAT_MANUAL:
 
         relay_set(s_manual_relay);
 
+        s_status.heating_request = s_manual_relay;
+
         break;
 
-        /*----------------------------------
-         * Régulation normale
-         *---------------------------------*/
+        /*
+         * Régulation automatique
+         */
 
     case THERMOSTAT_AUTO:
 
         if (temperature <
-            (s_setpoint - s_hysteresis))
+            (s_status.setpoint -
+             s_status.hysteresis))
         {
             relay_set(true);
+
+            s_status.heating_request = true;
         }
+
         else if (temperature >
-                 (s_setpoint + s_hysteresis))
+                 (s_status.setpoint +
+                  s_status.hysteresis))
         {
             relay_set(false);
+
+            s_status.heating_request = false;
         }
 
         break;
 
-        /*----------------------------------
-         * Protection hors gel
-         *---------------------------------*/
+        /*
+         * Hors gel
+         */
 
     case THERMOSTAT_HORS_GEL:
 
-        if (temperature < HORS_GEL_SETPOINT)
+        if (temperature <
+            HORS_GEL_SETPOINT)
         {
             relay_set(true);
+
+            s_status.heating_request = true;
         }
+
         else if (temperature >
                  (HORS_GEL_SETPOINT +
                   HORS_GEL_HYSTERESIS))
         {
             relay_set(false);
+
+            s_status.heating_request = false;
         }
 
         break;
-
-        /*----------------------------------
-         * Sécurité
-         *---------------------------------*/
 
     default:
 
         LOG_ERROR("THERMO",
                   "Unknown mode %d",
-                  s_mode);
+                  s_status.mode);
 
         relay_set(false);
+
+        s_status.heating_request = false;
 
         break;
     }
 
+    s_status.relay_state =
+        relay_get();
+
     LOG_INFO("THERMO",
-             "Mode=%s Temp=%.1f Relay=%s",
-             thermostat_mode_name(s_mode),
-             temperature,
-             relay_get() ? "ON" : "OFF");
+             "Mode=%s Temp=%.1f Set=%.2f Relay=%s HeatReq=%s",
+             thermostat_mode_name(s_status.mode),
+             s_status.temperature,
+             s_status.setpoint,
+             s_status.relay_state ? "ON" : "OFF",
+             s_status.heating_request ? "YES" : "NO"
+            );
 }
 
 /*==========================================================
@@ -177,21 +224,32 @@ void thermostat_update(void)
 
 float thermostat_get_setpoint(void)
 {
-    return s_setpoint;
+    return s_status.setpoint;
 }
 
 float thermostat_get_hysteresis(void)
 {
-    return s_hysteresis;
+    return s_status.hysteresis;
+}
+
+thermostat_mode_t thermostat_get_mode(void)
+{
+    return s_status.mode;
+}
+
+const thermostat_status_t *thermostat_get_status(void)
+{
+    return &s_status;
 }
 
 /*==========================================================
- * Gestion des modes
+ * Gestion mode
  *=========================================================*/
 
 bool thermostat_set_mode(
     thermostat_mode_t mode)
 {
+
     if ((mode < THERMOSTAT_OFF) ||
         (mode > THERMOSTAT_HORS_GEL))
     {
@@ -202,7 +260,7 @@ bool thermostat_set_mode(
         return false;
     }
 
-    s_mode = mode;
+    s_status.mode = mode;
 
     storage_save_mode(mode);
 
@@ -213,11 +271,6 @@ bool thermostat_set_mode(
     return true;
 }
 
-thermostat_mode_t thermostat_get_mode(void)
-{
-    return s_mode;
-}
-
 /*==========================================================
  * Commande manuelle
  *=========================================================*/
@@ -225,16 +278,18 @@ thermostat_mode_t thermostat_get_mode(void)
 bool thermostat_manual_set_relay(
     bool state)
 {
-    s_manual_relay = state;
 
-    if (s_mode != THERMOSTAT_MANUAL)
+    if (s_status.mode != THERMOSTAT_MANUAL)
     {
         LOG_WARN("THERMO",
                  "Manual command ignored (mode=%s)",
-                 thermostat_mode_name(s_mode));
+                 thermostat_mode_name(
+                     s_status.mode));
 
         return false;
     }
+
+    s_manual_relay = state;
 
     relay_set(state);
 
@@ -245,9 +300,15 @@ bool thermostat_manual_set_relay(
     return true;
 }
 
-bool thermostat_set_setpoint(float value)
+/*==========================================================
+ * Consigne
+ *=========================================================*/
+
+bool thermostat_set_setpoint(
+    float value)
 {
-    s_setpoint = value;
+
+    s_status.setpoint = value;
 
     storage_save_setpoint(value);
 
