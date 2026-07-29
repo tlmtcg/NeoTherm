@@ -7,6 +7,7 @@
 #include "storage.h"
 #include "history.h"
 #include "thermal_model.h"
+#include "program.h"
 
 #define HORS_GEL_SETPOINT 7.0f
 #define HORS_GEL_HYSTERESIS 1.0f
@@ -58,6 +59,8 @@ bool thermostat_init(void)
     /*
      * Restauration consigne
      */
+
+    s_status.setpoint = program_get_setpoint();
 
     if (!storage_load_setpoint(&s_status.setpoint))
     {
@@ -149,6 +152,8 @@ void thermostat_update(void)
 
     case THERMOSTAT_AUTO:
 
+        s_status.setpoint = program_get_setpoint();
+        
         if (temperature <
             (s_status.setpoint -
              s_status.hysteresis))

@@ -52,6 +52,13 @@ bool history_add(
     bool relay,
     bool heating)
 {
+
+    LOG_INFO("HISTORY",
+         "Add tick=%u count=%u head=%u",
+         s_tick,
+         s_count,
+         s_head);
+         
     history_record_t *record =
         &s_history[s_head];
 
@@ -160,6 +167,10 @@ uint32_t history_count(void)
     return s_count;
 }
 
+/*==========================================================
+ * Efface l'historique
+ *=========================================================*/
+
 void history_clear(void)
 {
     s_head = 0;
@@ -210,6 +221,35 @@ bool history_get_latest(
     }
 
     *record = s_history[index];
+
+    return true;
+}
+
+/*==========================================================
+ * Push un enregistrement
+ *=========================================================*/
+
+bool history_push(
+    const history_record_t *record)
+{
+    if (record == NULL)
+    {
+        return false;
+    }
+
+    s_history[s_head] = *record;
+
+    s_head = (s_head + 1U) % HISTORY_SIZE;
+
+    if (s_count < HISTORY_SIZE)
+    {
+        s_count++;
+    }
+
+    if (record->tick >= s_tick)
+    {
+        s_tick = record->tick + 1U;
+    }
 
     return true;
 }

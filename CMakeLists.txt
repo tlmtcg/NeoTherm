@@ -43,7 +43,10 @@ add_executable(
     src/history/history.c
     src/history/history_debug.c
     src/history/history_csv.c
+    src/history/history_storage.c
     src/clock/clock.c
+    src/program/program.c
+    src/program/schedule.c
 )
 
 # ==========================================================
@@ -66,6 +69,7 @@ target_include_directories(
         src/thermal
         src/history
         src/clock
+        src/program
 )
 
 # ==========================================================

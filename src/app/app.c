@@ -1,6 +1,7 @@
 #include "app.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "logger.h"
 #include "config.h"
@@ -14,8 +15,7 @@
 #include "storage.h"
 #include "history_debug.h"
 #include "history.h"
-#include "clock.h"
-#include "history_csv.h"
+#include "program.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -76,7 +76,10 @@ bool app_init(void)
      */
     storage_init();
 
-    clock_init();
+    /*
+     * Program
+     */
+    program_init();
 
     /*
      * Thermostat
@@ -140,8 +143,6 @@ void app_run(void)
          * Exécution scheduler
          */
 
-        clock_tick(1);
-
         scheduler_update();
 
         /*
@@ -203,8 +204,46 @@ void app_run(void)
 
     history_dump();
 
-    history_export_csv(
-    "../history.csv");
+    clock_time_t t =
+        {
+            .year = 2026,
+            .month = 1,
+            .day = 1,
+            .hour = 5,
+            .minute = 59,
+            .second = 0};
+
+    clock_set_time(&t);
+
+    printf("%.1f\n", program_get_setpoint());
+
+    t.hour = 6;
+    clock_set_time(&t);
+
+    printf("%.1f\n", program_get_setpoint());
+
+    t.hour = 21;
+    clock_set_time(&t);
+
+    printf("%.1f\n", program_get_setpoint());
+
+    t.hour = 23;
+    clock_set_time(&t);
+    printf("%.1f\n", program_get_setpoint());
+
+    // 06:00 -> début jour
+    t.hour = 6;
+    t.minute = 0;
+    clock_set_time(&t);
+    printf("%.1f\n", program_get_setpoint()); // 21.0
+
+    // 22:00 -> début nuit
+    t.month=7;
+    t.day=26;
+    t.hour = 23;
+    t.minute = 01;
+    clock_set_time(&t);
+    printf("%.1f\n", program_get_setpoint()); // 18.0
 
     LOG_INFO("APP",
              "Simulation finished.");

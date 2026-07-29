@@ -67,8 +67,17 @@ bool history_get(
     uint32_t index,
     history_record_t *record);
 
+bool history_push(
+    const history_record_t *record);
+
 bool history_get_latest(
     history_record_t *record);
+
+bool history_save(
+    const char *filename);
+
+bool history_load(
+    const char *filename);
 
 #ifdef __cplusplus
 }
