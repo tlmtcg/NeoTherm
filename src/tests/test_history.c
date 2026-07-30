@@ -1,18 +1,35 @@
 #include "test_history.h"
 
 #include <stdio.h>
+#include <math.h>
 
 #include "clock.h"
 #include "history.h"
 #include "history_debug.h"
-#include "logger.h"
 #include "thermostat.h"
+#include "test_utils.h"
+
+
+#define FLOAT_EPSILON 0.01f
+
 
 bool test_history_run(void)
 {
     printf("\n=============== HISTORY TEST ===============\n");
 
+
     history_init();
+
+
+    /*
+     * Historique vide après initialisation
+     */
+
+    ASSERT_EQ_UINT32(
+        0,
+        history_count());
+
+
 
     clock_time_t t =
     {
@@ -24,7 +41,11 @@ bool test_history_run(void)
         .second = 0
     };
 
-    clock_set_time(&t);
+
+    ASSERT_TRUE(
+        clock_set_time(&t));
+
+
 
     /*
      * Création de 10 enregistrements
@@ -40,41 +61,102 @@ bool test_history_run(void)
             (i & 1U),
             (i & 1U));
 
+
         clock_tick(10);
     }
 
-    printf("History count : %u\n",
-           history_count());
+
+
+    ASSERT_EQ_UINT32(
+        10,
+        history_count());
+
+
+
+    /*
+     * Vérification dernier enregistrement
+     */
 
     history_record_t record;
 
-    if (history_get_latest(&record))
-    {
-        printf("Latest record\n");
 
-        printf(" Tick        : %u\n", record.tick);
-        printf(" Temperature : %.2f\n", record.inside_temperature);
-        printf(" Relay       : %s\n",
-               record.relay ? "ON" : "OFF");
-    }
+    ASSERT_TRUE(
+        history_get_latest(&record));
 
-    history_dump();
 
-    history_save("../history.dat");
+    ASSERT_EQ_FLOAT(
+        20.9f,
+        record.inside_temperature);
+
+
+    ASSERT_EQ_FLOAT(
+        5.0f,
+        record.outside_temperature);
+
+
+    ASSERT_EQ_FLOAT(
+        21.0f,
+        record.setpoint);
+
+
+    ASSERT_EQ_UINT32(
+        THERMOSTAT_AUTO,
+        record.mode);
+
+
+
+    /*
+     * Sauvegarde fichier
+     */
+
+    ASSERT_TRUE(
+        history_save("../history.dat"));
+
+
+
+    /*
+     * Effacement mémoire
+     */
 
     history_clear();
 
-    printf("After clear : %u\n",
-           history_count());
 
-    history_load("../history.dat");
+    ASSERT_EQ_UINT32(
+        0,
+        history_count());
 
-    printf("After load  : %u\n",
-           history_count());
 
-    history_dump();
+
+    /*
+     * Rechargement
+     */
+
+    ASSERT_TRUE(
+        history_load("../history.dat"));
+
+
+    ASSERT_EQ_UINT32(
+        10,
+        history_count());
+
+
+
+    /*
+     * Vérification après reload
+     */
+
+    ASSERT_TRUE(
+        history_get_latest(&record));
+
+
+    ASSERT_EQ_FLOAT(
+        20.9f,
+        record.inside_temperature);
+
+
 
     printf("PASS : History\n");
+
 
     return true;
 }

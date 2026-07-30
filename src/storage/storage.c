@@ -3,284 +3,167 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
+#include "storage_ini.h"
 #include "logger.h"
-
+#include "runtime.h"
 
 #define STORAGE_FILE "../runtime.ini"
 
+// static float s_setpoint = 20.5f;
 
-static float s_setpoint = 20.5f;
-
-static thermostat_mode_t s_mode =
-    THERMOSTAT_AUTO;
-
-
+// static thermostat_mode_t s_mode =
+//     THERMOSTAT_AUTO;
 
 static const char *mode_to_string(
-        thermostat_mode_t mode)
+    thermostat_mode_t mode)
 {
-    switch(mode)
+    switch (mode)
     {
-        case THERMOSTAT_AUTO:
-            return "AUTO";
+    case THERMOSTAT_AUTO:
+        return "AUTO";
 
-        case THERMOSTAT_MANUAL:
-            return "MANUAL";
+    case THERMOSTAT_MANUAL:
+        return "MANUAL";
 
-        case THERMOSTAT_HORS_GEL:
-            return "HORS_GEL";
+    case THERMOSTAT_HORS_GEL:
+        return "HORS_GEL";
 
-        case THERMOSTAT_OFF:
-            return "OFF";
+    case THERMOSTAT_OFF:
+        return "OFF";
 
-        default:
-            return "UNKNOWN";
+    default:
+        return "UNKNOWN";
     }
 }
 
-
-
 static bool string_to_mode(
-        const char *text,
-        thermostat_mode_t *mode)
+    const char *text,
+    thermostat_mode_t *mode)
 {
-    char buffer[32];
+    if ((text == NULL) ||
+        (mode == NULL))
+    {
+        return false;
+    }
 
-    sscanf(text, "%31s", buffer);
-
-
-    if(strcmp(buffer,"AUTO")==0)
+    if (strcmp(text, "AUTO") == 0)
     {
         *mode = THERMOSTAT_AUTO;
         return true;
     }
 
-
-    if(strcmp(buffer,"MANUAL")==0)
+    if (strcmp(text, "MANUAL") == 0)
     {
         *mode = THERMOSTAT_MANUAL;
         return true;
     }
 
-
-    if(strcmp(buffer,"HORS_GEL")==0)
+    if (strcmp(text, "HORS_GEL") == 0)
     {
         *mode = THERMOSTAT_HORS_GEL;
         return true;
     }
 
-
-    if(strcmp(buffer,"OFF")==0)
+    if (strcmp(text, "OFF") == 0)
     {
         *mode = THERMOSTAT_OFF;
         return true;
     }
 
+    LOG_WARN("STORAGE",
+             "Unknown thermostat mode \"%s\"",
+             text);
 
     return false;
 }
-
-
 
 /*
  * Ecriture complète du runtime
  */
 
-static bool storage_write(void)
-{
-    FILE *fp = fopen(
-        STORAGE_FILE,
-        "w");
+// static bool storage_write(void)
+// {
+//     FILE *fp = fopen(
+//         STORAGE_FILE,
+//         "w");
 
+//     if (fp == NULL)
+//     {
+//         LOG_ERROR("STORAGE",
+//                   "Unable to open %s",
+//                   STORAGE_FILE);
 
-    if(fp == NULL)
-    {
-        return false;
-    }
+//         return false;
+//     }
 
+//     fprintf(fp,
+//             "[runtime]\n");
 
-    fprintf(fp,
-            "[runtime]\n");
+//     storage_ini_write_float(
+//         fp,
+//         "setpoint",
+//         s_setpoint);
 
+//     storage_ini_write_string(
+//         fp,
+//         "mode",
+//         mode_to_string(s_mode));
 
-    fprintf(fp,
-            "setpoint=%.1f\n",
-            s_setpoint);
+//     fclose(fp);
 
-
-    fprintf(fp,
-            "mode=%s\n",
-            mode_to_string(s_mode));
-
-
-    fclose(fp);
-
-
-    return true;
-}
-
-
+//     return true;
+// }
 
 bool storage_init(void)
 {
-    FILE *fp = fopen(
-        STORAGE_FILE,
-        "r");
-
-
-    if(fp == NULL)
-    {
-        LOG_INFO("STORAGE",
-                 "No runtime file, using defaults");
-
-        return true;
-    }
-
-
-    char line[128];
-
-
-    while(fgets(line,
-                sizeof(line),
-                fp))
-    {
-
-        if(strncmp(line,
-                   "setpoint=",
-                   9)==0)
-        {
-            s_setpoint =
-                strtof(line + 9,
-                       NULL);
-        }
-
-
-        else if(strncmp(line,
-                        "mode=",
-                        5)==0)
-        {
-            string_to_mode(
-                line + 5,
-                &s_mode);
-        }
-    }
-
-
-    fclose(fp);
-
-
     LOG_INFO("STORAGE",
-             "Runtime storage initialized");
-
-
-    return true;
-}
-
-
-
-
-bool storage_save_mode(
-        thermostat_mode_t mode)
-{
-    s_mode = mode;
-
-
-    if(!storage_write())
-    {
-        return false;
-    }
-
-
-    LOG_INFO("STORAGE",
-             "Mode saved : %s",
-             mode_to_string(mode));
-
+             "Storage initialized");
 
     return true;
 }
-
-
-
-bool storage_load_mode(
-        thermostat_mode_t *mode)
-{
-    if(mode == NULL)
-    {
-        return false;
-    }
-
-
-    *mode = s_mode;
-
-
-    return true;
-}
-
-
-
-
-bool storage_save_setpoint(
-        float value)
-{
-    s_setpoint = value;
-
-
-    if(!storage_write())
-    {
-        return false;
-    }
-
-
-    LOG_INFO("STORAGE",
-             "Setpoint saved : %.1f",
-             value);
-
-
-    return true;
-}
-
-
-
-
-bool storage_load_setpoint(
-        float *value)
-{
-    if(value == NULL)
-    {
-        return false;
-    }
-
-
-    *value = s_setpoint;
-
-
-    return true;
-}
-
-
 
 void storage_dump(void)
 {
+    runtime_config_t cfg;
+
     printf("\n========== STORAGE ==========\n");
 
+    if (!storage_load_runtime(&cfg))
+    {
+        printf("No runtime configuration\n");
+        printf("=============================\n");
+        return;
+    }
 
-    printf("Setpoint : %.2f\n",
-           s_setpoint);
+    printf("Mode        : %s\n",
+           mode_to_string(cfg.mode));
 
+    printf("Setpoint    : %.2f C\n",
+           cfg.setpoint);
 
-    printf("Mode     : %s\n",
-           mode_to_string(s_mode));
+    printf("Hysteresis  : %.2f C\n",
+           cfg.hysteresis);
 
+    printf("Relay delay : %u s\n",
+           cfg.relay_delay);
+
+    printf("Latitude    : %.6f\n",
+           cfg.latitude);
+
+    printf("Longitude   : %.6f\n",
+           cfg.longitude);
 
     printf("=============================\n");
 }
 
 bool storage_save_runtime(
-        const runtime_config_t *cfg)
+    const runtime_config_t *cfg)
 {
     if (cfg == NULL)
     {
+        LOG_ERROR("STORAGE",
+                  "Invalid runtime configuration");
+
         return false;
     }
 
@@ -290,6 +173,10 @@ bool storage_save_runtime(
 
     if (fp == NULL)
     {
+        LOG_ERROR("STORAGE",
+                  "Unable to open %s",
+                  STORAGE_FILE);
+
         return false;
     }
 
@@ -301,7 +188,7 @@ bool storage_save_runtime(
             mode_to_string(cfg->mode));
 
     fprintf(fp,
-            "setpoint=%.1f\n",
+            "setpoint=%.2f\n",
             cfg->setpoint);
 
     fprintf(fp,
@@ -320,7 +207,13 @@ bool storage_save_runtime(
             "longitude=%.6f\n",
             cfg->longitude);
 
-    fclose(fp);
+    if (fclose(fp) != 0)
+    {
+        LOG_ERROR("STORAGE",
+                  "File close failed");
+
+        return false;
+    }
 
     LOG_INFO("STORAGE",
              "Runtime configuration saved");
@@ -328,13 +221,23 @@ bool storage_save_runtime(
     return true;
 }
 
-bool storage_load_runtime(
-        runtime_config_t *cfg)
+storage_load_result_t storage_load_runtime(
+    runtime_config_t *cfg)
+
 {
     if (cfg == NULL)
     {
-        return false;
+        LOG_ERROR("STORAGE",
+                  "Invalid runtime pointer");
+
+        return STORAGE_LOAD_ERROR;
     }
+
+    /*
+     * Valeurs par défaut
+     */
+
+    *cfg = runtime_default_config;
 
     FILE *fp = fopen(
         STORAGE_FILE,
@@ -342,7 +245,12 @@ bool storage_load_runtime(
 
     if (fp == NULL)
     {
-        return false;
+        *cfg = runtime_default_config;
+
+        LOG_WARN("STORAGE",
+                 "No runtime file, using defaults");
+
+        return STORAGE_LOAD_DEFAULT;
     }
 
     char line[128];
@@ -351,7 +259,8 @@ bool storage_load_runtime(
                  sizeof(line),
                  fp))
     {
-        char *value = strchr(line, '=');
+        char *value =
+            strchr(line, '=');
 
         if (value == NULL)
         {
@@ -361,44 +270,50 @@ bool storage_load_runtime(
         *value++ = '\0';
 
         line[strcspn(line, "\r\n")] = '\0';
+
         value[strcspn(value, "\r\n")] = '\0';
 
         if (strcmp(line, "mode") == 0)
         {
-            string_to_mode(
-                value,
-                &cfg->mode);
+            if (!string_to_mode(value,
+                                &cfg->mode))
+            {
+                LOG_WARN("STORAGE",
+                         "Invalid mode : %s",
+                         value);
+            }
         }
+
         else if (strcmp(line, "setpoint") == 0)
         {
-            cfg->setpoint = strtof(
-                value,
-                NULL);
+            cfg->setpoint =
+                strtof(value, NULL);
         }
+
         else if (strcmp(line, "hysteresis") == 0)
         {
-            cfg->hysteresis = strtof(
-                value,
-                NULL);
+            cfg->hysteresis =
+                strtof(value, NULL);
         }
+
         else if (strcmp(line, "relay_delay") == 0)
         {
-            cfg->relay_delay = (uint32_t)strtoul(
-                value,
-                NULL,
-                10);
+            cfg->relay_delay =
+                (uint32_t)strtoul(value,
+                                  NULL,
+                                  10);
         }
+
         else if (strcmp(line, "latitude") == 0)
         {
-            cfg->latitude = strtof(
-                value,
-                NULL);
+            cfg->latitude =
+                strtof(value, NULL);
         }
+
         else if (strcmp(line, "longitude") == 0)
         {
-            cfg->longitude = strtof(
-                value,
-                NULL);
+            cfg->longitude =
+                strtof(value, NULL);
         }
     }
 
@@ -406,6 +321,19 @@ bool storage_load_runtime(
 
     LOG_INFO("STORAGE",
              "Runtime configuration loaded");
+
+    return STORAGE_LOAD_OK;
+}
+
+bool storage_test_clear(void)
+{
+    if (remove(STORAGE_FILE) != 0)
+    {
+        return false;
+    }
+
+    LOG_INFO("STORAGE",
+             "Runtime storage cleared");
 
     return true;
 }

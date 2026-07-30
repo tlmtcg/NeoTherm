@@ -38,6 +38,7 @@ add_executable(
     src/relay/relay.c
     src/thermostat/thermostat.c
     src/storage/storage.c
+    src/storage/storage_ini.c
     src/thermal/thermal_model.c
     src/history/history.c
     src/history/history_debug.c
@@ -56,6 +57,7 @@ add_executable(
     src/tests/test_climate.c
     src/tests/test_utils.c
     src/tests/test_relay.c
+    src/tests/test_runtime.c
     src/runtime/runtime.c
 )
 

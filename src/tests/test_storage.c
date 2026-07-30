@@ -1,147 +1,3 @@
-// #include "test_storage.h"
-
-// #include <stdio.h>
-// #include <math.h>
-
-// #include "logger.h"
-// #include "storage.h"
-// #include "runtime.h"
-// #include "thermostat.h"
-
-// #define FLOAT_EPSILON 0.01f
-
-// bool test_storage_run(void)
-// {
-//     printf("\n=============== STORAGE TEST ===============\n");
-
-//     storage_init();
-
-//     /*
-//      * Sauvegarde initiale
-//      */
-
-//     runtime_config_t cfg =
-//     {
-//         .mode          = THERMOSTAT_MANUAL,
-//         .setpoint      = 19.5f,
-//         .hysteresis    = 0.2f,
-//         .relay_delay   = 180,
-//         .latitude      = 50.681f,
-//         .longitude     = 3.154f
-//     };
-
-//     printf("\nSaving runtime...\n");
-
-//     if (!storage_save_runtime(&cfg))
-//     {
-//         printf("FAIL : save_runtime\n");
-//         return false;
-//     }
-
-//     /*
-//      * Lecture
-//      */
-
-//     runtime_config_t loaded;
-
-//     if (!storage_load_runtime(&loaded))
-//     {
-//         printf("FAIL : load_runtime\n");
-//         return false;
-//     }
-
-//     printf("Loaded mode        : %s\n",
-//            thermostat_mode_name(loaded.mode));
-
-//     printf("Loaded setpoint    : %.1f\n",
-//            loaded.setpoint);
-
-//     printf("Loaded hysteresis  : %.2f\n",
-//            loaded.hysteresis);
-
-//     printf("Loaded relay delay : %u\n",
-//            loaded.relay_delay);
-
-//     /*
-//      * Vérifications
-//      */
-
-//     if (loaded.mode != THERMOSTAT_MANUAL)
-//     {
-//         printf("FAIL : mode\n");
-//         return false;
-//     }
-
-//     if (fabsf(loaded.setpoint - 19.5f) > FLOAT_EPSILON)
-//     {
-//         printf("FAIL : setpoint\n");
-//         return false;
-//     }
-
-//     if (fabsf(loaded.hysteresis - 0.2f) > FLOAT_EPSILON)
-//     {
-//         printf("FAIL : hysteresis\n");
-//         return false;
-//     }
-
-//     if (loaded.relay_delay != 180)
-//     {
-//         printf("FAIL : relay delay\n");
-//         return false;
-//     }
-
-//     /*
-//      * Test écrasement
-//      */
-
-//     cfg.mode = THERMOSTAT_AUTO;
-//     cfg.setpoint = 22.0f;
-//     cfg.hysteresis = 0.5f;
-//     cfg.relay_delay = 300;
-
-//     printf("\nOverwrite runtime...\n");
-
-//     if (!storage_save_runtime(&cfg))
-//     {
-//         printf("FAIL : overwrite save\n");
-//         return false;
-//     }
-
-//     if (!storage_load_runtime(&loaded))
-//     {
-//         printf("FAIL : overwrite load\n");
-//         return false;
-//     }
-
-//     if (loaded.mode != THERMOSTAT_AUTO)
-//     {
-//         printf("FAIL : overwrite mode\n");
-//         return false;
-//     }
-
-//     if (fabsf(loaded.setpoint - 22.0f) > FLOAT_EPSILON)
-//     {
-//         printf("FAIL : overwrite setpoint\n");
-//         return false;
-//     }
-
-//     if (fabsf(loaded.hysteresis - 0.5f) > FLOAT_EPSILON)
-//     {
-//         printf("FAIL : overwrite hysteresis\n");
-//         return false;
-//     }
-
-//     if (loaded.relay_delay != 300)
-//     {
-//         printf("FAIL : overwrite relay delay\n");
-//         return false;
-//     }
-
-//     printf("\nPASS : Storage\n");
-
-//     return true;
-// }
-
 #include "test_storage.h"
 
 #include <stdio.h>
@@ -181,7 +37,9 @@ bool test_storage_run(void)
 
     runtime_config_t loaded;
 
-    ASSERT_TRUE(storage_load_runtime(&loaded));
+    ASSERT_EQ_INT(
+    STORAGE_LOAD_OK,
+    storage_load_runtime(&loaded));
 
     printf("Loaded mode        : %s\n",
            thermostat_mode_name(loaded.mode));
@@ -228,7 +86,7 @@ bool test_storage_run(void)
 
     ASSERT_TRUE(storage_save_runtime(&cfg));
 
-    ASSERT_TRUE(storage_load_runtime(&loaded));
+    ASSERT_EQ_INT(STORAGE_LOAD_OK,storage_load_runtime(&loaded));
 
     ASSERT_EQ_INT(THERMOSTAT_AUTO,
                   loaded.mode);

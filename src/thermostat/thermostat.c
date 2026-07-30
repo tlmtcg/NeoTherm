@@ -66,40 +66,28 @@ bool thermostat_init(void)
 
     s_status.setpoint = program_get_setpoint();
 
-    if (!storage_load_setpoint(&s_status.setpoint))
-    {
-        config_get_float(
-            "thermostat",
-            "consigne",
-            &s_status.setpoint);
-    }
+    runtime_config_t cfg;
 
-    /*
-     * Restauration mode
-     */
 
-    if (!storage_load_mode(&s_status.mode))
-    {
-        s_status.mode = THERMOSTAT_AUTO;
-    }
+if (!storage_load_runtime(&cfg))
+{
+    LOG_WARN("THERMO",
+             "Using default runtime configuration");
+}
+else
+{
+    s_status.mode =
+        cfg.mode;
 
-    /*
-     * Hystérésis configuration
-     */
+    s_status.setpoint =
+        cfg.setpoint;
 
-    config_get_float(
-        "thermostat",
-        "hysteresis",
-        &s_status.hysteresis);
+    s_status.hysteresis =
+        cfg.hysteresis;
 
-    s_status.temperature =
-        climate_get_temperature();
-
-    s_status.relay_state = false;
-
-    s_status.heating_request = false;
-
-    s_manual_relay = false;
+    relay_set_min_switch_delay(
+        cfg.relay_delay);
+}
 
     LOG_INFO("THERMO",
              "Thermostat initialized : %.2f C +/- %.2f Mode=%s",
@@ -278,9 +266,8 @@ const thermostat_status_t *thermostat_get_status(void)
  *=========================================================*/
 
 bool thermostat_set_mode(
-    thermostat_mode_t mode)
+        thermostat_mode_t mode)
 {
-
     if ((mode < THERMOSTAT_OFF) ||
         (mode > THERMOSTAT_HORS_GEL))
     {
@@ -291,13 +278,39 @@ bool thermostat_set_mode(
         return false;
     }
 
+
+    /*
+     * Aucun changement
+     */
+    if (s_status.mode == mode)
+    {
+        return true;
+    }
+
+
     s_status.mode = mode;
 
-    storage_save_mode(mode);
+
+    runtime_config_t cfg;
+
+    if (storage_load_runtime(&cfg))
+    {
+        cfg.mode = mode;
+
+        if (!storage_save_runtime(&cfg))
+        {
+            LOG_ERROR("THERMO",
+                      "Failed to save runtime mode");
+
+            return false;
+        }
+    }
+
 
     LOG_INFO("THERMO",
              "Mode changed : %s",
              thermostat_mode_name(mode));
+
 
     return true;
 }
@@ -336,16 +349,43 @@ bool thermostat_manual_set_relay(
  *=========================================================*/
 
 bool thermostat_set_setpoint(
-    float value)
+        float value)
 {
+    if (value < 5.0f || value > 35.0f)
+    {
+        LOG_ERROR("THERMO",
+                  "Invalid setpoint %.1f C",
+                  value);
+
+        return false;
+    }
+
 
     s_status.setpoint = value;
 
-    storage_save_setpoint(value);
+
+    runtime_config_t cfg;
+
+
+    if (storage_load_runtime(&cfg))
+    {
+        cfg.setpoint = value;
+
+
+        if (!storage_save_runtime(&cfg))
+        {
+            LOG_ERROR("THERMO",
+                      "Failed to save runtime setpoint");
+
+            return false;
+        }
+    }
+
 
     LOG_INFO("THERMO",
              "Setpoint changed : %.1f C",
              value);
+
 
     return true;
 }

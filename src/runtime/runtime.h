@@ -7,62 +7,111 @@
 #include "thermostat.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-typedef struct
-{
-    thermostat_mode_t mode;
+    /*==========================================================
+     * Configuration runtime persistante
+     *=========================================================*/
 
-    float setpoint;
+    typedef struct
+    {
+        thermostat_mode_t mode;
 
-    float hysteresis;
+        float setpoint;
 
-    uint32_t relay_delay;
+        float hysteresis;
 
-    float latitude;
+        uint32_t relay_delay;
 
-    float longitude;
+        float latitude;
 
-} runtime_config_t;
+        float longitude;
 
-/*==========================================================
- * Initialisation
- *=========================================================*/
+    } runtime_config_t;
 
-bool runtime_init(void);
+    typedef enum
+    {
+        STORAGE_LOAD_OK = 0,
+        STORAGE_LOAD_DEFAULT = 1,
+        STORAGE_LOAD_ERROR = -1
 
-/*==========================================================
- * Lecture
- *=========================================================*/
+    } storage_load_result_t;
 
-const runtime_config_t *runtime_get(void);
+    /*==========================================================
+     * Initialisation
+     *=========================================================*/
 
-/*==========================================================
- * Chargement / Sauvegarde
- *=========================================================*/
+    /**
+     * @brief Initialise le runtime.
+     *
+     * Charge la configuration sauvegardée.
+     * Si aucune configuration n'existe,
+     * les valeurs par défaut sont conservées.
+     *
+     * @return true si initialisation réussie.
+     */
+    bool runtime_init(void);
 
-bool runtime_load(void);
+    /*==========================================================
+     * Accès configuration
+     *=========================================================*/
 
-bool runtime_save(void);
+    /**
+     * @brief Retourne la configuration runtime courante.
+     *
+     * Le pointeur retourné est en lecture seule.
+     *
+     * @return Pointeur vers la configuration.
+     */
+    const runtime_config_t *runtime_get(void);
 
-/*==========================================================
- * Modification
- *=========================================================*/
+    /*==========================================================
+     * Modification configuration
+     *=========================================================*/
 
-bool runtime_set_mode(thermostat_mode_t mode);
+    bool runtime_set_mode(
+        thermostat_mode_t mode);
 
-bool runtime_set_setpoint(float value);
+    bool runtime_set_setpoint(
+        float value);
 
-bool runtime_set_hysteresis(float value);
+    bool runtime_set_hysteresis(
+        float value);
 
-bool runtime_set_relay_delay(uint32_t seconds);
+    bool runtime_set_relay_delay(
+        uint32_t seconds);
 
-bool runtime_set_location(float latitude,
-                          float longitude);
+    bool runtime_set_location(
+        float latitude,
+        float longitude);
+
+    /*==========================================================
+     * Sauvegarde / chargement
+     *=========================================================*/
+
+    /**
+     * @brief Sauvegarde la configuration runtime.
+     *
+     * @return true si sauvegarde réussie.
+     */
+    bool runtime_save(void);
+
+    /**
+     * @brief Recharge la configuration depuis le stockage.
+     *
+     * @return true si chargement réussi.
+     */
+    bool runtime_load(void);
+
+    /*
+     * Configuration par défaut
+     */
+    extern const runtime_config_t runtime_default_config;
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif /* RUNTIME_H */

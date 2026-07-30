@@ -1,12 +1,16 @@
 #include <stdio.h>
+
 #include "clock.h"
 #include "test_utils.h"
+
 
 bool test_clock_run(void)
 {
     printf("\n================ CLOCK TEST ================\n");
 
+
     clock_init();
+
 
     clock_time_t t =
     {
@@ -18,75 +22,152 @@ bool test_clock_run(void)
         .second = 0
     };
 
-    if (!clock_set_time(&t))
-    {
-        printf("FAIL : clock_set_time()\n");
-        return false;
-    }
+
+    ASSERT_TRUE(
+        clock_set_time(&t));
+
 
     clock_time_t now;
 
-    if (!clock_get_time(&now))
-    {
-        printf("FAIL : clock_get_time()\n");
-        return false;
-    }
 
-    printf("Initial : %04u-%02u-%02u %02u:%02u:%02u\n",
-           now.year,
-           now.month,
-           now.day,
-           now.hour,
-           now.minute,
-           now.second);
+    ASSERT_TRUE(
+        clock_get_time(&now));
 
-    /* 
-     * Vérification de clock_seconds_today() à 12:00:00 
-     * 12 * 3600 = 43200 secondes
+
+    /*
+     * Vérification heure initiale
      */
-    ASSERT_EQ_UINT32(43200, clock_seconds_today());
+
+    ASSERT_EQ_UINT32(
+        43200,
+        clock_seconds_today());
+
+
+    ASSERT_EQ_UINT32(
+        2026,
+        now.year);
+
+    ASSERT_EQ_UINT32(
+        1,
+        now.month);
+
+    ASSERT_EQ_UINT32(
+        1,
+        now.day);
+
+    ASSERT_EQ_UINT32(
+        12,
+        now.hour);
+
+    ASSERT_EQ_UINT32(
+        0,
+        now.minute);
+
+    ASSERT_EQ_UINT32(
+        0,
+        now.second);
+
+
 
     /*
      * +30 secondes
      */
+
     clock_tick(30);
-    clock_get_time(&now);
-    printf("+30 s   : %04u-%02u-%02u %02u:%02u:%02u\n",
-           now.year, now.month, now.day, now.hour, now.minute, now.second);
-    ASSERT_EQ_UINT32(43230, clock_seconds_today());
+
+    ASSERT_TRUE(
+        clock_get_time(&now));
+
+    ASSERT_EQ_UINT32(
+        43230,
+        clock_seconds_today());
+
+    ASSERT_EQ_UINT32(
+        30,
+        now.second);
+
+
 
     /*
-     * +40 secondes (passage à la minute : 1 minute et 10 secondes écoulées au total)
+     * +40 secondes
      */
+
     clock_tick(40);
-    clock_get_time(&now);
-    printf("+40 s   : %04u-%02u-%02u %02u:%02u:%02u\n",
-           now.year, now.month, now.day, now.hour, now.minute, now.second);
-    ASSERT_EQ_UINT32(43270, clock_seconds_today());
+
+    ASSERT_TRUE(
+        clock_get_time(&now));
+
+    ASSERT_EQ_UINT32(
+        43270,
+        clock_seconds_today());
+
+    ASSERT_EQ_UINT32(
+        1,
+        now.minute);
+
+    ASSERT_EQ_UINT32(
+        10,
+        now.second);
+
+
 
     /*
-     * +1 heure (3600 secondes)
+     * +1 heure
      */
+
     clock_tick(3600);
-    clock_get_time(&now);
-    printf("+1 h    : %04u-%02u-%02u %02u:%02u:%02u\n",
-           now.year, now.month, now.day, now.hour, now.minute, now.second);
-    ASSERT_EQ_UINT32(46870, clock_seconds_today());
+
+    ASSERT_TRUE(
+        clock_get_time(&now));
+
+    ASSERT_EQ_UINT32(
+        46870,
+        clock_seconds_today());
+
+    ASSERT_EQ_UINT32(
+        13,
+        now.hour);
+
+    ASSERT_EQ_UINT32(
+        10,
+        now.second);
+
+
 
     /*
-     * Test de clock_add_seconds() et clock_add_second()
+     * Test clock_add_second()
      */
+
     clock_add_second();
-    clock_get_time(&now);
-    ASSERT_EQ_UINT32(46871, clock_seconds_today());
+
+    ASSERT_TRUE(
+        clock_get_time(&now));
+
+    ASSERT_EQ_UINT32(
+        46871,
+        clock_seconds_today());
+
+
+
+    /*
+     * Test clock_add_seconds()
+     */
 
     clock_add_seconds(10);
-    clock_get_time(&now);
-    ASSERT_EQ_UINT32(46881, clock_seconds_today());
+
+    ASSERT_TRUE(
+        clock_get_time(&now));
+
+    ASSERT_EQ_UINT32(
+        46881,
+        clock_seconds_today());
+
+
 
     /*
-     * Test du passage à minuit (rollover de clock_seconds_today)
+     * Passage à minuit
      */
+
     clock_time_t presque_minuit =
     {
         .year   = 2026,
@@ -96,18 +177,58 @@ bool test_clock_run(void)
         .minute = 59,
         .second = 50
     };
-    clock_set_time(&presque_minuit);
-    ASSERT_EQ_UINT32(86390, clock_seconds_today());
 
-    // Avance de 20 secondes (passe au jour suivant 00:00:10)
+
+    ASSERT_TRUE(
+        clock_set_time(&presque_minuit));
+
+
+    ASSERT_EQ_UINT32(
+        86390,
+        clock_seconds_today());
+
+
+    /*
+     * +20 secondes -> 2 janvier 00:00:10
+     */
+
     clock_tick(20);
-    clock_get_time(&now);
-    printf("Minuit+ : %04u-%02u-%02u %02u:%02u:%02u\n",
-           now.year, now.month, now.day, now.hour, now.minute, now.second);
-    
-    // clock_seconds_today() doit repartir à 10 secondes
-    ASSERT_EQ_UINT32(10, clock_seconds_today());
-    ASSERT_EQ_UINT32(2, now.day); // Passage au 2 janvier
+
+
+    ASSERT_TRUE(
+        clock_get_time(&now));
+
+
+    ASSERT_EQ_UINT32(
+        10,
+        clock_seconds_today());
+
+
+    ASSERT_EQ_UINT32(
+        2026,
+        now.year);
+
+    ASSERT_EQ_UINT32(
+        1,
+        now.month);
+
+    ASSERT_EQ_UINT32(
+        2,
+        now.day);
+
+    ASSERT_EQ_UINT32(
+        0,
+        now.hour);
+
+    ASSERT_EQ_UINT32(
+        0,
+        now.minute);
+
+    ASSERT_EQ_UINT32(
+        10,
+        now.second);
+
+
 
     printf("PASS : Clock\n");
 

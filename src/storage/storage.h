@@ -14,29 +14,21 @@ extern "C" {
 
 bool storage_init(void);
 
-
-bool storage_save_mode(
-        thermostat_mode_t mode);
-
-
-bool storage_load_mode(
-        thermostat_mode_t *mode);
-
 void storage_dump(void);
-
-bool storage_save_setpoint(
-        float value);
-
-
-bool storage_load_setpoint(
-        float *value);
 
 bool storage_save_runtime(
         const runtime_config_t *cfg);
 
-bool storage_load_runtime(
-        runtime_config_t *cfg);
-        
+storage_load_result_t storage_load_runtime(
+    runtime_config_t *cfg);
+
+/**
+ * @brief Supprime le fichier runtime.ini.
+ *
+ * Utilisé uniquement par les tests.
+ */
+bool storage_test_clear(void);
+
 #ifdef __cplusplus
 }
 #endif
