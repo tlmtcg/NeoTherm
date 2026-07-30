@@ -20,58 +20,21 @@ void clock_init(void)
     s_time.minute = 0;
     s_time.second = 0;
 
-    LOG_INFO("CLOCK",
-             "Clock initialized");
+    LOG_INFO("CLOCK", "Clock initialized");
 }
 
 /*
  * Avance temps
  */
-void clock_tick(
-    uint32_t seconds)
+void clock_tick(uint32_t seconds)
 {
-    s_time.second += seconds;
-
-    while (s_time.second >= 60)
-    {
-        s_time.second -= 60;
-        s_time.minute++;
-    }
-
-    while (s_time.minute >= 60)
-    {
-        s_time.minute -= 60;
-        s_time.hour++;
-    }
-
-    while (s_time.hour >= 24)
-    {
-        s_time.hour -= 24;
-        s_time.day++;
-    }
-
-    /*
-     * Simplification temporaire :
-     * mois de 30 jours
-     */
-    if (s_time.day > 30)
-    {
-        s_time.day = 1;
-        s_time.month++;
-    }
-
-    if (s_time.month > 12)
-    {
-        s_time.month = 1;
-        s_time.year++;
-    }
+    clock_add_seconds(seconds);
 }
 
 /*
  * Lecture
  */
-bool clock_get_time(
-    clock_time_t *time)
+bool clock_get_time(clock_time_t *time)
 {
     if (time == NULL)
     {
@@ -83,8 +46,7 @@ bool clock_get_time(
     return true;
 }
 
-bool clock_set_time(
-    const clock_time_t *time)
+bool clock_set_time(const clock_time_t *time)
 {
     if (time == NULL)
     {
@@ -130,18 +92,16 @@ void clock_dump(void)
              s_time.second);
 }
 
-#include <time.h>
-
 void clock_add_seconds(uint32_t seconds)
 {
     struct tm tm_time =
     {
-        .tm_year = s_time.year - 1900,
-        .tm_mon  = s_time.month - 1,
-        .tm_mday = s_time.day,
-        .tm_hour = s_time.hour,
-        .tm_min  = s_time.minute,
-        .tm_sec  = s_time.second,
+        .tm_year = (int)s_time.year - 1900,
+        .tm_mon  = (int)s_time.month - 1,
+        .tm_mday = (int)s_time.day,
+        .tm_hour = (int)s_time.hour,
+        .tm_min  = (int)s_time.minute,
+        .tm_sec  = (int)s_time.second,
         .tm_isdst = -1
     };
 
@@ -152,7 +112,7 @@ void clock_add_seconds(uint32_t seconds)
         return;
     }
 
-    t += seconds;
+    t += (time_t)seconds;
 
     struct tm *new_time = localtime(&t);
 
@@ -161,12 +121,12 @@ void clock_add_seconds(uint32_t seconds)
         return;
     }
 
-    s_time.year   = new_time->tm_year + 1900;
-    s_time.month  = new_time->tm_mon + 1;
-    s_time.day    = new_time->tm_mday;
-    s_time.hour   = new_time->tm_hour;
-    s_time.minute = new_time->tm_min;
-    s_time.second = new_time->tm_sec;
+    s_time.year   = (uint32_t)(new_time->tm_year + 1900);
+    s_time.month  = (uint32_t)(new_time->tm_mon + 1);
+    s_time.day    = (uint32_t)new_time->tm_mday;
+    s_time.hour   = (uint32_t)new_time->tm_hour;
+    s_time.minute = (uint32_t)new_time->tm_min;
+    s_time.second = (uint32_t)new_time->tm_sec;
 }
 
 void clock_add_second(void)

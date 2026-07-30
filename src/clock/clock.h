@@ -53,6 +53,8 @@ extern "C"
 
     uint32_t clock_seconds_today(void);
 
+    void clock_add_second(void);
+
 #ifdef __cplusplus
 }
 #endif

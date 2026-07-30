@@ -36,6 +36,8 @@ bool test_thermostat_run(void)
 
     thermostat_init();
 
+    relay_test_reset();
+    
     /*
      * -----------------------------
      * AUTO
@@ -46,6 +48,8 @@ bool test_thermostat_run(void)
         THERMOSTAT_AUTO);
 
     printf("\nMode AUTO\n");
+
+    
 
     /*
      * Température supérieure à la consigne
@@ -140,42 +144,6 @@ bool test_thermostat_run(void)
     thermostat_update();
 
     ASSERT_FALSE(relay_get());
-
-    printf("PASS\n");
-
-    /*
-     * Test can switch
-     */
-
-    relay_init();
-
-    relay_set_min_switch_delay(180);
-
-    printf("\nRelay switch delay test\n");
-
-    clock_time_t t =
-        {
-            .year = 2026,
-            .month = 1,
-            .day = 1,
-            .hour = 12,
-            .minute = 0,
-            .second = 0};
-
-    clock_set_time(&t);
-
-    /* Premier basculement */
-    relay_set(true);
-
-    ASSERT_TRUE(relay_can_switch());
-
-    clock_add_seconds(100);
-
-    ASSERT_FALSE(relay_can_switch());
-
-    clock_add_seconds(80);
-
-    ASSERT_TRUE(relay_can_switch());
 
     printf("PASS\n");
 

@@ -97,6 +97,13 @@ void relay_set_min_switch_delay(uint32_t seconds);
  */
 uint32_t relay_get_min_switch_delay(void);
 
+
+/**
+ * @brief Centralise toute la configuration spécifique aux tests
+ *
+ */
+void relay_test_reset(void);
+
 #ifdef __cplusplus
 }
 #endif

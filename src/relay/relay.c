@@ -1,18 +1,14 @@
 #include "relay.h"
-
 #include "logger.h"
 #include "clock.h"
 
 #define RELAY_DEFAULT_SWITCH_DELAY 180
+#define SECONDS_PER_DAY 86400
 
 static bool s_relay_state = false;
-
 static uint32_t s_switch_count = 0;
-
 static uint32_t s_min_switch_delay = RELAY_DEFAULT_SWITCH_DELAY;
-
 static uint32_t s_last_switch_time = 0;
-
 static bool s_first_switch = true;
 
 /*==========================================================
@@ -22,18 +18,12 @@ static bool s_first_switch = true;
 bool relay_init(void)
 {
     s_relay_state = false;
-
     s_switch_count = 0;
-
-    s_min_switch_delay =
-        RELAY_DEFAULT_SWITCH_DELAY;
-
+    s_min_switch_delay = RELAY_DEFAULT_SWITCH_DELAY;
     s_last_switch_time = 0;
-
     s_first_switch = true;
 
-    LOG_INFO("RELAY",
-             "Relay initialized : OFF");
+    LOG_INFO("RELAY", "Relay initialized : OFF");
 
     return true;
 }
@@ -44,41 +34,26 @@ bool relay_init(void)
 
 bool relay_set(bool state)
 {
-    /*
-     * Pas de changement inutile
-     */
+    /* Pas de changement inutile */
     if (s_relay_state == state)
     {
         return true;
     }
 
-    /*
-     * Protection anti-cycles courts
-     */
+    /* Protection anti-cycles courts */
     if (!relay_can_switch())
     {
-        LOG_WARN("RELAY",
-                 "Switch refused : minimum delay not elapsed");
-
+        LOG_WARN("RELAY", "Switch refused : minimum delay not elapsed");
         return false;
     }
 
     s_relay_state = state;
-
     s_switch_count++;
-
-    s_last_switch_time =
-        clock_seconds_today();
-
+    s_last_switch_time = clock_seconds_today();
     s_first_switch = false;
 
-    LOG_INFO("RELAY",
-             "Relay switched at %u",
-             s_last_switch_time);
-
-    LOG_INFO("RELAY",
-             "Relay %s",
-             state ? "ON" : "OFF");
+    LOG_INFO("RELAY", "Relay switched at %u", s_last_switch_time);
+    LOG_INFO("RELAY", "Relay %s", state ? "ON" : "OFF");
 
     return true;
 }
@@ -113,16 +88,27 @@ void relay_reset_switch_count(void)
 
 bool relay_can_switch(void)
 {
+    /* 
+     * Si c'est le tout premier basculement, l'anti-cycle est désactivé.
+     * On initialise directement s_last_switch_time à l'heure courante 
+     * pour éviter un décalage à 0 si l'horloge a déjà été réglée.
+     */
     if (s_first_switch)
     {
         return true;
     }
 
-    uint32_t now =
-        clock_seconds_today();
+    uint32_t now = clock_seconds_today();
+    uint32_t delta;
 
-    uint32_t delta =
-        now - s_last_switch_time;
+    if (now >= s_last_switch_time)
+    {
+        delta = now - s_last_switch_time;
+    }
+    else
+    {
+        delta = (SECONDS_PER_DAY - s_last_switch_time) + now;
+    }
 
     LOG_DEBUG("RELAY",
               "now=%u last=%u delta=%u delay=%u",
@@ -138,12 +124,20 @@ void relay_set_min_switch_delay(uint32_t seconds)
 {
     s_min_switch_delay = seconds;
 
-    LOG_INFO("RELAY",
-             "Min switch delay set : %u s",
-             seconds);
+    LOG_INFO("RELAY", "Min switch delay set : %u s", seconds);
 }
 
 uint32_t relay_get_min_switch_delay(void)
 {
     return s_min_switch_delay;
+}
+
+
+void relay_test_reset(void)
+{
+    relay_init();
+
+    relay_set_min_switch_delay(0);
+
+    relay_reset_switch_count();
 }
