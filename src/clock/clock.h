@@ -49,6 +49,10 @@ extern "C"
      */
     void clock_dump(void);
 
+    void clock_add_seconds(uint32_t seconds);
+
+    uint32_t clock_seconds_today(void);
+
 #ifdef __cplusplus
 }
 #endif

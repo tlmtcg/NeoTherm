@@ -1,4 +1,6 @@
 #include "thermostat.h"
+#include <stdint.h>
+#include <stdio.h>
 
 #include "logger.h"
 #include "climate.h"
@@ -22,6 +24,8 @@ static thermostat_status_t s_status =
         .heating_request = false};
 
 static bool s_manual_relay = false;
+
+static uint32_t s_min_switch_delay = 180; // secondes
 
 /*==========================================================
  * Fonctions privées
@@ -153,12 +157,19 @@ void thermostat_update(void)
     case THERMOSTAT_AUTO:
 
         s_status.setpoint = program_get_setpoint();
-        
+
         if (temperature <
             (s_status.setpoint -
              s_status.hysteresis))
         {
-            relay_set(true);
+            bool switched = relay_set(true);
+
+            if (!switched)
+            {
+                LOG_DEBUG("THERMO",
+                          "Heating requested but relay blocked "
+                          "(anti-cycle delay)");
+            }
 
             s_status.heating_request = true;
         }
@@ -167,7 +178,13 @@ void thermostat_update(void)
                  (s_status.setpoint +
                   s_status.hysteresis))
         {
-            relay_set(false);
+            bool switched = relay_set(false);
+
+            if (!switched)
+            {
+                LOG_DEBUG("THERMO",
+                          "Relay OFF request blocked");
+            }
 
             s_status.heating_request = false;
         }

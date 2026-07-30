@@ -13,7 +13,6 @@ static float s_temperature = 20.5f;
 
 void climate_init(void)
 {
-    thermal_model_init();
     s_temperature = 20.5f;
 
     LOG_INFO("CLIMATE",
@@ -25,30 +24,23 @@ void climate_init(void)
  * Mise à jour climat
  *=========================================================*/
 
-void climate_update(void)
+void climate_update(float temperature)
 {
-    /*
-     * Simulation simple :
-     * la température monte doucement
-     */
+    s_temperature = temperature;
 
-    s_temperature =
-        thermal_model_update(
-            s_temperature,
-            relay_get());
 
-    event_t event;
+    event_t event = {0};
 
-    event.type = EVENT_CLIMATE_UPDATE;
 
-    event.data.temperature = s_temperature;
+    event.type =
+        EVENT_CLIMATE_UPDATE;
 
-    if (!event_post(&event))
-    {
-        LOG_ERROR("CLIMATE",
-                  "Unable to post climate event");
-    }
-    else
+
+    event.data.temperature =
+        s_temperature;
+
+
+    if (event_post(&event))
     {
         LOG_INFO("CLIMATE",
                  "Temperature = %.2f C",
@@ -65,11 +57,49 @@ float climate_get_temperature(void)
     return s_temperature;
 }
 
+void climate_tick(void)
+{
+    float heat = 0.0f;
+
+
+    if (relay_get())
+    {
+        heat = 1.0f;
+    }
+
+
+    s_temperature =
+        thermal_model_update(
+            heat,
+            thermal_model_get_outside_temperature());
+
+
+    event_t event = {0};
+
+    event.type =
+        EVENT_CLIMATE_UPDATE;
+
+    event.data.temperature =
+        s_temperature;
+
+
+    event_post(&event);
+
+
+    LOG_INFO("CLIMATE",
+             "Temperature = %.2f C",
+             s_temperature);
+}
+
+#ifdef TEST_MODE
+
 void climate_test_set_temperature(float temperature)
 {
     s_temperature = temperature;
 
     LOG_INFO("CLIMATE",
-             "TEST temperature forced : %.1f C",
-             s_temperature);
+             "Test temperature injected : %.2f C",
+             temperature);
 }
+
+#endif

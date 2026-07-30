@@ -20,16 +20,11 @@ bool program_init(void)
 
 float program_get_setpoint(void)
 {
-    clock_time_t now;
+    float setpoint = schedule_get_setpoint();
 
-    if (!clock_get_time(&now))
-    {
-        return 20.5f;
-    }
-
-    LOG_INFO("PROGRAM",
+    LOG_DEBUG("PROGRAM",
              "Program setpoint = %.1f",
-             schedule_get_setpoint());
+             setpoint);
 
-    return schedule_get_setpoint();
+    return setpoint;
 }

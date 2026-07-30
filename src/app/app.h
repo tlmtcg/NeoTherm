@@ -3,9 +3,10 @@
 
 #include <stdbool.h>
 
-#define APP_SIMULATION_MODE    1
-#define APP_SIMULATION_TICKS   150
+#define APP_SIMULATION_MODE     1
+#define APP_SIMULATION_TICKS    150
 #define APP_SIMULATION_DELAY_MS 100
+#define TEST_MODE               1
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,7 +15,7 @@ extern "C" {
 
 bool app_init(void);
 
-void app_run(void);
+bool app_run(void);
 
 
 #ifdef __cplusplus

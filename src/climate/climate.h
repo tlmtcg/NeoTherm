@@ -1,33 +1,29 @@
 #ifndef CLIMATE_H
 #define CLIMATE_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
-/*
- * Initialisation du simulateur climatique
- */
+#include "app.h" // pour TEST_MODE
+ 
 void climate_init(void);
 
-
-/*
- * Mise à jour du climat
- * Appelée périodiquement
- */
-void climate_update(void);
-
-
-/*
- * Retourne la température actuelle
- */
 float climate_get_temperature(void);
 
-void climate_test_set_temperature(float temperature);
+/*
+ * Mise à jour depuis un capteur
+ * ou une simulation externe
+ */
+void climate_update(float temperature);
 
-#ifdef __cplusplus
-}
+
+/*
+ * Evolution du modèle thermique
+ */
+void climate_tick(void);
+
+/*
+ * API TEST uniquement
+ */
+#ifdef TEST_MODE
+void climate_test_set_temperature(float temperature);
 #endif
 
-#endif /* CLIMATE_H */
+#endif

@@ -53,12 +53,6 @@ bool history_add(
     bool heating)
 {
 
-    LOG_INFO("HISTORY",
-         "Add tick=%u count=%u head=%u",
-         s_tick,
-         s_count,
-         s_head);
-         
     history_record_t *record =
         &s_history[s_head];
 
@@ -67,6 +61,12 @@ bool history_add(
      */
     record->tick = s_tick++;
 
+    LOG_INFO("HISTORY",
+             "Add tick=%u count=%u head=%u",
+             s_tick,
+             s_count,
+             s_head);
+             
     /*
      * Horodatage
      */

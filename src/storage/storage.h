@@ -20,7 +20,7 @@ bool storage_save_mode(
 bool storage_load_mode(
         thermostat_mode_t *mode);
 
-
+void storage_dump(void);
 
 bool storage_save_setpoint(
         float value);

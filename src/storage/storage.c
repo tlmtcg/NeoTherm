@@ -3,10 +3,18 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
 #include "logger.h"
 
 
 #define STORAGE_FILE "../runtime.ini"
+
+
+static float s_setpoint = 20.5f;
+
+static thermostat_mode_t s_mode =
+    THERMOSTAT_AUTO;
+
 
 
 static const char *mode_to_string(
@@ -32,36 +40,86 @@ static const char *mode_to_string(
 }
 
 
+
 static bool string_to_mode(
         const char *text,
         thermostat_mode_t *mode)
 {
-    if(strcmp(text,"AUTO")==0)
+    char buffer[32];
+
+    sscanf(text, "%31s", buffer);
+
+
+    if(strcmp(buffer,"AUTO")==0)
     {
         *mode = THERMOSTAT_AUTO;
         return true;
     }
 
-    if(strcmp(text,"MANUAL")==0)
+
+    if(strcmp(buffer,"MANUAL")==0)
     {
         *mode = THERMOSTAT_MANUAL;
         return true;
     }
 
-    if(strcmp(text,"HORS_GEL")==0)
+
+    if(strcmp(buffer,"HORS_GEL")==0)
     {
         *mode = THERMOSTAT_HORS_GEL;
         return true;
     }
 
-    if(strcmp(text,"OFF")==0)
+
+    if(strcmp(buffer,"OFF")==0)
     {
         *mode = THERMOSTAT_OFF;
         return true;
     }
 
+
     return false;
 }
+
+
+
+/*
+ * Ecriture complète du runtime
+ */
+
+static bool storage_write(void)
+{
+    FILE *fp = fopen(
+        STORAGE_FILE,
+        "w");
+
+
+    if(fp == NULL)
+    {
+        return false;
+    }
+
+
+    fprintf(fp,
+            "[runtime]\n");
+
+
+    fprintf(fp,
+            "setpoint=%.1f\n",
+            s_setpoint);
+
+
+    fprintf(fp,
+            "mode=%s\n",
+            mode_to_string(s_mode));
+
+
+    fclose(fp);
+
+
+    return true;
+}
+
 
 
 bool storage_init(void)
@@ -80,6 +138,35 @@ bool storage_init(void)
     }
 
 
+    char line[128];
+
+
+    while(fgets(line,
+                sizeof(line),
+                fp))
+    {
+
+        if(strncmp(line,
+                   "setpoint=",
+                   9)==0)
+        {
+            s_setpoint =
+                strtof(line + 9,
+                       NULL);
+        }
+
+
+        else if(strncmp(line,
+                        "mode=",
+                        5)==0)
+        {
+            string_to_mode(
+                line + 5,
+                &s_mode);
+        }
+    }
+
+
     fclose(fp);
 
 
@@ -92,29 +179,17 @@ bool storage_init(void)
 
 
 
+
 bool storage_save_mode(
         thermostat_mode_t mode)
 {
-    FILE *fp = fopen(
-        STORAGE_FILE,
-        "w");
+    s_mode = mode;
 
 
-    if(fp == NULL)
+    if(!storage_write())
     {
         return false;
     }
-
-
-    fprintf(fp,
-            "[runtime]\n");
-
-    fprintf(fp,
-            "mode=%s\n",
-            mode_to_string(mode));
-
-
-    fclose(fp);
 
 
     LOG_INFO("STORAGE",
@@ -130,67 +205,31 @@ bool storage_save_mode(
 bool storage_load_mode(
         thermostat_mode_t *mode)
 {
-    FILE *fp = fopen(
-        STORAGE_FILE,
-        "r");
-
-
-    if(fp == NULL)
+    if(mode == NULL)
     {
         return false;
     }
 
 
-    char line[128];
+    *mode = s_mode;
 
 
-    while(fgets(line,
-                sizeof(line),
-                fp))
-    {
-        if(strncmp(line,
-                   "mode=",
-                   5)==0)
-        {
-            fclose(fp);
-
-            return string_to_mode(
-                    line + 5,
-                    mode);
-        }
-    }
-
-
-    fclose(fp);
-
-    return false;
+    return true;
 }
+
 
 
 
 bool storage_save_setpoint(
         float value)
 {
-    FILE *fp = fopen(
-        STORAGE_FILE,
-        "w");
+    s_setpoint = value;
 
 
-    if(fp == NULL)
+    if(!storage_write())
     {
         return false;
     }
-
-
-    fprintf(fp,
-            "[runtime]\n");
-
-    fprintf(fp,
-            "setpoint=%.1f\n",
-            value);
-
-
-    fclose(fp);
 
 
     LOG_INFO("STORAGE",
@@ -203,43 +242,36 @@ bool storage_save_setpoint(
 
 
 
+
 bool storage_load_setpoint(
         float *value)
 {
-    FILE *fp = fopen(
-        STORAGE_FILE,
-        "r");
-
-
-    if(fp == NULL)
+    if(value == NULL)
     {
         return false;
     }
 
 
-    char line[128];
+    *value = s_setpoint;
 
 
-    while(fgets(line,
-                sizeof(line),
-                fp))
-    {
-        if(strncmp(line,
-                   "setpoint=",
-                   9)==0)
-        {
-            fclose(fp);
-
-            *value = strtof(
-                    line + 9,
-                    NULL);
-
-            return true;
-        }
-    }
+    return true;
+}
 
 
-    fclose(fp);
 
-    return false;
+void storage_dump(void)
+{
+    printf("\n========== STORAGE ==========\n");
+
+
+    printf("Setpoint : %.2f\n",
+           s_setpoint);
+
+
+    printf("Mode     : %s\n",
+           mode_to_string(s_mode));
+
+
+    printf("=============================\n");
 }

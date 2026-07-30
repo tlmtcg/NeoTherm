@@ -36,19 +36,19 @@
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 100,
+				"line" : 111,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 79,
+				"line" : 90,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 56,
+				"line" : 66,
 				"parent" : 0
 			}
 		]
@@ -142,6 +142,10 @@
 				{
 					"backtrace" : 4,
 					"path" : "C:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/program"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "C:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/tests"
 				}
 			],
 			"language" : "C",
@@ -175,7 +179,17 @@
 				17,
 				18,
 				19,
-				20
+				20,
+				21,
+				22,
+				23,
+				24,
+				25,
+				26,
+				27,
+				28,
+				29,
+				30
 			]
 		}
 	],
@@ -228,7 +242,17 @@
 				17,
 				18,
 				19,
-				20
+				20,
+				21,
+				22,
+				23,
+				24,
+				25,
+				26,
+				27,
+				28,
+				29,
+				30
 			]
 		}
 	],
@@ -358,6 +382,66 @@
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
 			"path" : "src/program/schedule.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/tests/test_runner.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/tests/test_thermostat.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/tests/test_storage.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/tests/test_scheduler.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/tests/test_program.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/tests/test_history.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/tests/test_clock.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/tests/test_climate.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/tests/test_utils.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/tests/test_relay.c",
 			"sourceGroupIndex" : 0
 		}
 	],

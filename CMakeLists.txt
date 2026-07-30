@@ -47,6 +47,16 @@ add_executable(
     src/clock/clock.c
     src/program/program.c
     src/program/schedule.c
+    src/tests/test_runner.c
+    src/tests/test_thermostat.c
+    src/tests/test_storage.c
+    src/tests/test_scheduler.c
+    src/tests/test_program.c
+    src/tests/test_history.c
+    src/tests/test_clock.c
+    src/tests/test_climate.c
+    src/tests/test_utils.c
+    src/tests/test_relay.c
 )
 
 # ==========================================================
@@ -70,6 +80,7 @@ target_include_directories(
         src/history
         src/clock
         src/program
+        src/tests
 )
 
 # ==========================================================

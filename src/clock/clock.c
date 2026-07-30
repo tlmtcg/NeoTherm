@@ -1,6 +1,7 @@
 #include "clock.h"
 
 #include <stdio.h>
+#include <time.h>
 
 #include "logger.h"
 
@@ -92,7 +93,7 @@ bool clock_set_time(
 
     /* Vérification minimale */
     if ((time->month < 1) || (time->month > 12) ||
-        (time->day < 1)   || (time->day > 31)   ||
+        (time->day < 1) || (time->day > 31) ||
         (time->hour > 23) ||
         (time->minute > 59) ||
         (time->second > 59))
@@ -127,4 +128,62 @@ void clock_dump(void)
              s_time.hour,
              s_time.minute,
              s_time.second);
+}
+
+#include <time.h>
+
+void clock_add_seconds(uint32_t seconds)
+{
+    struct tm tm_time =
+    {
+        .tm_year = s_time.year - 1900,
+        .tm_mon  = s_time.month - 1,
+        .tm_mday = s_time.day,
+        .tm_hour = s_time.hour,
+        .tm_min  = s_time.minute,
+        .tm_sec  = s_time.second,
+        .tm_isdst = -1
+    };
+
+    time_t t = mktime(&tm_time);
+
+    if (t == (time_t)-1)
+    {
+        return;
+    }
+
+    t += seconds;
+
+    struct tm *new_time = localtime(&t);
+
+    if (new_time == NULL)
+    {
+        return;
+    }
+
+    s_time.year   = new_time->tm_year + 1900;
+    s_time.month  = new_time->tm_mon + 1;
+    s_time.day    = new_time->tm_mday;
+    s_time.hour   = new_time->tm_hour;
+    s_time.minute = new_time->tm_min;
+    s_time.second = new_time->tm_sec;
+}
+
+void clock_add_second(void)
+{
+    clock_add_seconds(1);
+}
+
+uint32_t clock_seconds_today(void)
+{
+    clock_time_t now;
+
+    if (!clock_get_time(&now))
+    {
+        return 0;
+    }
+
+    return (uint32_t)now.hour * 3600U +
+           (uint32_t)now.minute * 60U +
+           (uint32_t)now.second;
 }
