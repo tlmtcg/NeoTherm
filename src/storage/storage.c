@@ -275,3 +275,137 @@ void storage_dump(void)
 
     printf("=============================\n");
 }
+
+bool storage_save_runtime(
+        const runtime_config_t *cfg)
+{
+    if (cfg == NULL)
+    {
+        return false;
+    }
+
+    FILE *fp = fopen(
+        STORAGE_FILE,
+        "w");
+
+    if (fp == NULL)
+    {
+        return false;
+    }
+
+    fprintf(fp,
+            "[runtime]\n");
+
+    fprintf(fp,
+            "mode=%s\n",
+            mode_to_string(cfg->mode));
+
+    fprintf(fp,
+            "setpoint=%.1f\n",
+            cfg->setpoint);
+
+    fprintf(fp,
+            "hysteresis=%.2f\n",
+            cfg->hysteresis);
+
+    fprintf(fp,
+            "relay_delay=%u\n",
+            cfg->relay_delay);
+
+    fprintf(fp,
+            "latitude=%.6f\n",
+            cfg->latitude);
+
+    fprintf(fp,
+            "longitude=%.6f\n",
+            cfg->longitude);
+
+    fclose(fp);
+
+    LOG_INFO("STORAGE",
+             "Runtime configuration saved");
+
+    return true;
+}
+
+bool storage_load_runtime(
+        runtime_config_t *cfg)
+{
+    if (cfg == NULL)
+    {
+        return false;
+    }
+
+    FILE *fp = fopen(
+        STORAGE_FILE,
+        "r");
+
+    if (fp == NULL)
+    {
+        return false;
+    }
+
+    char line[128];
+
+    while (fgets(line,
+                 sizeof(line),
+                 fp))
+    {
+        char *value = strchr(line, '=');
+
+        if (value == NULL)
+        {
+            continue;
+        }
+
+        *value++ = '\0';
+
+        line[strcspn(line, "\r\n")] = '\0';
+        value[strcspn(value, "\r\n")] = '\0';
+
+        if (strcmp(line, "mode") == 0)
+        {
+            string_to_mode(
+                value,
+                &cfg->mode);
+        }
+        else if (strcmp(line, "setpoint") == 0)
+        {
+            cfg->setpoint = strtof(
+                value,
+                NULL);
+        }
+        else if (strcmp(line, "hysteresis") == 0)
+        {
+            cfg->hysteresis = strtof(
+                value,
+                NULL);
+        }
+        else if (strcmp(line, "relay_delay") == 0)
+        {
+            cfg->relay_delay = (uint32_t)strtoul(
+                value,
+                NULL,
+                10);
+        }
+        else if (strcmp(line, "latitude") == 0)
+        {
+            cfg->latitude = strtof(
+                value,
+                NULL);
+        }
+        else if (strcmp(line, "longitude") == 0)
+        {
+            cfg->longitude = strtof(
+                value,
+                NULL);
+        }
+    }
+
+    fclose(fp);
+
+    LOG_INFO("STORAGE",
+             "Runtime configuration loaded");
+
+    return true;
+}

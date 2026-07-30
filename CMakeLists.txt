@@ -56,6 +56,7 @@ add_executable(
     src/tests/test_climate.c
     src/tests/test_utils.c
     src/tests/test_relay.c
+    src/runtime/runtime.c
 )
 
 # ==========================================================
@@ -80,6 +81,7 @@ target_include_directories(
         src/clock
         src/program
         src/tests
+        src/runtime
 )
 
 # ==========================================================

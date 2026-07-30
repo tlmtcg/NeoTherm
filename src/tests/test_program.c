@@ -25,22 +25,20 @@ bool test_program_run(void)
     t.minute = 59;
     clock_set_time(&t);
 
-    ASSERT_FLOAT_EQ(17.0f,
+    ASSERT_EQ_FLOAT(17.0f,
                     schedule_get_setpoint());
 
     t.hour = 6;
     t.minute = 0;
     clock_set_time(&t);
 
-    ASSERT_FLOAT_EQ(21.0f,
+    ASSERT_EQ_FLOAT(21.0f,
                     schedule_get_setpoint());
 
     t.hour = 23;
     t.minute = 0;
     clock_set_time(&t);
 
-    ASSERT_FLOAT_EQ(17.0f,
+    ASSERT_EQ_FLOAT(17.0f,
                     schedule_get_setpoint());
-
- 
 }

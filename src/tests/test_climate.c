@@ -7,24 +7,20 @@
 #include "thermal_model.h"
 #include "event.h"
 
-
-#define ASSERT_FLOAT_EQ(expected, actual)          \
-do                                                \
-{                                                 \
-    if (fabsf((expected)-(actual)) > 0.01f)        \
-    {                                             \
-        printf("FAIL : expected %.2f got %.2f\n", \
-               expected, actual);                 \
-        return false;                             \
-    }                                             \
-} while(0)
-
-
+#define ASSERT_EQ_FLOAT(expected, actual)             \
+    do                                                \
+    {                                                 \
+        if (fabsf((expected) - (actual)) > 0.01f)     \
+        {                                             \
+            printf("FAIL : expected %.2f got %.2f\n", \
+                   expected, actual);                 \
+            return false;                             \
+        }                                             \
+    } while (0)
 
 bool test_climate_run(void)
 {
     printf("\n=============== CLIMATE TEST ===============\n");
-
 
     /*
      * Initialisation environnement
@@ -34,29 +30,21 @@ bool test_climate_run(void)
 
     thermal_model_init();
 
-
     /*
      * Initialisation climate
      */
 
     climate_init();
 
-
-
     float temp =
         climate_get_temperature();
-
 
     printf("Initial : %.2f C\n",
            temp);
 
-
-
-    ASSERT_FLOAT_EQ(
+    ASSERT_EQ_FLOAT(
         20.5f,
         temp);
-
-
 
     /*
      * Test modification température
@@ -65,25 +53,17 @@ bool test_climate_run(void)
     climate_update(
         18.75f);
 
-
-
     temp =
         climate_get_temperature();
-
 
     printf("Updated : %.2f C\n",
            temp);
 
-
-
-    ASSERT_FLOAT_EQ(
+    ASSERT_EQ_FLOAT(
         18.75f,
         temp);
 
-
-
     printf("\nPASS : Climate\n");
-
 
     return true;
 }
