@@ -2,61 +2,61 @@
 #define EVENT_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-/*==========================================================
- * Types
- *=========================================================*/
+    /*==========================================================
+     * Types
+     *=========================================================*/
 
-typedef enum
-{
-    EVENT_NONE = 0,
+    typedef enum
+    {
+        EVENT_NONE = 0,
 
-    EVENT_CLIMATE_UPDATE,
+        EVENT_CLIMATE_UPDATE,
 
-    EVENT_RELAY_ON,
-    EVENT_RELAY_OFF,
+        EVENT_TIMER_1S,
 
-    EVENT_TIMER_1S,
+        EVENT_QUIT
 
-    EVENT_QUIT
+    } event_type_t;
 
-} event_type_t;
-
-typedef struct
-{
-    event_type_t type;
-
-    union
+    typedef union
     {
         float temperature;
-        bool relay_state;
-        int value;
+        int32_t value;
+        void *ptr;
 
-    } data;
+    } event_data_t;
 
-} event_t;
+    typedef struct
+    {
+        event_type_t type;
+        event_data_t data;
 
-/*==========================================================
- * API
- *=========================================================*/
+    } event_t;
 
-void event_init(void);
+    /*==========================================================
+     * API
+     *=========================================================*/
 
-bool event_post(const event_t *event);
+    void event_init(void);
 
-bool event_get(event_t *event);
+    bool event_post(const event_t *event);
 
-bool event_is_empty(void);
+    bool event_get(event_t *event);
 
-bool event_is_full(void);
+    bool event_is_empty(void);
 
-void event_clear(void);
+    bool event_is_full(void);
 
-const char *event_type_to_string(event_type_t type);
+    void event_clear(void);
+
+    const char *event_type_to_string(event_type_t type);
 
 #ifdef __cplusplus
 }

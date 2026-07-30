@@ -100,12 +100,6 @@ const char *event_type_to_string(event_type_t type)
         case EVENT_CLIMATE_UPDATE:
             return "CLIMATE_UPDATE";
 
-        case EVENT_RELAY_ON:
-            return "RELAY_ON";
-
-        case EVENT_RELAY_OFF:
-            return "RELAY_OFF";
-
         case EVENT_TIMER_1S:
             return "TIMER_1S";
 

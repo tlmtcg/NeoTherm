@@ -110,18 +110,6 @@ static void app_process_events(void)
                      event.data.temperature);
             break;
 
-        case EVENT_RELAY_ON:
-
-            LOG_INFO("APP",
-                     "Relay event ON");
-            break;
-
-        case EVENT_RELAY_OFF:
-
-            LOG_INFO("APP",
-                     "Relay event OFF");
-            break;
-
         default:
             break;
         }

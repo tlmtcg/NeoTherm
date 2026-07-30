@@ -37,7 +37,6 @@ add_executable(
     src/scheduler/scheduler_debug.c
     src/relay/relay.c
     src/thermostat/thermostat.c
-    src/thermostat/thermostat_test.c
     src/storage/storage.c
     src/thermal/thermal_model.c
     src/history/history.c
