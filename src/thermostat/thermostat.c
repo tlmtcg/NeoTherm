@@ -59,35 +59,28 @@ const char *thermostat_mode_name(
 
 bool thermostat_init(void)
 {
+    const runtime_config_t *cfg =
+        runtime_get();
 
-    /*
-     * Restauration consigne
-     */
+    if (cfg == NULL)
+    {
+        LOG_ERROR("THERMO",
+                  "Runtime configuration unavailable");
 
-    s_status.setpoint = program_get_setpoint();
+        return false;
+    }
 
-    runtime_config_t cfg;
-
-
-if (!storage_load_runtime(&cfg))
-{
-    LOG_WARN("THERMO",
-             "Using default runtime configuration");
-}
-else
-{
     s_status.mode =
-        cfg.mode;
+        cfg->mode;
 
     s_status.setpoint =
-        cfg.setpoint;
+        cfg->setpoint;
 
     s_status.hysteresis =
-        cfg.hysteresis;
+        cfg->hysteresis;
 
     relay_set_min_switch_delay(
-        cfg.relay_delay);
-}
+        cfg->relay_delay);
 
     LOG_INFO("THERMO",
              "Thermostat initialized : %.2f C +/- %.2f Mode=%s",

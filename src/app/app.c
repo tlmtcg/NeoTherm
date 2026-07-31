@@ -18,6 +18,7 @@
 #include "history.h"
 #include "program.h"
 #include "test_runner.h"
+#include "runtime.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -43,6 +44,15 @@ bool app_init(void)
 #ifdef DEBUG
     debug_dump_config(config_get_runtime());
 #endif
+
+    runtime_init();
+
+    clock_init();
+
+    clock_set_time(
+        &runtime_get()->date_time);
+
+    clock_sync_to_runtime();
 
     event_init();
     thermal_model_init();

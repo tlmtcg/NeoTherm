@@ -207,6 +207,15 @@ bool storage_save_runtime(
             "longitude=%.6f\n",
             cfg->longitude);
 
+    fprintf(fp,
+            "date_time=%04u-%02u-%02u %02u:%02u:%02u\n",
+            cfg->date_time.year,
+            cfg->date_time.month,
+            cfg->date_time.day,
+            cfg->date_time.hour,
+            cfg->date_time.minute,
+            cfg->date_time.second);
+
     if (fclose(fp) != 0)
     {
         LOG_ERROR("STORAGE",
@@ -223,7 +232,6 @@ bool storage_save_runtime(
 
 storage_load_result_t storage_load_runtime(
     runtime_config_t *cfg)
-
 {
     if (cfg == NULL)
     {
@@ -236,42 +244,46 @@ storage_load_result_t storage_load_runtime(
     /*
      * Valeurs par défaut
      */
-
     *cfg = runtime_default_config;
+
 
     FILE *fp = fopen(
         STORAGE_FILE,
         "r");
 
+
     if (fp == NULL)
     {
-        *cfg = runtime_default_config;
-
         LOG_WARN("STORAGE",
                  "No runtime file, using defaults");
 
         return STORAGE_LOAD_DEFAULT;
     }
 
+
     char line[128];
+
 
     while (fgets(line,
                  sizeof(line),
                  fp))
     {
-        char *value =
-            strchr(line, '=');
+        char *value = strchr(line, '=');
+
 
         if (value == NULL)
         {
             continue;
         }
 
+
         *value++ = '\0';
 
-        line[strcspn(line, "\r\n")] = '\0';
 
+        line[strcspn(line, "\r\n")] = '\0';
         value[strcspn(value, "\r\n")] = '\0';
+
+
 
         if (strcmp(line, "mode") == 0)
         {
@@ -284,17 +296,20 @@ storage_load_result_t storage_load_runtime(
             }
         }
 
+
         else if (strcmp(line, "setpoint") == 0)
         {
             cfg->setpoint =
                 strtof(value, NULL);
         }
 
+
         else if (strcmp(line, "hysteresis") == 0)
         {
             cfg->hysteresis =
                 strtof(value, NULL);
         }
+
 
         else if (strcmp(line, "relay_delay") == 0)
         {
@@ -304,23 +319,77 @@ storage_load_result_t storage_load_runtime(
                                   10);
         }
 
+
         else if (strcmp(line, "latitude") == 0)
         {
             cfg->latitude =
                 strtof(value, NULL);
         }
 
+
         else if (strcmp(line, "longitude") == 0)
         {
             cfg->longitude =
                 strtof(value, NULL);
         }
+
+
+        else if (strcmp(line, "date_time") == 0)
+        {
+            unsigned year;
+            unsigned month;
+            unsigned day;
+            unsigned hour;
+            unsigned minute;
+            unsigned second;
+
+
+            if (sscanf(value,
+                       "%u-%u-%u %u:%u:%u",
+                       &year,
+                       &month,
+                       &day,
+                       &hour,
+                       &minute,
+                       &second) == 6)
+            {
+                cfg->date_time.year   = year;
+                cfg->date_time.month  = month;
+                cfg->date_time.day    = day;
+                cfg->date_time.hour   = hour;
+                cfg->date_time.minute = minute;
+                cfg->date_time.second = second;
+            }
+            else
+            {
+                LOG_WARN("STORAGE",
+                         "Invalid date_time : %s",
+                         value);
+            }
+        }
+
+
+        else if (line[0] != '[')
+        {
+            LOG_DEBUG("STORAGE",
+                      "Unknown key : %s",
+                      line);
+        }
     }
 
-    fclose(fp);
+
+    if (fclose(fp) != 0)
+    {
+        LOG_ERROR("STORAGE",
+                  "File close failed");
+
+        return STORAGE_LOAD_ERROR;
+    }
+
 
     LOG_INFO("STORAGE",
              "Runtime configuration loaded");
+
 
     return STORAGE_LOAD_OK;
 }

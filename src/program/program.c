@@ -6,7 +6,13 @@
 
 bool program_init(void)
 {
-    schedule_init();
+    if (!schedule_init())
+    {
+        LOG_ERROR("PROGRAM",
+                  "Unable to initialize schedule");
+
+        return false;
+    }
 
     LOG_INFO("PROGRAM",
              "Program initialized");

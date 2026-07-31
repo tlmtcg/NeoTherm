@@ -4,6 +4,7 @@
 #include "logger.h"
 #include "relay.h"
 #include "thermal_model.h"
+#include "runtime.h"
 
 static float s_temperature = 20.5f;
 
@@ -11,13 +12,15 @@ static float s_temperature = 20.5f;
  * Initialisation
  *=========================================================*/
 
-void climate_init(void)
+bool climate_init(void)
 {
-    s_temperature = 20.5f;
+    s_temperature = runtime_get()->setpoint;
 
     LOG_INFO("CLIMATE",
              "Climate initialized : %.1f C",
              s_temperature);
+
+    return true;
 }
 
 /*==========================================================

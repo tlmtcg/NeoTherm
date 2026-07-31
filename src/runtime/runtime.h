@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "thermostat.h"
+#include "clock.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -28,6 +29,8 @@ extern "C"
         float latitude;
 
         float longitude;
+
+        clock_time_t date_time;
 
     } runtime_config_t;
 
@@ -109,6 +112,9 @@ extern "C"
      * Configuration par défaut
      */
     extern const runtime_config_t runtime_default_config;
+
+    bool runtime_set_datetime(
+        const clock_time_t *time);
 
 #ifdef __cplusplus
 }

@@ -12,12 +12,11 @@ extern "C"
     typedef struct
     {
         uint32_t year;
-        uint8_t month;
-        uint8_t day;
-
-        uint8_t hour;
-        uint8_t minute;
-        uint8_t second;
+        uint32_t month;
+        uint32_t day;
+        uint32_t hour;
+        uint32_t minute;
+        uint32_t second;
 
     } clock_time_t;
 
@@ -54,6 +53,8 @@ extern "C"
     uint32_t clock_seconds_today(void);
 
     void clock_add_second(void);
+
+    bool clock_sync_to_runtime(void);
 
 #ifdef __cplusplus
 }

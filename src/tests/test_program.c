@@ -31,6 +31,7 @@ bool test_program_run(void)
     ASSERT_TRUE(
         clock_set_time(&t));
 
+           clock_sync_to_runtime();
 
     ASSERT_EQ_FLOAT(
         17.0f,
@@ -49,6 +50,7 @@ bool test_program_run(void)
     ASSERT_TRUE(
         clock_set_time(&t));
 
+       clock_sync_to_runtime();
 
     ASSERT_EQ_FLOAT(
         21.0f,
@@ -67,7 +69,8 @@ bool test_program_run(void)
     ASSERT_TRUE(
         clock_set_time(&t));
 
-
+       clock_sync_to_runtime();
+       
     ASSERT_EQ_FLOAT(
         17.0f,
         schedule_get_setpoint());

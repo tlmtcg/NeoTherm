@@ -26,6 +26,8 @@ bool test_clock_run(void)
     ASSERT_TRUE(
         clock_set_time(&t));
 
+    clock_sync_to_runtime();
+
 
     clock_time_t now;
 
@@ -181,6 +183,8 @@ bool test_clock_run(void)
 
     ASSERT_TRUE(
         clock_set_time(&presque_minuit));
+
+        clock_sync_to_runtime();
 
 
     ASSERT_EQ_UINT32(

@@ -45,6 +45,7 @@ bool test_history_run(void)
     ASSERT_TRUE(
         clock_set_time(&t));
 
+           clock_sync_to_runtime();
 
 
     /*

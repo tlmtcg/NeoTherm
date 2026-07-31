@@ -43,7 +43,7 @@ bool test_climate_run(void)
            temp);
 
     ASSERT_EQ_FLOAT(
-        20.5f,
+        21.5f,
         temp);
 
     /*

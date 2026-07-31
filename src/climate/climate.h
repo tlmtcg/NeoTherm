@@ -3,7 +3,7 @@
 
 #include "app.h" // pour TEST_MODE
  
-void climate_init(void);
+bool climate_init(void);
 
 float climate_get_temperature(void);
 

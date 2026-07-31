@@ -4,23 +4,50 @@
 #include <time.h>
 
 #include "logger.h"
+#include "runtime.h"
 
 static clock_time_t s_time;
 
 /*
  * Initialisation
  */
+// void clock_init(void)
+// {
+//     s_time.year = 2026;
+//     s_time.month = 1;
+//     s_time.day = 1;
+
+//     s_time.hour = 0;
+//     s_time.minute = 0;
+//     s_time.second = 0;
+
+//     LOG_INFO("CLOCK", "Clock initialized");
+// }
+
 void clock_init(void)
 {
-    s_time.year = 2026;
-    s_time.month = 1;
-    s_time.day = 1;
+    const runtime_config_t *cfg = runtime_get();
 
-    s_time.hour = 0;
-    s_time.minute = 0;
-    s_time.second = 0;
+    if (cfg == NULL)
+    {
+        LOG_ERROR("CLOCK",
+                  "Runtime unavailable");
 
-    LOG_INFO("CLOCK", "Clock initialized");
+        return;
+    }
+
+
+    s_time = cfg->date_time;
+
+
+    LOG_INFO("CLOCK",
+             "Clock initialized : %04u-%02u-%02u %02u:%02u:%02u",
+             s_time.year,
+             s_time.month,
+             s_time.day,
+             s_time.hour,
+             s_time.minute,
+             s_time.second);
 }
 
 /*
@@ -146,4 +173,9 @@ uint32_t clock_seconds_today(void)
     return (uint32_t)now.hour * 3600U +
            (uint32_t)now.minute * 60U +
            (uint32_t)now.second;
+}
+
+bool clock_sync_to_runtime(void)
+{
+    return runtime_set_datetime(&s_time);
 }

@@ -1,15 +1,14 @@
 #include "relay.h"
 #include "logger.h"
 #include "clock.h"
+#include "runtime.h"
+#define SECONDS_PER_DAY 86400U
 
-#define RELAY_DEFAULT_SWITCH_DELAY 180
-#define SECONDS_PER_DAY 86400
-
-static bool s_relay_state = false;
-static uint32_t s_switch_count = 0;
-static uint32_t s_min_switch_delay = RELAY_DEFAULT_SWITCH_DELAY;
+static bool     s_relay_state      = false;
+static uint32_t s_switch_count     = 0;
+static uint32_t s_min_switch_delay = 0;
 static uint32_t s_last_switch_time = 0;
-static bool s_first_switch = true;
+static bool     s_first_switch     = true;
 
 /*==========================================================
  * Initialisation
@@ -19,11 +18,15 @@ bool relay_init(void)
 {
     s_relay_state = false;
     s_switch_count = 0;
-    s_min_switch_delay = RELAY_DEFAULT_SWITCH_DELAY;
     s_last_switch_time = 0;
     s_first_switch = true;
 
-    LOG_INFO("RELAY", "Relay initialized : OFF");
+    s_min_switch_delay =
+        runtime_get()->relay_delay;
+
+    LOG_INFO("RELAY",
+             "Relay initialized : OFF (delay=%u s)",
+             s_min_switch_delay);
 
     return true;
 }

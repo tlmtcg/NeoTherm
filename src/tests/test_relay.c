@@ -139,6 +139,7 @@ bool test_relay_run(void)
             .second = 0};
 
     clock_set_time(&t);
+           clock_sync_to_runtime();
     clock_dump();
 
     relay_init();
