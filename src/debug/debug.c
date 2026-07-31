@@ -12,46 +12,34 @@ void debug_init(void)
 }
 
 /*==========================================================
- * Dump Configuration
+ * Dump Application Configuration
  *=========================================================*/
 
-void debug_dump_config(const config_runtime_t *runtime)
+void debug_dump_app_config(
+    const app_config_t *config)
 {
-    if (runtime == NULL)
+    if (config == NULL)
     {
-        printf("\n===== CONFIGURATION =====\n");
-        printf("Runtime is NULL\n");
-        printf("=========================\n");
+        printf("\n===== APPLICATION CONFIG =====\n");
+        printf("Configuration is NULL\n");
+        printf("================================\n");
 
         return;
     }
 
-    printf("\n===== CONFIGURATION =====\n");
+    printf("\n===== APPLICATION CONFIG =====\n");
 
-    printf("Initialized : %s\n",
-           runtime->initialized ? "YES" : "NO");
+    printf("Logger level       : %s\n",
+           config->logger_level);
 
-    printf("Entries     : %zu\n\n",
-           runtime->count);
+    printf("Relay GPIO         : %u\n",
+           config->relay_gpio);
 
-    printf("%-4s %-15s %-20s %-20s\n",
-           "Id",
-           "Section",
-           "Key",
-           "Value");
+    printf("Climate period     : %u ms\n",
+           config->climate_period);
 
-    printf("------------------------------------------------------------\n");
+    printf("Thermostat period  : %u ms\n",
+           config->thermostat_period);
 
-    for (size_t i = 0; i < runtime->count; i++)
-    {
-        const config_entry_t *entry = &runtime->entries[i];
-
-        printf("%-4zu %-15s %-20s %-20s\n",
-               i,
-               entry->section,
-               entry->key,
-               entry->value);
-    }
-
-    printf("============================================================\n");
+    printf("================================\n");
 }

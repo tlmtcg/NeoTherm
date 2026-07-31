@@ -29,7 +29,8 @@ add_executable(
     src/app/app.c
 
     src/logger/logger.c
-    src/config/config.c
+    src/app_config/app_config.c
+    src/app_config/ini.c
     src/debug/debug.c
     src/event/event.c
     src/climate/climate.c
@@ -70,7 +71,7 @@ target_include_directories(
     PRIVATE
         src/app
         src/logger
-        src/config
+        src/app_config
         src/debug
         src/event
         src/climate

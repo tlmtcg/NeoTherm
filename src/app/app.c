@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #include "logger.h"
-#include "config.h"
+#include "app_config.h"
 #include "debug.h"
 #include "event.h"
 #include "thermal_model.h"
@@ -33,7 +33,7 @@ bool app_init(void)
 
     debug_init();
 
-    if (!config_init("../config.ini"))
+    if (!app_config_init("../app.ini"))
     {
         LOG_ERROR("CONFIG",
                   "Unable to load configuration.");
@@ -42,7 +42,7 @@ bool app_init(void)
     }
 
 #ifdef DEBUG
-    debug_dump_config(config_get_runtime());
+    debug_dump_app_config(app_config_get());
 #endif
 
     runtime_init();
@@ -65,23 +65,27 @@ bool app_init(void)
 
     scheduler_init();
 
+    const app_config_t *cfg = app_config_get();
+
     if (!scheduler_register(
             "Climate",
             climate_tick,
-            10))
+            cfg->climate_period))
     {
         LOG_ERROR("SCHED",
                   "Unable to register Climate task.");
+
         return false;
     }
 
     if (!scheduler_register(
             "Thermostat",
             thermostat_update,
-            10))
+            cfg->thermostat_period))
     {
         LOG_ERROR("SCHED",
                   "Unable to register Thermostat task.");
+
         return false;
     }
 

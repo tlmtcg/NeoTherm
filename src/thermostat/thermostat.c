@@ -5,7 +5,7 @@
 #include "logger.h"
 #include "climate.h"
 #include "relay.h"
-#include "config.h"
+#include "app_config.h"
 #include "storage.h"
 #include "history.h"
 #include "thermal_model.h"
