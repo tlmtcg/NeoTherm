@@ -7,6 +7,7 @@
 #include "test_runner.h"
 #include "event.h"
 #include "scheduler.h"
+#include "clock.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -68,6 +69,8 @@ bool app_run(void)
         scheduler_update();
 
         app_process_events();
+
+        clock_add_second();
 
 #ifdef _WIN32
         Sleep(100);

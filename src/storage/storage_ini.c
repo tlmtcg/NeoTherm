@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define STORAGE_LINE_SIZE 128
+
 
 /*==========================================================
  * Fonction interne

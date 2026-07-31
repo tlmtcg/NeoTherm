@@ -11,8 +11,7 @@
 #include "thermal_model.h"
 #include "program.h"
 
-#define HORS_GEL_SETPOINT 7.0f
-#define HORS_GEL_HYSTERESIS 1.0f
+
 
 static thermostat_status_t s_status =
     {

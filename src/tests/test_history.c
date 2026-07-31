@@ -104,8 +104,6 @@ bool test_history_run(void)
         THERMOSTAT_AUTO,
         record.mode);
 
-
-
     /*
      * Sauvegarde fichier
      */
@@ -113,20 +111,15 @@ bool test_history_run(void)
     ASSERT_TRUE(
         history_save("../history.dat"));
 
-
-
     /*
      * Effacement mémoire
      */
 
     history_clear();
 
-
     ASSERT_EQ_UINT32(
         0,
         history_count());
-
-
 
     /*
      * Rechargement
@@ -140,8 +133,6 @@ bool test_history_run(void)
         10,
         history_count());
 
-
-
     /*
      * Vérification après reload
      */
@@ -154,8 +145,7 @@ bool test_history_run(void)
         20.9f,
         record.inside_temperature);
 
-
-
+        
     printf("PASS : History\n");
 
 

@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#define STORAGE_LINE_SIZE 128
+
 bool storage_ini_read_string(
     FILE *fp,
     const char *key,

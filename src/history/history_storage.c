@@ -9,6 +9,14 @@
 bool history_save(
     const char *filename)
 {
+    if (filename == NULL)
+    {
+        LOG_ERROR("HISTORY",
+                  "Invalid filename");
+
+        return false;
+    }
+
     FILE *fp = fopen(
         filename,
         "w");
@@ -26,7 +34,7 @@ bool history_save(
 
     for (uint32_t i = 0; i < count; i++)
     {
-        history_record_t record;
+        history_record_t record = {0};
 
         if (!history_get(i, &record))
         {
@@ -61,7 +69,13 @@ bool history_save(
                 record.heating);
     }
 
-    fclose(fp);
+    if (fclose(fp) != 0)
+    {
+        LOG_ERROR("HISTORY",
+                  "Unable to close DAT file");
+
+        return false;
+    }
 
     LOG_INFO("HISTORY",
              "History saved : %u records",
@@ -73,6 +87,14 @@ bool history_save(
 bool history_load(
     const char *filename)
 {
+    if (filename == NULL)
+    {
+        LOG_ERROR("HISTORY",
+                  "Invalid filename");
+
+        return false;
+    }
+
     FILE *fp = fopen(
         filename,
         "r");
@@ -143,7 +165,13 @@ bool history_load(
         }
     }
 
-    fclose(fp);
+    if (fclose(fp) != 0)
+    {
+        LOG_ERROR("HISTORY",
+                  "Unable to close DAT file");
+
+        return false;
+    }
 
     LOG_INFO("HISTORY",
              "History loaded : %u records",
@@ -154,5 +182,5 @@ bool history_load(
 
 void history_task_callback(void)
 {
-    history_save("history.csv");
+    history_save("../history.dat");
 }

@@ -2,8 +2,6 @@
 
 #include <string.h>
 
-#define EVENT_QUEUE_SIZE    32
-
 typedef struct
 {
     event_t events[EVENT_QUEUE_SIZE];

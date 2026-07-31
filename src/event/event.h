@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define EVENT_QUEUE_SIZE    32
+
 #ifdef __cplusplus
 extern "C"
 {

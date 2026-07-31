@@ -2,7 +2,7 @@
 #include "logger.h"
 #include "clock.h"
 #include "runtime.h"
-#define SECONDS_PER_DAY 86400U
+
 
 static bool     s_relay_state      = false;
 static uint32_t s_switch_count     = 0;

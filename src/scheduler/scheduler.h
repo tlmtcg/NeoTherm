@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define SCHEDULER_MAX_TASKS 16
+
 #ifdef __cplusplus
 extern "C" {
 #endif

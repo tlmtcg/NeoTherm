@@ -3,7 +3,7 @@
 #include "climate.h"
 #include "logger.h"
 #include <string.h>
-#define SCHEDULER_MAX_TASKS 16
+
 
 static uint32_t s_tick = 0;
 

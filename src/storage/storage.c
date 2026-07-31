@@ -7,7 +7,7 @@
 #include "logger.h"
 #include "runtime.h"
 
-#define STORAGE_FILE "../runtime.ini"
+
 
 static const char *mode_to_string(
     thermostat_mode_t mode)

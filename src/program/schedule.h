@@ -6,9 +6,9 @@
 
 #include "clock.h"
 
-
 #define SCHEDULE_MAX_POINTS 8
-
+#define DEFAULT_SETPOINT 17.0f
+#define SCHEDULE_MAX_POINTS 10
 
 typedef struct
 {
@@ -47,5 +47,6 @@ float schedule_get_setpoint(void);
  */
 bool schedule_set_point(uint8_t day, uint8_t hour, uint8_t minute, float setpoint);
 
+bool schedule_save();
 
 #endif

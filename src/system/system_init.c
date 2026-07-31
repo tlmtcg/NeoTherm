@@ -82,7 +82,6 @@ bool system_init(void)
         return false;
     }
 
-    
     if (!scheduler_register(
             "HistorySave",
             history_task_callback,
@@ -90,6 +89,17 @@ bool system_init(void)
     {
         LOG_ERROR("SCHED",
                   "Unable to register History Save task.");
+
+        return false;
+    }
+
+    if (!scheduler_register(
+            "HistoryToCav",
+            history_csv_task_callback,
+            3600))
+    {
+        LOG_ERROR("SCHED",
+                  "Unable to register History Csv Save task.");
 
         return false;
     }

@@ -6,6 +6,8 @@
 #include "thermostat.h"
 #include "runtime.h"
 
+#define STORAGE_FILE "../runtime.ini"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

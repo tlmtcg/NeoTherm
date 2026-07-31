@@ -81,6 +81,8 @@ bool history_load(
 
 void history_task_callback(void);
 
+void history_csv_task_callback(void);
+
 #ifdef __cplusplus
 }
 #endif

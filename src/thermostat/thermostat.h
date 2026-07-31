@@ -3,6 +3,9 @@
 
 #include <stdbool.h>
 
+#define HORS_GEL_SETPOINT 7.0f
+#define HORS_GEL_HYSTERESIS 1.0f
+
 #ifdef __cplusplus
 extern "C"
 {

@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define SECONDS_PER_DAY 86400U
+
 #ifdef __cplusplus
 extern "C" {
 #endif

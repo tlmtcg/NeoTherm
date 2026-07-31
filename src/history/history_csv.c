@@ -82,3 +82,8 @@ bool history_export_csv(
 
     return true;
 }
+
+void history_csv_task_callback(void)
+{
+    history_export_csv("../history.csv");
+}

@@ -8,9 +8,21 @@
 #include "logger.h"
 #include <app_config.h>
 
-#define DEFAULT_SETPOINT 17.0f
+static void schedule_sort_day(schedule_day_t *day);
 
 static schedule_day_t s_schedule[7];
+
+static const char *s_schedule_file = NULL;
+
+static const char *s_section_names[7] =
+    {
+        "lundi",
+        "mardi",
+        "mercredi",
+        "jeudi",
+        "vendredi",
+        "samedi",
+        "dimanche"};
 
 static uint8_t schedule_get_weekday(
     const clock_time_t *time)
@@ -48,24 +60,30 @@ bool schedule_init(void)
 {
     const app_config_t *cfg = app_config_get();
 
+    s_schedule_file = cfg->schedule_file;
+
     LOG_INFO("SCHEDULE",
              "Loading schedule : %s",
-             cfg->schedule_file);
+             s_schedule_file);
 
-    if (!ini_init(cfg->schedule_file))
+    if (!ini_init(s_schedule_file))
     {
         LOG_ERROR("SCHEDULE",
                   "Unable to load schedule file : %s",
-                  cfg->schedule_file);
+                  s_schedule_file);
 
         return false;
     }
 
-    const char *sections[7] = {
-        "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"};
-
     const ini_runtime_t *rt = ini_get_runtime();
-    // printf("[DEBUG] schedule_init: rt->count = %zu\n", rt ? rt->count : 0);
+
+    if (rt == NULL)
+{
+    LOG_ERROR("SCHEDULE",
+              "INI runtime unavailable");
+    return false;
+}
+    LOG_DEBUG("SCHEDULE", "schedule_init: rt->count = %zu", rt ? rt->count : 0);
 
     for (uint8_t d = 0; d < 7; d++)
     {
@@ -74,11 +92,11 @@ bool schedule_init(void)
 
         for (size_t i = 0; i < rt->count; i++)
         {
-            if (strcmp(rt->entries[i].section, sections[d]) == 0)
+            if (strcmp(rt->entries[i].section, s_section_names[d]) == 0)
             {
-                if (s_schedule[d].count >= 10)
+                if (s_schedule[d].count >= SCHEDULE_MAX_POINTS)
                 {
-                    printf("[DEBUG] schedule_init: trop de points pour la section %s\n", sections[d]);
+                    LOG_DEBUG("SCHEDULE", "schedule_init: trop de points pour la section %s", s_section_names[d]);
                     break;
                 }
 
@@ -87,7 +105,7 @@ bool schedule_init(void)
                 if (sscanf(rt->entries[i].key, "%u:%u", &hour, &minute) == 2)
                 {
                     float val = DEFAULT_SETPOINT;
-                    if (ini_get_float(sections[d], rt->entries[i].key, &val))
+                    if (ini_get_float(s_section_names[d], rt->entries[i].key, &val))
                     {
                         uint32_t idx = s_schedule[d].count;
                         s_schedule[d].points[idx].hour = (uint8_t)hour;
@@ -98,12 +116,12 @@ bool schedule_init(void)
                     }
                     else
                     {
-                        printf("[DEBUG] Erreur ini_get_float pour %s / %s\n", sections[d], rt->entries[i].key);
+                        LOG_DEBUG("SCHEDULE", "Erreur ini_get_float pour %s / %s", s_section_names[d], rt->entries[i].key);
                     }
                 }
                 else
                 {
-                    printf("[DEBUG] Format clé invalide (attendu HH:MM) : [%s] %s\n", rt->entries[i].section, rt->entries[i].key);
+                    LOG_DEBUG("SCHEDULE", "Format clé invalide (attendu HH:MM) : [%s] %s", rt->entries[i].section, rt->entries[i].key);
                 }
             }
         }
@@ -112,25 +130,13 @@ bool schedule_init(void)
          * Tri des points par ordre chronologique croissant
          * pour garantir un parcours correct dans schedule_get_setpoint().
          */
-        for (uint32_t i = 0; i < s_schedule[d].count; i++)
-        {
-            for (uint32_t j = i + 1; j < s_schedule[d].count; j++)
-            {
-                uint32_t time_i = (uint32_t)s_schedule[d].points[i].hour * 60U + s_schedule[d].points[i].minute;
-                uint32_t time_j = (uint32_t)s_schedule[d].points[j].hour * 60U + s_schedule[d].points[j].minute;
 
-                if (time_i > time_j)
-                {
-                    schedule_point_t temp = s_schedule[d].points[i];
-                    s_schedule[d].points[i] = s_schedule[d].points[j];
-                    s_schedule[d].points[j] = temp;
-                }
-            }
-        }
+        schedule_sort_day(&s_schedule[d]);
     }
 
     LOG_INFO("SCHEDULE",
-             "Weekly schedule initialized from program.ini");
+             "Weekly schedule initialized from %s",
+             s_schedule_file);
 
     return true;
 }
@@ -220,7 +226,7 @@ bool schedule_set_point(uint8_t day,
      */
     if (!updated)
     {
-        if (s_day->count >= 10)
+        if (s_day->count >= SCHEDULE_MAX_POINTS)
         {
             LOG_ERROR("SCHEDULE",
                       "Too many schedule points for day %u",
@@ -240,59 +246,61 @@ bool schedule_set_point(uint8_t day,
         /*
          * Tri chronologique
          */
-        for (uint32_t i = 0; i < s_day->count; i++)
+        schedule_sort_day(s_day);
+    }
+
+    return schedule_save();
+}
+
+static void schedule_sort_day(schedule_day_t *day)
+{
+    /*
+     * Tri chronologique
+     */
+    for (uint32_t i = 0; i < day->count; i++)
+    {
+        for (uint32_t j = i + 1; j < day->count; j++)
         {
-            for (uint32_t j = i + 1; j < s_day->count; j++)
+            uint32_t time_i =
+                (uint32_t)day->points[i].hour * 60U +
+                day->points[i].minute;
+
+            uint32_t time_j =
+                (uint32_t)day->points[j].hour * 60U +
+                day->points[j].minute;
+
+            if (time_i > time_j)
             {
-                uint32_t time_i =
-                    (uint32_t)s_day->points[i].hour * 60U +
-                    s_day->points[i].minute;
-
-                uint32_t time_j =
-                    (uint32_t)s_day->points[j].hour * 60U +
-                    s_day->points[j].minute;
-
-                if (time_i > time_j)
-                {
-                    schedule_point_t temp = s_day->points[i];
-                    s_day->points[i] = s_day->points[j];
-                    s_day->points[j] = temp;
-                }
+                schedule_point_t temp = day->points[i];
+                day->points[i] = day->points[j];
+                day->points[j] = temp;
             }
         }
     }
+}
 
+bool schedule_save()
+{
     /*
      * Sauvegarde dans le fichier
      */
-    const app_config_t *cfg = app_config_get();
 
-    FILE *fp = fopen(cfg->schedule_file, "w");
+    FILE *fp = fopen(s_schedule_file, "w");
 
     if (fp == NULL)
     {
         LOG_ERROR("SCHEDULE",
                   "Unable to open %s",
-                  cfg->schedule_file);
+                  s_schedule_file);
 
         return false;
     }
-
-    static const char *sections[7] =
-        {
-            "lundi",
-            "mardi",
-            "mercredi",
-            "jeudi",
-            "vendredi",
-            "samedi",
-            "dimanche"};
 
     for (uint8_t d = 0; d < 7; d++)
     {
         fprintf(fp,
                 "[%s]\n",
-                sections[d]);
+                s_section_names[d]);
 
         for (uint32_t i = 0; i < s_schedule[d].count; i++)
         {
@@ -310,14 +318,14 @@ bool schedule_set_point(uint8_t day,
     {
         LOG_ERROR("SCHEDULE",
                   "Unable to close %s",
-                  cfg->schedule_file);
+                  s_schedule_file);
 
         return false;
     }
 
     LOG_INFO("SCHEDULE",
              "Program saved to %s",
-             cfg->schedule_file);
+             s_schedule_file);
 
     return true;
 }
