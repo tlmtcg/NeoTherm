@@ -13,6 +13,7 @@
 #include "test_climate.h"
 #include "test_relay.h"
 #include "test_runtime.h"
+#include "test_app_config.h"
 
 typedef bool (*test_func_t)(void);
 
@@ -34,6 +35,7 @@ static test_entry_t tests[] =
         {"Climate", test_climate_run},
         {"Relay", test_relay_run},
         {"Runtime", test_runtime_run},
+        {"App_config", test_app_config_run},        
 
         /*
          * Tests à venir

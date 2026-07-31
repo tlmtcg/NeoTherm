@@ -36,19 +36,19 @@
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 115,
+				"line" : 117,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 94,
+				"line" : 96,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 69,
+				"line" : 70,
 				"parent" : 0
 			}
 		]
@@ -150,6 +150,10 @@
 				{
 					"backtrace" : 4,
 					"path" : "C:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/runtime"
+				},
+				{
+					"backtrace" : 4,
+					"path" : "C:/Users/TLMTC/AndroidStudioProjects/NeoTherm/NeoTherm/src/system"
 				}
 			],
 			"language" : "C",
@@ -196,7 +200,9 @@
 				30,
 				31,
 				32,
-				33
+				33,
+				34,
+				35
 			]
 		}
 	],
@@ -262,7 +268,9 @@
 				30,
 				31,
 				32,
-				33
+				33,
+				34,
+				35
 			]
 		}
 	],
@@ -278,6 +286,12 @@
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
 			"path" : "src/app/app.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/system/system_init.c",
 			"sourceGroupIndex" : 0
 		},
 		{
@@ -464,6 +478,12 @@
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
 			"path" : "src/tests/test_runtime.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/tests/test_app_config.c",
 			"sourceGroupIndex" : 0
 		},
 		{

@@ -3,22 +3,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "logger.h"
-#include "app_config.h"
-#include "debug.h"
-#include "event.h"
-#include "thermal_model.h"
-#include "climate.h"
-#include "scheduler.h"
-#include "scheduler_debug.h"
-#include "relay.h"
-#include "thermostat.h"
-#include "storage.h"
-#include "history_debug.h"
-#include "history.h"
-#include "program.h"
+#include "system_init.h"
 #include "test_runner.h"
-#include "runtime.h"
+#include "event.h"
+#include "scheduler.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -26,79 +14,10 @@
 
 bool app_init(void)
 {
-    logger_init();
-
-    LOG_INFO("APP",
-             "Application starting...");
-
-    debug_init();
-
-    if (!app_config_init("../app.ini"))
+    if (!system_init())
     {
-        LOG_ERROR("CONFIG",
-                  "Unable to load configuration.");
-
         return false;
     }
-
-#ifdef DEBUG
-    debug_dump_app_config(app_config_get());
-#endif
-
-    runtime_init();
-
-    clock_init();
-
-    clock_set_time(
-        &runtime_get()->date_time);
-
-    clock_sync_to_runtime();
-
-    event_init();
-    thermal_model_init();
-    climate_init();
-    relay_init();
-    history_init();
-    storage_init();
-    program_init();
-    thermostat_init();
-
-    scheduler_init();
-
-    const app_config_t *cfg = app_config_get();
-
-    if (!scheduler_register(
-            "Climate",
-            climate_tick,
-            cfg->climate_period))
-    {
-        LOG_ERROR("SCHED",
-                  "Unable to register Climate task.");
-
-        return false;
-    }
-
-    if (!scheduler_register(
-            "Thermostat",
-            thermostat_update,
-            cfg->thermostat_period))
-    {
-        LOG_ERROR("SCHED",
-                  "Unable to register Thermostat task.");
-
-        return false;
-    }
-
-    LOG_INFO("APP",
-             "%u task(s) registered",
-             scheduler_task_count());
-
-#ifdef DEBUG
-    scheduler_dump();
-#endif
-
-    LOG_INFO("APP",
-             "Application initialized.");
 
     return true;
 }

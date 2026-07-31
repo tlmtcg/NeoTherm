@@ -151,3 +151,8 @@ bool history_load(
 
     return true;
 }
+
+void history_task_callback(void)
+{
+    history_save("history.csv");
+}

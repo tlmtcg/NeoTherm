@@ -41,5 +41,8 @@ void debug_dump_app_config(
     printf("Thermostat period  : %u ms\n",
            config->thermostat_period);
 
+    printf("History save       : %u s\n",
+           config->history_save_period);
+
     printf("================================\n");
 }

@@ -27,7 +27,7 @@ add_executable(
 
     src/app/main.c
     src/app/app.c
-
+    src/system/system_init.c
     src/logger/logger.c
     src/app_config/app_config.c
     src/app_config/ini.c
@@ -59,6 +59,7 @@ add_executable(
     src/tests/test_utils.c
     src/tests/test_relay.c
     src/tests/test_runtime.c
+    src/tests/test_app_config.c
     src/runtime/runtime.c
 )
 
@@ -85,6 +86,7 @@ target_include_directories(
         src/program
         src/tests
         src/runtime
+        src/system
 )
 
 # ==========================================================

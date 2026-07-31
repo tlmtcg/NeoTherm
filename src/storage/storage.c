@@ -9,11 +9,6 @@
 
 #define STORAGE_FILE "../runtime.ini"
 
-// static float s_setpoint = 20.5f;
-
-// static thermostat_mode_t s_mode =
-//     THERMOSTAT_AUTO;
-
 static const char *mode_to_string(
     thermostat_mode_t mode)
 {
@@ -76,43 +71,6 @@ static bool string_to_mode(
 
     return false;
 }
-
-/*
- * Ecriture complète du runtime
- */
-
-// static bool storage_write(void)
-// {
-//     FILE *fp = fopen(
-//         STORAGE_FILE,
-//         "w");
-
-//     if (fp == NULL)
-//     {
-//         LOG_ERROR("STORAGE",
-//                   "Unable to open %s",
-//                   STORAGE_FILE);
-
-//         return false;
-//     }
-
-//     fprintf(fp,
-//             "[runtime]\n");
-
-//     storage_ini_write_float(
-//         fp,
-//         "setpoint",
-//         s_setpoint);
-
-//     storage_ini_write_string(
-//         fp,
-//         "mode",
-//         mode_to_string(s_mode));
-
-//     fclose(fp);
-
-//     return true;
-// }
 
 bool storage_init(void)
 {

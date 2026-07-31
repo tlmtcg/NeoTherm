@@ -126,4 +126,21 @@ do                                                          \
     }                                                       \
 } while (0)
 
+
+/*----------------------------------------------------------
+ * string
+ *---------------------------------------------------------*/
+
+#define ASSERT_EQ_STRING(expected, actual)                        \
+do                                                          \
+{                                                           \
+    if (strcmp((expected), (actual)) != 0)                  \
+    {                                                       \
+        printf("FAIL : expected \"%s\" got \"%s\"\n",         \
+               (expected),                                  \
+               (actual));                                   \
+        return false;                                       \
+    }                                                       \
+} while (0)
+
 #endif

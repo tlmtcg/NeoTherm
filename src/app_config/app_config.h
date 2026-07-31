@@ -25,6 +25,8 @@ typedef struct
      */
     uint32_t climate_period;
     uint32_t thermostat_period;
+    uint32_t history_save_period;
+    char     schedule_file[128];
 
 } app_config_t;
 

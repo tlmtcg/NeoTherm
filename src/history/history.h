@@ -79,6 +79,8 @@ bool history_save(
 bool history_load(
     const char *filename);
 
+void history_task_callback(void);
+
 #ifdef __cplusplus
 }
 #endif

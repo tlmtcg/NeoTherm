@@ -25,7 +25,7 @@ static thermostat_status_t s_status =
 
 static bool s_manual_relay = false;
 
-static uint32_t s_min_switch_delay = 180; // secondes
+// static uint32_t s_min_switch_delay = 180; // secondes
 
 /*==========================================================
  * Fonctions privées

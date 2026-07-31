@@ -61,7 +61,7 @@ bool history_add(
      */
     record->tick = s_tick++;
 
-    LOG_INFO("HISTORY",
+    LOG_DEBUG("HISTORY",
              "Add tick=%u count=%u head=%u",
              s_tick,
              s_count,
@@ -250,6 +250,9 @@ bool history_push(
     {
         s_tick = record->tick + 1U;
     }
+
+    LOG_DEBUG("HISTORY",
+          "Record restored");
 
     return true;
 }

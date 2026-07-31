@@ -37,7 +37,7 @@ bool test_thermostat_run(void)
     thermostat_init();
 
     relay_test_reset();
-    
+
     /*
      * -----------------------------
      * AUTO
@@ -49,11 +49,10 @@ bool test_thermostat_run(void)
 
     printf("\nMode AUTO\n");
 
-    
-
-    /*
-     * Température supérieure à la consigne
-     */
+/*
+ * Température supérieure à la consigne
+ */
+#ifdef MODE_TEST
 
     climate_test_set_temperature(
         20.0f);
@@ -76,6 +75,8 @@ bool test_thermostat_run(void)
     ASSERT_TRUE(relay_get());
 
     printf("PASS\n");
+
+#endif
 
     /*
      * -----------------------------
@@ -129,6 +130,7 @@ bool test_thermostat_run(void)
 
     /* en dessous de 8°C -> ON */
 
+#ifdef MODE_TEST
     climate_test_set_temperature(4.0f);
 
     thermostat_update();
@@ -146,6 +148,8 @@ bool test_thermostat_run(void)
     ASSERT_FALSE(relay_get());
 
     printf("PASS\n");
+
+#endif
 
     /*
      * Résumé

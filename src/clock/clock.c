@@ -11,18 +11,6 @@ static clock_time_t s_time;
 /*
  * Initialisation
  */
-// void clock_init(void)
-// {
-//     s_time.year = 2026;
-//     s_time.month = 1;
-//     s_time.day = 1;
-
-//     s_time.hour = 0;
-//     s_time.minute = 0;
-//     s_time.second = 0;
-
-//     LOG_INFO("CLOCK", "Clock initialized");
-// }
 
 void clock_init(void)
 {
