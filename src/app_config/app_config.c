@@ -4,8 +4,9 @@
 
 #include "ini.h"
 #include "logger.h"
+#include "app_config_internal.h"
 
-static app_config_t s_config =
+app_config_t s_config =
     {
         /* Logger */
         .logger_level = "INFO",
@@ -47,157 +48,6 @@ static app_config_t s_config =
         .thermal_mass=8.0f,
 
 };
-
-static void app_config_load_logger(void)
-{
-    (void)ini_get_string(
-        "logger",
-        "level",
-        s_config.logger_level,
-        sizeof(s_config.logger_level));
-}
-
-static void app_config_load_relay(void)
-{
-    int value;
-
-    if (ini_get_int("relay", "gpio", &value))
-    {
-        s_config.relay_gpio = (uint32_t)value;
-    }
-
-    if (ini_get_int("relay", "default_switch_delay", &value))
-    {
-        s_config.relay_default_switch_delay = (uint32_t)value;
-    }
-}
-
-static void app_config_load_scheduler(void)
-{
-    int value;
-
-    if (ini_get_int("scheduler", "climate_period", &value))
-        s_config.climate_period = (uint32_t)value;
-
-    if (ini_get_int("scheduler", "thermostat_period", &value))
-        s_config.thermostat_period = (uint32_t)value;
-
-    if (ini_get_int("scheduler", "history_save_period", &value))
-        s_config.history_save_period = (uint32_t)value;
-
-    if (ini_get_int("scheduler", "history_csv_period", &value))
-        s_config.history_csv_period = (uint32_t)value;
-}
-
-static void app_config_load_files(void)
-{
-    (void)ini_get_string(
-        "files",
-        "runtime",
-        s_config.runtime_file,
-        sizeof(s_config.runtime_file));
-
-    (void)ini_get_string(
-        "files",
-        "schedule",
-        s_config.schedule_file,
-        sizeof(s_config.schedule_file));
-
-    (void)ini_get_string(
-        "files",
-        "history",
-        s_config.history_file,
-        sizeof(s_config.history_file));
-
-    (void)ini_get_string(
-        "files",
-        "history_csv",
-        s_config.history_csv_file,
-        sizeof(s_config.history_csv_file));
-}
-
-/*==========================================================
- * History
- *=========================================================*/
-
-static void app_config_load_history(void)
-{
-    int value;
-
-    if (ini_get_int("history",
-                    "max_records",
-                    &value))
-    {
-        s_config.history_max_records = (uint32_t)value;
-    }
-}
-
-/*==========================================================
- * Schedule
- *=========================================================*/
-
-static void app_config_load_schedule(void)
-{
-    int value;
-
-    if (ini_get_int("schedule",
-                    "max_points_per_day",
-                    &value))
-    {
-        s_config.schedule_max_points = (uint32_t)value;
-    }
-
-    (void)ini_get_float(
-        "schedule",
-        "default_setpoint",
-        &s_config.schedule_default_setpoint);
-}
-
-/*==========================================================
- * Climate
- *=========================================================*/
-
-static void app_config_load_climate(void)
-{
-    (void)ini_get_float(
-        "climate",
-        "initial_temperature",
-        &s_config.climate_initial_temperature);
-}
-
-/*==========================================================
- * Debug
- *=========================================================*/
-
-static void app_config_load_debug(void)
-{
-    (void)ini_get_bool(
-        "debug",
-        "enabled",
-        &s_config.debug_enabled);
-
-    (void)ini_get_bool(
-        "debug",
-        "dump_config",
-        &s_config.debug_dump_config);
-}
-
-static void app_config_load_thermal_model(void)
-{
-    float value;
-
-    if (ini_get_float("thermal", "outside_temperature", &value))
-        s_config.thermal_outside_temperature = value;
-
-    if (ini_get_float("thermal", "heat_power", &value))
-        s_config.thermal_heat_power = value;
-
-    if (ini_get_float("thermal", "loss_factor", &value))
-        s_config.thermal_loss_factor = value;
-
-    if (ini_get_float("thermal", "thermal_mass", &value))
-        s_config.thermal_mass = value;
-}
 
 bool app_config_init(const char *filename)
 {

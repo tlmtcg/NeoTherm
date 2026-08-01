@@ -66,6 +66,20 @@ add_executable(
     src/runtime/runtime.c
     src/tests/test_thermal_model.c
     src/event_dispatcher/event_dispatcher.c
+    src/app_config/loaders/app_config_thermal.c
+    src/app_config/loaders/app_config_logger.c
+    src/app_config/loaders/app_config_load_relay.c
+    src/app_config/loaders/app_config_load_scheduler.c
+    src/app_config/loaders/app_config_load_files.c
+    src/app_config/loaders/app_config_load_history.c
+    src/app_config/loaders/app_config_load_schedule.c
+    src/app_config/loaders/app_config_load_climate.c
+    src/app_config/loaders/app_config_load_debug.c
+    src/app_config/parser/ini_parser.c
+    src/app_config/setters/ini_setters.c
+    src/app_config/getters/ini_getters.c
+    src/app_config/utils/ini_utils.c
+    src/app_config/storage/ini_storage.c
 )
 
 # ==========================================================
