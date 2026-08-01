@@ -33,7 +33,9 @@ char *trim(char *str)
 }
 
 
-static bool ini_parse_line(char *line)
+static bool ini_parse_line(
+    char *line,
+    char *current_section)
 {
     line[strcspn(line, "\r\n")] = '\0';
 
@@ -52,11 +54,11 @@ static bool ini_parse_line(char *line)
 
         char *section = trim(line + 1); // <-- trim de la section
 
-        strncpy(s_current_section,
+        strncpy(current_section,
                 section,
-                sizeof(s_current_section) - 1);
+                sizeof(current_section) - 1);
 
-        s_current_section[sizeof(s_current_section) - 1] = '\0';
+        current_section[sizeof(current_section) - 1] = '\0';
 
         return true;
     }
@@ -66,7 +68,7 @@ static bool ini_parse_line(char *line)
     if (!eq)
         return false;
 
-    if (s_current_section[0] == '\0')
+    if (current_section[0] == '\0')
         return false;
 
     *eq = '\0';
@@ -75,7 +77,7 @@ static bool ini_parse_line(char *line)
     char *value = trim(eq + 1); // <-- trim de la valeur
 
     return ini_add_entry(
-        s_current_section,
+        current_section,
         key,
         value);
 }
@@ -90,16 +92,15 @@ bool ini_parse_file(const char *filename)
         return false;
     }
 
+    char current_section[CONFIG_SECTION_LENGTH] = "";
     char line[256];
 
     while (fgets(line, sizeof(line), fp) != NULL)
     {
-        if (!ini_parse_line(line))
+        if (!ini_parse_line(line, current_section))
         {
             fclose(fp);
-
             LOG_ERROR("INI", "Parse error: %s", line);
-
             return false;
         }
     }

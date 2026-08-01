@@ -25,8 +25,6 @@ bool ini_init(const char *filename)
 
     s_runtime.filename[sizeof(s_runtime.filename) - 1] = '\0';
 
-    s_current_section[0] = '\0';
-
     if (!ini_parse_file(filename))
     {
         return false;
