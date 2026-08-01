@@ -7,6 +7,7 @@
 #include "clock.h"
 #include "debug.h"
 #include "event.h"
+#include "event_dispatcher.h"
 #include "history.h"
 #include "logger.h"
 #include "program.h"
@@ -48,6 +49,7 @@ bool system_init(void)
     clock_sync_to_runtime();
 
     event_init();
+    event_dispatcher_init();
     thermal_model_init();
     climate_init();
     relay_init();

@@ -346,7 +346,7 @@ storage_load_result_t storage_load_runtime(
 
 
     LOG_INFO("STORAGE",
-             "Runtime configuration loaded");
+             "Runtime initialized");
 
 
     return STORAGE_LOAD_OK;

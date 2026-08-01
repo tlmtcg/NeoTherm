@@ -63,8 +63,8 @@ add_executable(
     src/tests/test_app_config.c
     src/tests/test_event.c
     src/tests/test_logger.c
-    src/runtime/runtime.c
     src/tests/test_thermal_model.c
+    src/runtime/runtime.c
     src/event_dispatcher/event_dispatcher.c
     src/app_config/loaders/app_config_thermal.c
     src/app_config/loaders/app_config_logger.c
@@ -81,6 +81,7 @@ add_executable(
     src/app_config/utils/ini_utils.c
     src/app_config/storage/ini_storage.c
 )
+
 
 # ==========================================================
 # Répertoires d'inclusion

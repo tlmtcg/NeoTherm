@@ -4,7 +4,9 @@
 #include <stdio.h>
 
 #include "system_init.h"
-#include "test_runner.h"
+#ifdef UNIT_TEST
+#include "../tests/test_runner.h"
+#endif
 #include "event.h"
 #include "scheduler.h"
 #include "clock.h"
@@ -49,7 +51,7 @@ static void app_process_events(void)
 
 bool app_run(void)
 {
-#ifdef TEST_MODE
+#ifdef UNIT_TEST
 
     test_runner_run();
 

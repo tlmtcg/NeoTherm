@@ -29,7 +29,7 @@ void clock_init(void)
 
 
     LOG_INFO("CLOCK",
-             "Clock initialized : %04u-%02u-%02u %02u:%02u:%02u",
+             "Current time : %04u-%02u-%02u %02u:%02u:%02u",
              s_time.year,
              s_time.month,
              s_time.day,

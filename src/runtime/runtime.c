@@ -23,30 +23,6 @@ const runtime_config_t runtime_default_config =
 
 static runtime_config_t s_runtime;
 
-// bool runtime_init(void)
-// {
-//     /*
-//      * Initialisation avec les valeurs par défaut
-//      */
-//     s_runtime = runtime_default_config;
-
-//     /*
-//      * Chargement de la configuration sauvegardée
-//      */
-//     if (!runtime_load())
-//     {
-//         LOG_ERROR("RUNTIME",
-//                   "Unable to load runtime configuration");
-
-//         return false;
-//     }
-
-//     LOG_INFO("RUNTIME",
-//              "Runtime initialized");
-
-//     return true;
-// }
-
 bool runtime_init(void)
 {
     s_runtime = runtime_default_config;
@@ -159,7 +135,7 @@ bool runtime_load(void)
         s_runtime = cfg;
 
         LOG_INFO("RUNTIME",
-                 "Runtime configuration loaded");
+                 "Runtime file loaded");
 
         return true;
 
