@@ -62,6 +62,18 @@ do                                                          \
     }                                                       \
 } while (0)
 
+#define ASSERT_EQ_BOOL(expected, actual)                    \
+do                                                          \
+{                                                           \
+    if ((bool)(expected) != (bool)(actual))                \
+    {                                                       \
+        printf("FAIL : expected %s got %s\n",               \
+               (expected) ? "true" : "false",              \
+               (actual) ? "true" : "false");               \
+        return false;                                       \
+    }                                                       \
+} while (0)
+
 /*----------------------------------------------------------
  * uint32_t
  *---------------------------------------------------------*/
@@ -109,23 +121,6 @@ do                                                          \
 #define ASSERT_SUCCESS(expr) ASSERT_TRUE(expr)
 
 #define ASSERT_FAILURE(expr) ASSERT_FALSE(expr)
-
-/*----------------------------------------------------------
- * String
- *---------------------------------------------------------*/
-
-#define ASSERT_STR_EQ(expected, actual)                     \
-do                                                          \
-{                                                           \
-    if (strcmp((expected), (actual)) != 0)                  \
-    {                                                       \
-        printf("FAIL : expected \"%s\" got \"%s\"\n",       \
-               (expected),                                  \
-               (actual));                                   \
-        return false;                                       \
-    }                                                       \
-} while (0)
-
 
 /*----------------------------------------------------------
  * string

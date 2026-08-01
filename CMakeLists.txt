@@ -59,8 +59,13 @@ add_executable(
     src/tests/test_utils.c
     src/tests/test_relay.c
     src/tests/test_runtime.c
+    src/tests/test_ini.c
     src/tests/test_app_config.c
+    src/tests/test_event.c
+    src/tests/test_logger.c
     src/runtime/runtime.c
+    src/tests/test_thermal_model.c
+    src/event_dispatcher/event_dispatcher.c
 )
 
 # ==========================================================
@@ -75,6 +80,7 @@ target_include_directories(
         src/app_config
         src/debug
         src/event
+        src/event_dispatcher
         src/climate
         src/scheduler
         src/relay
@@ -87,6 +93,7 @@ target_include_directories(
         src/tests
         src/runtime
         src/system
+
 )
 
 # ==========================================================

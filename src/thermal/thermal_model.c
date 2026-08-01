@@ -1,6 +1,7 @@
 #include "thermal_model.h"
 
 #include "logger.h"
+#include "app_config.h"
 
 typedef struct
 {
@@ -14,13 +15,7 @@ typedef struct
 
 } thermal_model_t;
 
-static thermal_model_t s_model =
-{
-    .outside_temperature = 5.0f,  // température extérieure
-    .heat_power          = 0.25f, // Gain de température lorsque le chauffage est actif
-    .loss_factor         = 0.01f, // Coefficient de pertes thermiques
-    .thermal_mass        = 8.0f   // Inertie thermique
-};
+static thermal_model_t s_model;
 
 /*==========================================================
  * Initialisation
@@ -28,6 +23,16 @@ static thermal_model_t s_model =
 
 bool thermal_model_init(void)
 {
+    const app_config_t *config = app_config_get();
+
+    s_model.outside_temperature = config->thermal_outside_temperature;
+    s_model.heat_power = config->thermal_heat_power;
+    s_model.loss_factor = config->thermal_loss_factor;
+    if (config->thermal_mass > 0.1f)
+    {
+        s_model.thermal_mass = config->thermal_mass;
+    }
+
     LOG_INFO("THERMAL",
              "Model : Outside=%.1f C Heat=%.2f C/tick Loss=%.3f Mass=%.1f",
              s_model.outside_temperature,
@@ -89,11 +94,7 @@ float thermal_model_update(
  * Température extérieure
  *=========================================================*/
 
-void thermal_model_set_outside_temperature(
-    float temperature)
-{
-    s_model.outside_temperature = temperature;
-}
+
 
 float thermal_model_get_outside_temperature(void)
 {
@@ -104,29 +105,51 @@ float thermal_model_get_outside_temperature(void)
  * Paramètres
  *=========================================================*/
 
-void thermal_model_set_heat_power(
-    float value)
+void thermal_model_set_outside_temperature(float temperature)
+{
+    s_model.outside_temperature = temperature;
+
+    app_config_set_float(
+        "thermal",
+        "outside_temperature",
+        temperature);
+}
+
+void thermal_model_set_heat_power(float value)
 {
     if (value > 0.0f)
     {
         s_model.heat_power = value;
+
+        app_config_set_float(
+            "thermal",
+            "heat_power",
+            value);
     }
 }
 
-void thermal_model_set_loss_factor(
-    float value)
+void thermal_model_set_loss_factor(float value)
 {
     if (value > 0.0f)
     {
         s_model.loss_factor = value;
+
+        app_config_set_float(
+            "thermal",
+            "loss_factor",
+            value);
     }
 }
 
-void thermal_model_set_thermal_mass(
-    float value)
+void thermal_model_set_thermal_mass(float value)
 {
     if (value > 0.1f)
     {
         s_model.thermal_mass = value;
+
+        app_config_set_float(
+            "thermal",
+            "thermal_mass",
+            value);
     }
 }

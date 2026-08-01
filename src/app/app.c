@@ -8,6 +8,7 @@
 #include "event.h"
 #include "scheduler.h"
 #include "clock.h"
+#include "event_dispatcher.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -35,18 +36,8 @@ static void app_process_events(void)
 
     while (event_get(&event))
     {
-        switch (event.type)
-        {
-        case EVENT_CLIMATE_UPDATE:
-
-            LOG_INFO("APP",
-                     "Temperature event %.2f C",
-                     event.data.temperature);
-            break;
-
-        default:
-            break;
-        }
+        event_dispatcher_dispatch(
+            &event);
     }
 }
 

@@ -14,6 +14,10 @@
 #include "test_relay.h"
 #include "test_runtime.h"
 #include "test_app_config.h"
+#include "test_ini.h"
+#include "test_event.h"
+#include "test_logger.h"
+#include "test_thermal_model.h"
 
 typedef bool (*test_func_t)(void);
 
@@ -35,16 +39,17 @@ static test_entry_t tests[] =
         {"Climate", test_climate_run},
         {"Relay", test_relay_run},
         {"Runtime", test_runtime_run},
-        {"App_config", test_app_config_run},        
-
+        {"Config", test_app_config_run},
+        {"Ini", test_ini_run},
+        {"Event", test_event_run},
+        {"Logger", test_logger_run},
+        {"Thermal", test_thermal_model_run},
         /*
          * Tests à venir
          */
 
-        // {"Thermal", test_thermal_run},
-        // {"Event",   test_event_run},
-        // {"Config",  test_config_run},
-        // {"Logger",  test_logger_run},
+    
+
 };
 
 void test_runner_run(void)

@@ -8,10 +8,10 @@
  * Configuration
  *=========================================================*/
 
-#define CONFIG_MAX_ENTRIES       128
-#define CONFIG_SECTION_LENGTH     32
-#define CONFIG_KEY_LENGTH         32
-#define CONFIG_VALUE_LENGTH       64
+#define CONFIG_MAX_ENTRIES 128
+#define CONFIG_SECTION_LENGTH 32
+#define CONFIG_KEY_LENGTH 32
+#define CONFIG_VALUE_LENGTH 64
 
 /*==========================================================
  * Types
@@ -32,6 +32,8 @@ typedef struct
     size_t count;
 
     bool initialized;
+
+    char filename[260];
 
 } ini_runtime_t;
 
@@ -81,5 +83,33 @@ bool ini_get_bool(
  * Accès à la structure interne (debug uniquement).
  */
 const ini_runtime_t *ini_get_runtime(void);
+
+bool ini_set_int(
+    const char *section,
+    const char *key,
+    int value);
+
+bool ini_set_float(
+    const char *section,
+    const char *key,
+    float value);
+
+bool ini_set_bool(
+    const char *section,
+    const char *key,
+    bool value);
+
+bool ini_set_string(
+    const char *section,
+    const char *key,
+    const char *value);
+
+bool ini_remove_key(
+    const char *section,
+    const char *key);
+
+bool ini_key_exists(
+    const char *section,
+    const char *key);
 
 #endif /* INI_H */

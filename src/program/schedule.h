@@ -6,7 +6,6 @@
 
 #include "clock.h"
 
-#define SCHEDULE_MAX_POINTS 8
 #define DEFAULT_SETPOINT 17.0f
 #define SCHEDULE_MAX_POINTS 10
 
