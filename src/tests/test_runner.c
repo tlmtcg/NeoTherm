@@ -18,6 +18,9 @@
 #include "test_event.h"
 #include "test_logger.h"
 #include "test_thermal_model.h"
+#include "test_alarm.h"
+#include "test_alarm_runtime.h"
+#include "test_trim.h"
 
 typedef bool (*test_func_t)(void);
 
@@ -44,11 +47,12 @@ static test_entry_t tests[] =
         {"Event", test_event_run},
         {"Logger", test_logger_run},
         {"Thermal", test_thermal_model_run},
+        {"Alarmes", test_alarm_run},
+        {"AlarmRuntime", test_alarm_runtime_run},
+                {"Trim", test_trim_run},
         /*
          * Tests à venir
          */
-
-    
 
 };
 

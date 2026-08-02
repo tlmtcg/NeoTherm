@@ -153,3 +153,4 @@ void thermal_model_set_thermal_mass(float value)
             value);
     }
 }
+

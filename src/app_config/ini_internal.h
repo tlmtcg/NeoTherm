@@ -5,8 +5,6 @@
 
 extern ini_runtime_t s_runtime;
 
-// extern char s_current_section[CONFIG_SECTION_LENGTH];
-
 bool ini_save(void);
 
 bool ini_add_entry(

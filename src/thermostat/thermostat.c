@@ -1,6 +1,7 @@
 #include "thermostat.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "logger.h"
 #include "climate.h"
@@ -24,10 +25,8 @@ static thermostat_status_t s_status =
 
 static bool s_manual_relay = false;
 
-// static uint32_t s_min_switch_delay = 180; // secondes
-
 /*==========================================================
- * Fonctions privées
+ * Fonctions utiles
  *=========================================================*/
 
 const char *thermostat_mode_name(
@@ -380,4 +379,67 @@ bool thermostat_set_setpoint(
 
 
     return true;
+}
+
+const char *thermostat_mode_to_string(
+    thermostat_mode_t mode)
+{
+    switch (mode)
+    {
+    case THERMOSTAT_AUTO:
+        return "AUTO";
+
+    case THERMOSTAT_MANUAL:
+        return "MANUAL";
+
+    case THERMOSTAT_HORS_GEL:
+        return "HORS_GEL";
+
+    case THERMOSTAT_OFF:
+        return "OFF";
+
+    default:
+        return "UNKNOWN";
+    }
+}
+
+bool thermostat_string_to_mode(
+    const char *text,
+    thermostat_mode_t *mode)
+{
+    if ((text == NULL) ||
+        (mode == NULL))
+    {
+        return false;
+    }
+
+    if (strcmp(text, "AUTO") == 0)
+    {
+        *mode = THERMOSTAT_AUTO;
+        return true;
+    }
+
+    if (strcmp(text, "MANUAL") == 0)
+    {
+        *mode = THERMOSTAT_MANUAL;
+        return true;
+    }
+
+    if (strcmp(text, "HORS_GEL") == 0)
+    {
+        *mode = THERMOSTAT_HORS_GEL;
+        return true;
+    }
+
+    if (strcmp(text, "OFF") == 0)
+    {
+        *mode = THERMOSTAT_OFF;
+        return true;
+    }
+
+    LOG_WARN("STORAGE",
+             "Unknown thermostat mode \"%s\"",
+             text);
+
+    return false;
 }

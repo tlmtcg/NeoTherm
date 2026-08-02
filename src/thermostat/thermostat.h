@@ -70,6 +70,13 @@ extern "C"
     const char *thermostat_mode_name(
         thermostat_mode_t mode);
 
+    const char *thermostat_mode_to_string(
+        thermostat_mode_t mode);
+
+    bool thermostat_string_to_mode(
+        const char *text,
+        thermostat_mode_t *mode);
+
 #ifdef __cplusplus
 }
 #endif

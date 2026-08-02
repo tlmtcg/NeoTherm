@@ -8,7 +8,6 @@
 #define APP_SIMULATION_MODE 1
 #define APP_SIMULATION_TICKS 150
 #define APP_SIMULATION_DELAY_MS 100
-#define UNIT_TEST 1
 
 #ifdef __cplusplus
 extern "C"

@@ -1,7 +1,7 @@
 #ifndef CLIMATE_H
 #define CLIMATE_H
 
-#include "app.h" // pour TEST_MODE
+#include "app.h" // pour UNIT_TEST
  
 bool climate_init(void);
 
@@ -22,7 +22,7 @@ void climate_tick(void);
 /*
  * API TEST uniquement
  */
-#ifdef TEST_MODE
+#ifdef UNIT_TEST
 void climate_test_set_temperature(float temperature);
 #endif
 

@@ -17,6 +17,9 @@
 #include "storage.h"
 #include "thermal_model.h"
 #include "thermostat.h"
+#include "alarm.h"
+#include "alarm_runtime.h"
+#include "console.h"
 
 bool system_init(void)
 {
@@ -50,11 +53,24 @@ bool system_init(void)
 
     event_init();
     event_dispatcher_init();
+
+    alarm_init();
+    alarm_runtime_init();
+
+    console_init();
+
     thermal_model_init();
     climate_init();
     relay_init();
     history_init();
-    storage_init();
+    if (!storage_init())
+    {
+        alarm_set(ALARM_STORAGE, 0);
+
+        LOG_ERROR("SYSTEM", "Alarm storage error");
+
+        return false;
+    }
     program_init();
     thermostat_init();
 
@@ -110,7 +126,7 @@ bool system_init(void)
              "%u task(s) registered",
              scheduler_task_count());
 
-#ifdef DEBUG
+#ifdef UNIT_TEST
     debug_dump_app_config(app_config_get());
 #endif
 

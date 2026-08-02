@@ -144,3 +144,38 @@ void relay_test_reset(void)
 
     relay_reset_switch_count();
 }
+
+uint32_t relay_get_last_switch_time(void)
+{
+    return s_last_switch_time;
+}
+
+uint32_t relay_get_elapsed_delay(void)
+{
+    if (s_first_switch)
+    {
+        return 0;
+    }
+
+    uint32_t now = clock_seconds_today();
+
+    if (now >= s_last_switch_time)
+    {
+        return now - s_last_switch_time;
+    }
+
+    return (SECONDS_PER_DAY - s_last_switch_time) + now;
+}
+
+uint32_t relay_get_remaining_delay(void)
+{
+    uint32_t elapsed = relay_get_elapsed_delay();
+
+    if (elapsed >= s_min_switch_delay)
+    {
+        return 0;
+    }
+
+    return s_min_switch_delay - elapsed;
+}
+

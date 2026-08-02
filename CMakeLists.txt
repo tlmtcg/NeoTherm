@@ -80,6 +80,20 @@ add_executable(
     src/app_config/getters/ini_getters.c
     src/app_config/utils/ini_utils.c
     src/app_config/storage/ini_storage.c
+    src/alarm/alarm.c
+    src/alarm/alarm_runtime.c
+    src/tests/test_alarm.c
+    src/tests/test_alarm_runtime.c
+    src/tests/test_trim.c
+    src/console/console.c
+    src/console/console_commands.c
+    src/console/commands/cmd_time.c
+    src/console/commands/cmd_alarm.c
+    src/console/commands/cmd_status.c
+    src/console/console_utils.c
+    src/console/commands/cmd_temp.c
+    src/console/commands/cmd_mode.c
+    src/console/commands/cmd_relay.c
 )
 
 
@@ -108,7 +122,8 @@ target_include_directories(
         src/tests
         src/runtime
         src/system
-
+        src/alarm
+        src/console
 )
 
 # ==========================================================
@@ -119,7 +134,7 @@ target_compile_definitions(
     NeoTherm
     PRIVATE
         APP_VERSION="${PROJECT_VERSION}"
-        DEBUG
+        # UNIT_TEST
 )
 
 # ==========================================================

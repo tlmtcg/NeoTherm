@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
-
+#include "ini_parser.h"
 #include "ini_internal.h"
 #include "logger.h"
 

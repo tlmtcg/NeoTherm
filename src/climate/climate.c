@@ -8,6 +8,8 @@
 
 static float s_temperature = 20.5f;
 
+static bool s_simulation_override = false;
+
 /*==========================================================
  * Initialisation
  *=========================================================*/
@@ -30,18 +32,15 @@ bool climate_init(void)
 void climate_update(float temperature)
 {
     s_temperature = temperature;
-
+    s_simulation_override = false;
 
     event_t event = {0};
-
 
     event.type =
         EVENT_CLIMATE_UPDATE;
 
-
     event.data.temperature =
         s_temperature;
-
 
     if (event_post(&event))
     {
@@ -62,20 +61,23 @@ float climate_get_temperature(void)
 
 void climate_tick(void)
 {
-    float heat = 0.0f;
 
+    if (s_simulation_override)
+    {
+        return;
+    }
+
+    float heat = 0.0f;
 
     if (relay_get())
     {
         heat = 1.0f;
     }
 
-
     s_temperature =
         thermal_model_update(
-            heat,
-            thermal_model_get_outside_temperature());
-
+            s_temperature,
+            relay_get());
 
     event_t event = {0};
 
@@ -85,16 +87,14 @@ void climate_tick(void)
     event.data.temperature =
         s_temperature;
 
-
     event_post(&event);
-
 
     LOG_INFO("CLIMATE",
              "Temperature = %.2f C",
              s_temperature);
 }
 
-#ifdef TEST_MODE
+#ifdef UNIT_TEST
 
 void climate_test_set_temperature(float temperature)
 {

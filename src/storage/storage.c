@@ -6,71 +6,71 @@
 #include "storage_ini.h"
 #include "logger.h"
 #include "runtime.h"
+#include "thermostat.h"
 
 
+// static const char *mode_to_string(
+//     thermostat_mode_t mode)
+// {
+//     switch (mode)
+//     {
+//     case THERMOSTAT_AUTO:
+//         return "AUTO";
 
-static const char *mode_to_string(
-    thermostat_mode_t mode)
-{
-    switch (mode)
-    {
-    case THERMOSTAT_AUTO:
-        return "AUTO";
+//     case THERMOSTAT_MANUAL:
+//         return "MANUAL";
 
-    case THERMOSTAT_MANUAL:
-        return "MANUAL";
+//     case THERMOSTAT_HORS_GEL:
+//         return "HORS_GEL";
 
-    case THERMOSTAT_HORS_GEL:
-        return "HORS_GEL";
+//     case THERMOSTAT_OFF:
+//         return "OFF";
 
-    case THERMOSTAT_OFF:
-        return "OFF";
+//     default:
+//         return "UNKNOWN";
+//     }
+// }
 
-    default:
-        return "UNKNOWN";
-    }
-}
+// static bool string_to_mode(
+//     const char *text,
+//     thermostat_mode_t *mode)
+// {
+//     if ((text == NULL) ||
+//         (mode == NULL))
+//     {
+//         return false;
+//     }
 
-static bool string_to_mode(
-    const char *text,
-    thermostat_mode_t *mode)
-{
-    if ((text == NULL) ||
-        (mode == NULL))
-    {
-        return false;
-    }
+//     if (strcmp(text, "AUTO") == 0)
+//     {
+//         *mode = THERMOSTAT_AUTO;
+//         return true;
+//     }
 
-    if (strcmp(text, "AUTO") == 0)
-    {
-        *mode = THERMOSTAT_AUTO;
-        return true;
-    }
+//     if (strcmp(text, "MANUAL") == 0)
+//     {
+//         *mode = THERMOSTAT_MANUAL;
+//         return true;
+//     }
 
-    if (strcmp(text, "MANUAL") == 0)
-    {
-        *mode = THERMOSTAT_MANUAL;
-        return true;
-    }
+//     if (strcmp(text, "HORS_GEL") == 0)
+//     {
+//         *mode = THERMOSTAT_HORS_GEL;
+//         return true;
+//     }
 
-    if (strcmp(text, "HORS_GEL") == 0)
-    {
-        *mode = THERMOSTAT_HORS_GEL;
-        return true;
-    }
+//     if (strcmp(text, "OFF") == 0)
+//     {
+//         *mode = THERMOSTAT_OFF;
+//         return true;
+//     }
 
-    if (strcmp(text, "OFF") == 0)
-    {
-        *mode = THERMOSTAT_OFF;
-        return true;
-    }
+//     LOG_WARN("STORAGE",
+//              "Unknown thermostat mode \"%s\"",
+//              text);
 
-    LOG_WARN("STORAGE",
-             "Unknown thermostat mode \"%s\"",
-             text);
-
-    return false;
-}
+//     return false;
+// }
 
 bool storage_init(void)
 {
@@ -94,7 +94,7 @@ void storage_dump(void)
     }
 
     printf("Mode        : %s\n",
-           mode_to_string(cfg.mode));
+           thermostat_mode_to_string(cfg.mode));
 
     printf("Setpoint    : %.2f C\n",
            cfg.setpoint);
@@ -143,7 +143,7 @@ bool storage_save_runtime(
 
     fprintf(fp,
             "mode=%s\n",
-            mode_to_string(cfg->mode));
+            thermostat_mode_to_string(cfg->mode));
 
     fprintf(fp,
             "setpoint=%.2f\n",
@@ -245,7 +245,7 @@ storage_load_result_t storage_load_runtime(
 
         if (strcmp(line, "mode") == 0)
         {
-            if (!string_to_mode(value,
+            if (!thermostat_string_to_mode(value,
                                 &cfg->mode))
             {
                 LOG_WARN("STORAGE",

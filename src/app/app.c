@@ -11,6 +11,7 @@
 #include "scheduler.h"
 #include "clock.h"
 #include "event_dispatcher.h"
+#include "console.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -62,6 +63,8 @@ bool app_run(void)
         scheduler_update();
 
         app_process_events();
+
+        console_update();
 
         clock_add_second();
 

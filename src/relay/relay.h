@@ -106,6 +106,12 @@ uint32_t relay_get_min_switch_delay(void);
  */
 void relay_test_reset(void);
 
+uint32_t relay_get_last_switch_time(void);
+
+uint32_t relay_get_elapsed_delay(void);
+
+uint32_t relay_get_remaining_delay(void);
+
 #ifdef __cplusplus
 }
 #endif
