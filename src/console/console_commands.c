@@ -5,6 +5,10 @@
 #include "commands/cmd_temp.h"
 #include "commands/cmd_mode.h"
 #include "commands/cmd_relay.h"
+#include "commands/cmd_logger.h"
+#include "commands/cmd_outside.h"
+#include "commands/cmd_setpoint.h"
+#include "commands/cmd_hyst.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -54,9 +58,25 @@ static const console_command_t commands[] =
          cmd_mode,
          "Set thermostat mode"},
 
-                {"relay",
+        {"relay",
          cmd_relay,
-         "Set relay switch delay/Get status"},
+         "Set relay or Get status"},
+
+        {"logger",
+         cmd_logger,
+         "Logger configuration"},
+
+                 {"outside",
+         cmd_outside,
+         "Set outside temperature"},
+
+                          {"setpoint",
+         cmd_setpoint,
+         "Set setpoint temperature"},
+
+                                  {"hyst",
+         cmd_hyst,
+         "Set Hystereris"},
 
 };
 

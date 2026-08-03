@@ -145,37 +145,53 @@ void relay_test_reset(void)
     relay_reset_switch_count();
 }
 
-uint32_t relay_get_last_switch_time(void)
+/* API */
+void relay_get_status(relay_status_t *status)
 {
-    return s_last_switch_time;
-}
+    if (status == NULL)
+    {
+        return;
+    }
 
-uint32_t relay_get_elapsed_delay(void)
-{
+    status->state = s_relay_state;
+    status->switch_count = s_switch_count;
+    status->last_switch_time = s_last_switch_time;
+    status->min_switch_delay = s_min_switch_delay;
+
     if (s_first_switch)
     {
-        return 0;
+        status->elapsed_delay = 0;
+        status->remaining_delay = 0;
+        status->can_switch = true;
+        return;
     }
 
     uint32_t now = clock_seconds_today();
+    uint32_t elapsed;
 
     if (now >= s_last_switch_time)
     {
-        return now - s_last_switch_time;
+        elapsed = now - s_last_switch_time;
+    }
+    else
+    {
+        elapsed = (SECONDS_PER_DAY - s_last_switch_time) + now;
     }
 
-    return (SECONDS_PER_DAY - s_last_switch_time) + now;
-}
-
-uint32_t relay_get_remaining_delay(void)
-{
-    uint32_t elapsed = relay_get_elapsed_delay();
+    status->elapsed_delay = elapsed;
 
     if (elapsed >= s_min_switch_delay)
     {
-        return 0;
+        status->remaining_delay = 0;
+        status->can_switch = true;
     }
+    else
+    {
+        status->remaining_delay =
+            s_min_switch_delay - elapsed;
 
-    return s_min_switch_delay - elapsed;
+        status->can_switch = false;
+    }
 }
+
 

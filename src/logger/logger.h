@@ -27,6 +27,12 @@ void logger_log(log_level_t level,
                 const char *fmt,
                 ...);
 
+void logger_set_level(log_level_t level);
+
+log_level_t logger_get_level(void);
+
+const char *logger_level_name(log_level_t level);
+
 /*----------------------------------------------------------
  * Macros
  *---------------------------------------------------------*/

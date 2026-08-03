@@ -252,6 +252,10 @@ const thermostat_status_t *thermostat_get_status(void)
     return &s_status;
 }
 
+void thermostat_set_hysteresis(float value){
+    s_status.hysteresis=value;
+}
+
 /*==========================================================
  * Gestion mode
  *=========================================================*/

@@ -77,6 +77,8 @@ extern "C"
         const char *text,
         thermostat_mode_t *mode);
 
+    void thermostat_set_hysteresis(float value);
+
 #ifdef __cplusplus
 }
 #endif

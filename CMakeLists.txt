@@ -94,6 +94,10 @@ add_executable(
     src/console/commands/cmd_temp.c
     src/console/commands/cmd_mode.c
     src/console/commands/cmd_relay.c
+    src/console/commands/cmd_logger.c
+    src/console/commands/cmd_outside.c
+    src/console/commands/cmd_setpoint.c
+       src/console/commands/cmd_hyst.c
 )
 
 
