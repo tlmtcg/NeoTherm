@@ -98,6 +98,8 @@ add_executable(
     src/console/commands/cmd_setpoint.c
     src/console/commands/cmd_hyst.c
     src/console/commands/cmd_clock.c
+    src/console/commands/cmd_tick.c
+    src/console/commands/cmd_program.c
 )
 
 

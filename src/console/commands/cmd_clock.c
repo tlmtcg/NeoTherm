@@ -31,7 +31,9 @@ bool cmd_clock(const char *args)
         return true;
     }
 
-    clock_time_t t = {0};
+    clock_time_t t;
+
+    clock_get_time(&t);
 
     if (sscanf(args,
                "%u:%u:%u",
@@ -44,7 +46,13 @@ bool cmd_clock(const char *args)
         return false;
     }
 
-    clock_set_time(&t);
+    if (!clock_set_time(&t))
+    {
+        printf("Unable to set time\n");
+        return false;
+    }
+
+    clock_sync_to_runtime();
 
     printf("Time set to %02u:%02u:%02u\n",
            t.hour,

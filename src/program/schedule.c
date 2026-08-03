@@ -78,11 +78,11 @@ bool schedule_init(void)
     const ini_runtime_t *rt = ini_get_runtime();
 
     if (rt == NULL)
-{
-    LOG_ERROR("SCHEDULE",
-              "INI runtime unavailable");
-    return false;
-}
+    {
+        LOG_ERROR("SCHEDULE",
+                  "INI runtime unavailable");
+        return false;
+    }
     LOG_DEBUG("SCHEDULE", "schedule_init: rt->count = %zu", rt ? rt->count : 0);
 
     for (uint8_t d = 0; d < 7; d++)
@@ -252,6 +252,54 @@ bool schedule_set_point(uint8_t day,
     return schedule_save();
 }
 
+bool schedule_remove_point(uint8_t day,
+                           uint8_t hour,
+                           uint8_t minute)
+{
+    if (day > 6 || hour > 23 || minute > 59)
+    {
+        return false;
+    }
+
+    schedule_day_t *s_day = &s_schedule[day];
+
+    /*
+     * Recherche du point
+     */
+    for (uint32_t i = 0; i < s_day->count; i++)
+    {
+        if ((s_day->points[i].hour == hour) &&
+            (s_day->points[i].minute == minute))
+        {
+            /*
+             * Décalage des points suivants
+             */
+            for (uint32_t j = i; j < s_day->count - 1; j++)
+            {
+                s_day->points[j] = s_day->points[j + 1];
+            }
+
+            s_day->count--;
+
+            LOG_INFO("SCHEDULE",
+                     "Removed point day=%u %02u:%02u",
+                     day,
+                     hour,
+                     minute);
+
+            return schedule_save();
+        }
+    }
+
+    LOG_WARN("SCHEDULE",
+             "Point not found day=%u %02u:%02u",
+             day,
+             hour,
+             minute);
+
+    return false;
+}
+
 static void schedule_sort_day(schedule_day_t *day)
 {
     /*
@@ -328,4 +376,122 @@ bool schedule_save()
              s_schedule_file);
 
     return true;
+}
+
+void schedule_dump(void)
+{
+    printf("\n");
+    printf("========================================\n");
+    printf("Weekly schedule\n");
+    printf("========================================\n");
+
+    for (uint8_t d = 0; d < 7; d++)
+    {
+        printf("\n[%s]\n", s_section_names[d]);
+
+        if (s_schedule[d].count == 0)
+        {
+            printf("  (empty)\n");
+            continue;
+        }
+
+        for (uint32_t i = 0; i < s_schedule[d].count; i++)
+        {
+            printf("  %02u:%02u  %.1f C\n",
+                   s_schedule[d].points[i].hour,
+                   s_schedule[d].points[i].minute,
+                   s_schedule[d].points[i].setpoint);
+        }
+    }
+
+    printf("\n");
+}
+
+bool schedule_get_next(schedule_next_t *next)
+{
+    if (next == NULL)
+    {
+        return false;
+    }
+
+    clock_time_t now;
+
+    if (!clock_get_time(&now))
+    {
+        LOG_ERROR("SCHEDULE",
+                  "Unable to read clock");
+
+        return false;
+    }
+
+    uint32_t current_minutes =
+        (uint32_t)now.hour * 60U +
+        (uint32_t)now.minute;
+
+    uint8_t weekday =
+        schedule_get_weekday(&now);
+
+    /*
+     * Recherche du prochain point aujourd'hui.
+     */
+    schedule_day_t *day =
+        &s_schedule[weekday];
+
+    for (uint32_t i = 0; i < day->count; i++)
+    {
+        uint32_t event_minutes =
+            (uint32_t)day->points[i].hour * 60U +
+            (uint32_t)day->points[i].minute;
+
+        if (event_minutes > current_minutes)
+        {
+            next->day = s_section_names[weekday];
+            next->hour = day->points[i].hour;
+            next->minute = day->points[i].minute;
+            next->setpoint = day->points[i].setpoint;
+
+            return true;
+        }
+    }
+
+    /*
+     * Sinon recherche dans les jours suivants.
+     */
+    for (uint8_t offset = 1; offset <= 7; offset++)
+    {
+        uint8_t next_day =
+            (weekday + offset) % 7;
+
+        if (s_schedule[next_day].count == 0)
+        {
+            continue;
+        }
+
+        next->day = s_section_names[next_day];
+        next->hour = s_schedule[next_day].points[0].hour;
+        next->minute = s_schedule[next_day].points[0].minute;
+        next->setpoint = s_schedule[next_day].points[0].setpoint;
+
+        return true;
+    }
+
+    return false;
+}
+
+int schedule_day_from_name(const char *name)
+{
+    if (name == NULL)
+    {
+        return -1;
+    }
+
+    for (int day = 0; day < 7; day++)
+    {
+        if (strcmp(name, s_section_names[day]) == 0)
+        {
+            return day;
+        }
+    }
+
+    return -1;
 }

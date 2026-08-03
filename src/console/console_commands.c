@@ -9,6 +9,8 @@
 #include "commands/cmd_setpoint.h"
 #include "commands/cmd_hyst.h"
 #include "commands/cmd_clock.h"
+#include "commands/cmd_tick.h"
+#include "commands/cmd_program.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -77,6 +79,14 @@ static const console_command_t commands[] =
         {"clock",
          cmd_clock,
          "Set clock"},
+
+        {"tick",
+         cmd_tick,
+         "Set tick"},
+
+        {"program",
+         cmd_program,
+         "Display program/Display next point"},
 
 };
 

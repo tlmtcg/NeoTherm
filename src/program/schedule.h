@@ -30,11 +30,22 @@ typedef struct
 } schedule_day_t;
 
 
+typedef struct
+{
+    const char *day;
+    uint8_t  hour;
+    uint8_t  minute;
+    float    setpoint;
+
+} schedule_next_t;
 
 bool schedule_init(void);
 
-
 float schedule_get_setpoint(void);
+
+bool schedule_get_next(schedule_next_t *next);
+
+void schedule_dump(void);
 
 /**
  * @brief Modifie ou ajoute un point de consigne pour un jour et une heure donnés.
@@ -47,5 +58,11 @@ float schedule_get_setpoint(void);
 bool schedule_set_point(uint8_t day, uint8_t hour, uint8_t minute, float setpoint);
 
 bool schedule_save();
+
+int schedule_day_from_name(const char *name);
+
+bool schedule_remove_point(uint8_t day,
+                           uint8_t hour,
+                           uint8_t minute);
 
 #endif
