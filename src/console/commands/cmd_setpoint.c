@@ -12,16 +12,12 @@ bool cmd_setpoint(const char *args){
         return false;
     }
 
-
     float setpoint = atof(args);
-
 
     thermostat_set_setpoint(setpoint);
 
-
     printf("Setpoint set to %.2f C\n",
            setpoint);
-
 
     return true;
 

@@ -1,5 +1,4 @@
 #include "console_commands.h"
-#include "commands/cmd_time.h"
 #include "commands/cmd_alarm.h"
 #include "commands/cmd_status.h"
 #include "commands/cmd_temp.h"
@@ -9,6 +8,7 @@
 #include "commands/cmd_outside.h"
 #include "commands/cmd_setpoint.h"
 #include "commands/cmd_hyst.h"
+#include "commands/cmd_clock.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -38,10 +38,6 @@ static const console_command_t commands[] =
          cmd_help,
          "Display available commands"},
 
-        {"time",
-         cmd_time,
-         "Display current time"},
-
         {"alarms",
          cmd_alarms,
          "Display active alarms"},
@@ -66,17 +62,21 @@ static const console_command_t commands[] =
          cmd_logger,
          "Logger configuration"},
 
-                 {"outside",
+        {"outside",
          cmd_outside,
          "Set outside temperature"},
 
-                          {"setpoint",
+        {"setpoint",
          cmd_setpoint,
          "Set setpoint temperature"},
 
-                                  {"hyst",
+        {"hyst",
          cmd_hyst,
          "Set Hystereris"},
+
+        {"clock",
+         cmd_clock,
+         "Set clock"},
 
 };
 

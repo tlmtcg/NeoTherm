@@ -14,7 +14,6 @@ bool cmd_mode(const char *args)
         return false;
     }
 
-
     if (strcmp(args, "auto") == 0)
     {
         thermostat_set_mode(THERMOSTAT_AUTO);

@@ -77,7 +77,7 @@ bool history_save(
         return false;
     }
 
-    LOG_INFO("HISTORY",
+    LOG_DEBUG("HISTORY",
              "History saved : %u records",
              count);
 

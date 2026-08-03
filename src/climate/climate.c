@@ -44,7 +44,7 @@ void climate_update(float temperature)
 
     if (event_post(&event))
     {
-        LOG_INFO("CLIMATE",
+        LOG_DEBUG("CLIMATE",
                  "Temperature = %.2f C",
                  s_temperature);
     }
@@ -89,7 +89,7 @@ void climate_tick(void)
 
     event_post(&event);
 
-    LOG_INFO("CLIMATE",
+    LOG_DEBUG("CLIMATE",
              "Temperature = %.2f C",
              s_temperature);
 }

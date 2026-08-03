@@ -12,16 +12,12 @@ bool cmd_hyst(const char *args){
         return false;
     }
 
-
     float hyst = atof(args);
-
 
     thermostat_set_hysteresis(hyst);
 
-
     printf("Hysteresis set to %.2f C\n",
            hyst);
-
 
     return true;
 

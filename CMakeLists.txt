@@ -87,7 +87,6 @@ add_executable(
     src/tests/test_trim.c
     src/console/console.c
     src/console/console_commands.c
-    src/console/commands/cmd_time.c
     src/console/commands/cmd_alarm.c
     src/console/commands/cmd_status.c
     src/console/console_utils.c
@@ -97,7 +96,8 @@ add_executable(
     src/console/commands/cmd_logger.c
     src/console/commands/cmd_outside.c
     src/console/commands/cmd_setpoint.c
-       src/console/commands/cmd_hyst.c
+    src/console/commands/cmd_hyst.c
+    src/console/commands/cmd_clock.c
 )
 
 

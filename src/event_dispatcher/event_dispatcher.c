@@ -22,7 +22,7 @@ void event_dispatcher_dispatch(
 
         case EVENT_CLIMATE_UPDATE:
 
-            LOG_INFO("DISPATCHER",
+            LOG_DEBUG("DISPATCHER",
                      "EVENT_CLIMATE_UPDATE");
 
             break;
