@@ -58,6 +58,8 @@ bool scheduler_get_info(
     uint32_t index,
     scheduler_info_t *info);
 
+void scheduler_dump(void);
+
 #ifdef __cplusplus
 }
 #endif

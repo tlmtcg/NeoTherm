@@ -1,9 +1,10 @@
 #include "console_commands.h"
 #include "commands/cmd_alarm.h"
-#include "commands/cmd_status.h"
+#include "commands/cmd_thermostat.h"
 #include "commands/cmd_temp.h"
 #include "commands/cmd_mode.h"
 #include "commands/cmd_relay.h"
+#include "commands/cmd_status.h"
 #include "commands/cmd_logger.h"
 #include "commands/cmd_outside.h"
 #include "commands/cmd_setpoint.h"
@@ -11,6 +12,15 @@
 #include "commands/cmd_clock.h"
 #include "commands/cmd_tick.h"
 #include "commands/cmd_program.h"
+#include "commands/cmd_history.h"
+#include "commands/cmd_thermal.h"
+#include "commands/cmd_runtime.h"
+#include "commands/cmd_task.h"
+#include "commands/cmd_event.h"
+#include "commands/cmd_storage.h"
+#include "commands/cmd_version.h"
+#include "commands/cmd_config.h"
+#include "commands/cmd_clear.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -36,58 +46,97 @@ static bool cmd_help(const char *args)
 
 static const console_command_t commands[] =
     {
+        {"alarm",
+         cmd_alarms,
+         "Display active alarms"},
+
+        {"clock",
+         cmd_clock,
+         "Set / Display clock"},
+
+                {"cls",
+         cmd_clear,
+         "Clear screen"},
+
+                 {"config",
+         cmd_config,
+         "Display configuration"},
+
+        {"event",
+         cmd_event,
+         "Display event counters"},
+
         {"help",
          cmd_help,
          "Display available commands"},
 
-        {"alarms",
-         cmd_alarms,
-         "Display active alarms"},
+        {"history",
+         cmd_history,
+         "Display / Clear history"},
 
-        {"status",
-         cmd_status,
-         "Display thermostat status"},
+        {"hyst",
+         cmd_hyst,
+         "Set thermostat hysteresis"},
 
-        {"temp",
-         cmd_temp,
-         "Set simulated temperature"},
+        {"logger",
+         cmd_logger,
+         "Display logger configuration"},
 
         {"mode",
          cmd_mode,
          "Set thermostat mode"},
 
-        {"relay",
-         cmd_relay,
-         "Set relay or Get status"},
-
-        {"logger",
-         cmd_logger,
-         "Logger configuration"},
-
         {"outside",
          cmd_outside,
          "Set outside temperature"},
 
+        {"program",
+         cmd_program,
+         "Display schedule / Set program"},
+
+        {"relay",
+         cmd_relay,
+         "Control relay / Display status"},
+
+        {"runtime",
+         cmd_runtime,
+         "Display runtime configuration"},
+
         {"setpoint",
          cmd_setpoint,
-         "Set setpoint temperature"},
+         "Set temperature setpoint"},
 
-        {"hyst",
-         cmd_hyst,
-         "Set Hystereris"},
+        {"status",
+         cmd_status,
+         "Display complete status"},
 
-        {"clock",
-         cmd_clock,
-         "Set clock"},
+        {"storage",
+         cmd_storage,
+         "Load / Save runtime configuration"},
+
+        {"task",
+         cmd_task,
+         "Display scheduler tasks"},
+
+        {"temp",
+         cmd_temp,
+         "Set simulated temperature"},
+
+        {"thermal",
+         cmd_thermal,
+         "Display / Set thermal model"},
+
+        {"thermostat",
+         cmd_thermostat,
+         "Display thermostat status"},
 
         {"tick",
          cmd_tick,
-         "Set tick"},
+         "Advance simulated time"},
 
-        {"program",
-         cmd_program,
-         "Display program/Display next point"},
-
+        {"version",
+         cmd_version,
+         "Display version"},
 };
 
 static const size_t command_count =
@@ -140,22 +189,66 @@ bool console_commands_execute(
  *==========================================================
  */
 
+static void console_help_print(const char *name)
+{
+    for (size_t i = 0; i < command_count; i++)
+    {
+        if (strcmp(commands[i].name, name) == 0)
+        {
+            printf("%-12s %s\n",
+                   commands[i].name,
+                   commands[i].help);
+            return;
+        }
+    }
+}
+
 void console_commands_help(const char *args)
 {
     (void)args;
-    printf("\n");
 
-    printf("Available commands\n");
+    printf("\n");
+    printf("System\n");
     printf("------------------------------\n");
 
-    for (size_t i = 0;
-         i < command_count;
-         i++)
-    {
-        printf("%-12s %s\n",
-               commands[i].name,
-               commands[i].help);
-    }
+    console_help_print("config");
+        console_help_print("cls");
+        console_help_print("help");
+        console_help_print("logger");
+         console_help_print("runtime");
+    console_help_print("status");
+    console_help_print("storage");
+    console_help_print("version");
+
+    printf("\n");
+    printf("Time\n");
+    printf("------------------------------\n");
+
+    console_help_print("clock");
+    console_help_print("tick");
+
+    printf("\n");
+    printf("Thermostat\n");
+    printf("------------------------------\n");
+
+    console_help_print("mode");
+    console_help_print("setpoint");
+    console_help_print("hyst");
+    console_help_print("program");
+    console_help_print("temp");
+    console_help_print("outside");
+    console_help_print("relay");
+    console_help_print("thermal");
+    console_help_print("thermostat");
+    console_help_print("alarms");
+
+    printf("\n");
+    printf("Diagnostics\n");
+    printf("------------------------------\n");
+
+    console_help_print("history");
+    console_help_print("event");
+    console_help_print("task");
 
     printf("\n");
 }

@@ -211,7 +211,7 @@ void thermostat_update(void)
     s_status.relay_state =
         relay_get();
 
-    LOG_INFO("THERMO",
+    LOG_DEBUG("THERMO",
              "Mode=%s Temp=%.2f Set=%.2f Relay=%s HeatReq=%s",
              thermostat_mode_name(s_status.mode),
              s_status.temperature,

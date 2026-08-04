@@ -120,4 +120,6 @@ bool cmd_program(const char *args)
 
         return false;
     }
+    
+    return false;
 }

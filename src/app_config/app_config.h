@@ -70,4 +70,6 @@ bool app_config_set_float(
     const char *key,
     float value);
 
+void app_config_dump(void);
+
 #endif /* APP_CONFIG_H */

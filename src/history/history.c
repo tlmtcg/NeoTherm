@@ -3,6 +3,7 @@
 #include "clock.h"
 
 #include <string.h>
+#include <stdio.h>
 
 /*==========================================================
  * Variables privées
@@ -255,4 +256,45 @@ bool history_push(
           "Record restored");
 
     return true;
+}
+
+void history_dump_last(uint32_t count)
+{
+    if (s_count == 0)
+    {
+        printf("History is empty\n");
+        return;
+    }
+
+    if (count > s_count)
+    {
+        count = s_count;
+    }
+
+    printf("\nLast %u history records\n", count);
+    printf("---------------------------------------------------------------------\n");
+    printf("Tick  Temp   Ext    Set   Mode   Relay Heat\n");
+
+    uint32_t start =
+        (s_head + HISTORY_SIZE - count) % HISTORY_SIZE;
+
+    for (uint32_t i = 0; i < count; i++)
+    {
+        uint32_t index =
+            (start + i) % HISTORY_SIZE;
+
+        const history_record_t *r =
+            &s_history[index];
+
+        printf("%4u %6.2f %6.2f %6.2f %-8s %-3s %-3s\n",
+               r->tick,
+               r->inside_temperature,
+               r->outside_temperature,
+               r->setpoint,
+               thermostat_mode_name(r->mode),
+               r->relay ? "ON" : "OFF",
+               r->heating ? "YES" : "NO");
+    }
+
+    printf("\n");
 }

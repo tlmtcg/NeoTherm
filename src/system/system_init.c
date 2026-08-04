@@ -46,8 +46,7 @@ bool system_init(void)
 
     clock_init();
 
-    clock_set_time(
-        &runtime_get()->date_time);
+    clock_sync_from_system(); // mise à l'heure par le PC
 
     clock_sync_to_runtime();
 

@@ -1,19 +1,8 @@
 #include "thermal_model.h"
+#include <stdio.h>
 
 #include "logger.h"
 #include "app_config.h"
-
-typedef struct
-{
-    float outside_temperature;
-
-    float heat_power;
-
-    float loss_factor;
-
-    float thermal_mass;
-
-} thermal_model_t;
 
 static thermal_model_t s_model;
 
@@ -78,7 +67,7 @@ float thermal_model_update(
     float new_temperature =
         inside_temperature + delta;
 
-    LOG_INFO("THERMAL",
+    LOG_DEBUG("THERMAL",
              "Inside=%.2f Outside=%.2f Loss=%+.3f Heat=%+.3f Delta=%+.3f -> %.2f",
              inside_temperature,
              s_model.outside_temperature,
@@ -94,11 +83,22 @@ float thermal_model_update(
  * Température extérieure
  *=========================================================*/
 
-
-
 float thermal_model_get_outside_temperature(void)
 {
     return s_model.outside_temperature;
+}
+
+float thermal_model_get_heat_power()
+{
+    return s_model.heat_power;
+}
+float thermal_model_get_loss_factor()
+{
+    return s_model.loss_factor;
+}
+float thermal_model_get_thermal_mass()
+{
+    return s_model.thermal_mass;
 }
 
 /*==========================================================
@@ -154,3 +154,23 @@ void thermal_model_set_thermal_mass(float value)
     }
 }
 
+void thermal_dump(void)
+{
+    printf("\n");
+    printf("Thermal model\n");
+    printf("------------------------------\n");
+
+    printf("Outside temperature : %.2f C\n",
+           s_model.outside_temperature);
+
+    printf("Heat power          : %.3f C/tick\n",
+           s_model.heat_power);
+
+    printf("Loss factor         : %.3f\n",
+           s_model.loss_factor);
+
+    printf("Thermal mass        : %.2f\n",
+           s_model.thermal_mass);
+
+    printf("\n");
+}

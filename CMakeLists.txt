@@ -80,8 +80,8 @@ add_executable(
     src/app_config/getters/ini_getters.c
     src/app_config/utils/ini_utils.c
     src/app_config/storage/ini_storage.c
-    src/alarm/alarm.c
-    src/alarm/alarm_runtime.c
+    src/core/alarm/alarm.c
+    src/core/alarm/alarm_runtime.c
     src/tests/test_alarm.c
     src/tests/test_alarm_runtime.c
     src/tests/test_trim.c
@@ -89,6 +89,7 @@ add_executable(
     src/console/console_commands.c
     src/console/commands/cmd_alarm.c
     src/console/commands/cmd_status.c
+    src/console/commands/cmd_thermostat.c
     src/console/console_utils.c
     src/console/commands/cmd_temp.c
     src/console/commands/cmd_mode.c
@@ -100,6 +101,15 @@ add_executable(
     src/console/commands/cmd_clock.c
     src/console/commands/cmd_tick.c
     src/console/commands/cmd_program.c
+    src/console/commands/cmd_history.c
+    src/console/commands/cmd_thermal.c
+    src/console/commands/cmd_runtime.c
+    src/console/commands/cmd_task.c
+    src/console/commands/cmd_event.c
+    src/console/commands/cmd_storage.c
+    src/console/commands/cmd_version.c
+    src/console/commands/cmd_config.c
+    src/console/commands/cmd_clear.c
 )
 
 
@@ -128,7 +138,7 @@ target_include_directories(
         src/tests
         src/runtime
         src/system
-        src/alarm
+        src/core/alarm
         src/console
 )
 
@@ -140,7 +150,7 @@ target_compile_definitions(
     NeoTherm
     PRIVATE
         APP_VERSION="${PROJECT_VERSION}"
-        # UNIT_TEST
+        UNIT_TEST
 )
 
 # ==========================================================

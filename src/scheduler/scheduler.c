@@ -3,13 +3,12 @@
 #include "climate.h"
 #include "logger.h"
 #include <string.h>
-
+#include "console_utils.h"
+#include <stdio.h>
 
 static uint32_t s_tick = 0;
 
 static uint32_t s_climate_tick = 0;
-
-
 
 typedef struct
 {
@@ -25,11 +24,9 @@ typedef struct
 
 } scheduler_entry_t;
 
-
 static scheduler_entry_t s_tasks[SCHEDULER_MAX_TASKS];
 
 static uint32_t s_task_count = 0;
-
 
 /*==========================================================
  * Initialisation
@@ -184,7 +181,6 @@ bool scheduler_remove(const char *name)
     return false;
 }
 
-
 uint32_t scheduler_task_count(void)
 {
     return s_task_count;
@@ -208,3 +204,31 @@ bool scheduler_get_info(
     return true;
 }
 
+void scheduler_dump(void)
+{
+    console_print_header("Scheduler Tasks");
+
+    printf("%-3s %-16s %-8s %-8s %s\n",
+           "Id",
+           "Name",
+           "Period",
+           "Next",
+           "Enabled");
+
+    console_print_separator();
+
+    for (uint32_t i = 0; i < s_task_count; i++)
+    {
+        printf("%-3u %-16s %-8u %-8u %s\n",
+               i,
+               s_tasks[i].name,
+               s_tasks[i].period,
+               s_tasks[i].period - s_tasks[i].counter,
+               s_tasks[i].enabled ? "YES" : "NO");
+    }
+
+    printf("\nTotal tasks : %u\n",
+           s_task_count);
+
+    console_print_separator();
+}

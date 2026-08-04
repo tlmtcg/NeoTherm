@@ -136,3 +136,40 @@ const char *alarm_get_name(alarm_type_t type)
 
     return alarm_names[type];
 }
+
+static const char *const alarm_command_names[ALARM_COUNT] =
+{
+    [ALARM_NONE]                = "NONE",
+
+    [ALARM_TEMP_HIGH]           = "TEMP_HIGH",
+    [ALARM_TEMP_LOW]            = "TEMP_LOW",
+
+    [ALARM_SENSOR_DHT_ERROR]    = "DHT_ERROR",
+    [ALARM_SENSOR_SHT31_ERROR]  = "SHT31_ERROR",
+
+    [ALARM_SENSOR_DHT]          = "DHT_SENSOR",
+    [ALARM_SENSOR_SHT31]        = "SHT31_SENSOR",
+    [ALARM_SENSOR_INVALID]      = "SENSOR_INVALID",
+
+    [ALARM_RELAY_ERROR]         = "RELAY_ERROR",
+    [ALARM_HEATING_TIMEOUT]     = "HEATING_TIMEOUT",
+
+    [ALARM_CONFIG_ERROR]        = "CONFIG_ERROR",
+
+    [ALARM_STORAGE]             = "STORAGE_ERROR",
+    [ALARM_HISTORY]             = "HISTORY_ERROR",
+
+    [ALARM_CONFIG]              = "CONFIG",
+
+    [ALARM_I2C]                 = "I2C_ERROR"
+};
+
+const char *alarm_get_command_name(alarm_type_t type)
+{
+    if (type >= ALARM_COUNT)
+    {
+        return "UNKNOWN";
+    }
+
+    return alarm_command_names[type];
+}

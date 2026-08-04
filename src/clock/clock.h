@@ -56,6 +56,8 @@ extern "C"
 
     bool clock_sync_to_runtime(void);
 
+    bool clock_sync_from_system(void);
+
 #ifdef __cplusplus
 }
 #endif

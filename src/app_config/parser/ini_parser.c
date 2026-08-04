@@ -6,7 +6,6 @@
 #include "ini_internal.h"
 #include "logger.h"
 
-
 char *trim(char *str)
 {
     while (isspace((unsigned char)*str))
@@ -32,7 +31,6 @@ char *trim(char *str)
     return str;
 }
 
-
 static bool ini_parse_line(
     char *line,
     char *current_section)
@@ -56,9 +54,9 @@ static bool ini_parse_line(
 
         strncpy(current_section,
                 section,
-                sizeof(current_section) - 1);
+                CONFIG_SECTION_LENGTH - 1);
 
-        current_section[sizeof(current_section) - 1] = '\0';
+        current_section[CONFIG_SECTION_LENGTH - 1] = '\0';
 
         return true;
     }

@@ -7,123 +7,116 @@
 #define SECONDS_PER_DAY 86400U
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
+    /*==========================================================
+     * Initialisation
+     *=========================================================*/
 
-/*==========================================================
- * Initialisation
- *=========================================================*/
+    bool relay_init(void);
 
-bool relay_init(void);
+    /*==========================================================
+     * Commande
+     *=========================================================*/
 
+    /**
+     * @brief Demande un changement d'état du relais.
+     *
+     * Le changement est refusé si le délai minimum
+     * entre deux commutations n'est pas écoulé.
+     *
+     * @param state Nouvel état demandé.
+     *
+     * @return true si le relais a changé d'état,
+     *         false si la commutation a été refusée.
+     */
+    bool relay_set(bool state);
 
-/*==========================================================
- * Commande
- *=========================================================*/
+    /**
+     * @brief Inverse l'état du relais.
+     *
+     * @return true si la commutation a été effectuée.
+     */
+    bool relay_toggle(void);
 
-/**
- * @brief Demande un changement d'état du relais.
- *
- * Le changement est refusé si le délai minimum
- * entre deux commutations n'est pas écoulé.
- *
- * @param state Nouvel état demandé.
- *
- * @return true si le relais a changé d'état,
- *         false si la commutation a été refusée.
- */
-bool relay_set(bool state);
+    /*==========================================================
+     * Lecture
+     *=========================================================*/
 
+    bool relay_get(void);
 
-/**
- * @brief Inverse l'état du relais.
- *
- * @return true si la commutation a été effectuée.
- */
-bool relay_toggle(void);
+    typedef struct
+    {
+        bool state;
 
+        bool can_switch;
 
-/*==========================================================
- * Lecture
- *=========================================================*/
+        uint32_t switch_count;
 
-bool relay_get(void);
+        uint32_t last_switch_time;
 
-typedef struct
-{
-    bool state;
+        uint32_t min_switch_delay;
 
-    bool can_switch;
+        uint32_t elapsed_delay;
 
-    uint32_t switch_count;
+        uint32_t remaining_delay;
 
-    uint32_t last_switch_time;
+    } relay_status_t;
 
-    uint32_t min_switch_delay;
+    void relay_get_status(relay_status_t *status);
 
-    uint32_t elapsed_delay;
+    /**
+     * @brief Retourne le nombre de changements d'état du relais.
+     *
+     * Le compteur est incrémenté uniquement lors d'une vraie
+     * commutation OFF->ON ou ON->OFF.
+     */
+    uint32_t relay_get_switch_count(void);
 
-    uint32_t remaining_delay;
+    uint32_t relay_get_elapsed_delay(void);
+    uint32_t relay_get_remaining_delay(void);
 
-} relay_status_t;
+    /*==========================================================
+     * Tests
+     *=========================================================*/
 
-void relay_get_status(relay_status_t *status);
+    /**
+     * @brief Remise à zéro du compteur.
+     *
+     * Utilisé uniquement par les tests unitaires.
+     */
+    void relay_reset_switch_count(void);
 
-/**
- * @brief Retourne le nombre de changements d'état du relais.
- *
- * Le compteur est incrémenté uniquement lors d'une vraie
- * commutation OFF->ON ou ON->OFF.
- */
-uint32_t relay_get_switch_count(void);
+    /*==========================================================
+     * Protection anti-cycles courts
+     *=========================================================*/
 
+    /**
+     * @brief Vérifie si une nouvelle commutation est autorisée.
+     */
+    bool relay_can_switch(void);
 
+    /**
+     * @brief Définit le délai minimum entre deux commutations.
+     *
+     * @param seconds Délai en secondes.
+     */
+    void relay_set_min_switch_delay(uint32_t seconds);
 
-/*==========================================================
- * Tests
- *=========================================================*/
+    /**
+     * @brief Retourne le délai minimum configuré.
+     *
+     * @return Délai en secondes.
+     */
+    uint32_t relay_get_min_switch_delay(void);
 
-/**
- * @brief Remise à zéro du compteur.
- *
- * Utilisé uniquement par les tests unitaires.
- */
-void relay_reset_switch_count(void);
-
-
-
-/*==========================================================
- * Protection anti-cycles courts
- *=========================================================*/
-
-/**
- * @brief Vérifie si une nouvelle commutation est autorisée.
- */
-bool relay_can_switch(void);
-
-
-/**
- * @brief Définit le délai minimum entre deux commutations.
- *
- * @param seconds Délai en secondes.
- */
-void relay_set_min_switch_delay(uint32_t seconds);
-
-
-/**
- * @brief Retourne le délai minimum configuré.
- *
- * @return Délai en secondes.
- */
-uint32_t relay_get_min_switch_delay(void);
-
-
-/**
- * @brief Centralise toute la configuration spécifique aux tests
- *
- */
-void relay_test_reset(void);
+    /**
+     * @brief Centralise toute la configuration spécifique aux tests
+     *
+     */
+    void relay_test_reset(void);
 
 #ifdef __cplusplus
 }

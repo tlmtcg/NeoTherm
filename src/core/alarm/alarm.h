@@ -94,4 +94,6 @@ void alarm_dump(void);
 
 const char *alarm_get_name(alarm_type_t type);
 
+const char *alarm_get_command_name(alarm_type_t type);
+
 #endif

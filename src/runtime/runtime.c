@@ -2,6 +2,11 @@
 
 #include "storage.h"
 #include "logger.h"
+#include "schedule.h"
+#include "console_utils.h"
+#include "climate.h"
+#include "relay.h"
+#include "thermal_model.h"
 
 const runtime_config_t runtime_default_config =
     {
@@ -172,3 +177,75 @@ bool runtime_set_datetime(
     return true;
 }
 
+void runtime_dump(void)
+{
+    clock_time_t now;
+    schedule_next_t next;
+
+    clock_get_time(&now);
+    schedule_get_next(&next);
+
+    console_print_header("Runtime");
+
+    console_print_string(
+        "Mode",
+        thermostat_mode_name(thermostat_get_mode()));
+
+    console_print_float(
+        "Temperature",
+        climate_get_temperature(),
+        "C");
+
+    console_print_float(
+        "Setpoint",
+        thermostat_get_setpoint(),
+        "C");
+
+    console_print_float(
+        "Next setpoint",
+        next.setpoint,
+        "C");
+
+    console_print_bool(
+        "Heating request",
+        thermostat_get_status()->heating_request);
+
+    console_print_string(
+        "Relay",
+        relay_get() ? "ON" : "OFF");
+
+    console_print_float(
+        "Hysteresis",
+        thermostat_get_hysteresis(),
+        "C");
+
+    console_print_uint(
+        "Relay delay",
+        relay_get_min_switch_delay());
+
+    console_print_float(
+        "Outside temp",
+        thermal_model_get_outside_temperature(),
+        "C");
+
+    console_print_float(
+        "Heat power",
+        thermal_model_get_heat_power(),
+        "C/tick");
+
+    console_print_float(
+        "Loss factor",
+        thermal_model_get_loss_factor(),
+        "");
+
+    console_print_float(
+        "Thermal mass",
+        thermal_model_get_thermal_mass(),
+        "");
+
+    console_print_datetime(
+        "Date/Time",
+        &now);
+
+    console_print_separator();
+}

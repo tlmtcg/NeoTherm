@@ -116,6 +116,8 @@ extern "C"
     bool runtime_set_datetime(
         const clock_time_t *time);
 
+    void runtime_dump(void);
+
 #ifdef __cplusplus
 }
 #endif

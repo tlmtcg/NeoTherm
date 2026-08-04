@@ -185,7 +185,7 @@ float schedule_get_setpoint(void)
         }
     }
 
-    LOG_INFO("SCHEDULE",
+    LOG_DEBUG("SCHEDULE",
              "Current schedule %.1f C Jour = %d",
              setpoint,
              weekday);

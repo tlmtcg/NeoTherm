@@ -9,7 +9,7 @@ extern "C" {
  * Debug
  *=========================================================*/
 
-void scheduler_dump(void);
+// void scheduler_dump(void);
 
 #ifdef __cplusplus
 }

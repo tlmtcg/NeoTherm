@@ -83,6 +83,8 @@ void history_task_callback(void);
 
 void history_csv_task_callback(void);
 
+void history_dump_last(uint32_t count);
+
 #ifdef __cplusplus
 }
 #endif
