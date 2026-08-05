@@ -56,6 +56,21 @@ bool app_run(void)
 
     test_runner_run();
 
+    while (1)
+    {
+        scheduler_update();
+
+        app_process_events();
+
+        console_update();
+
+        clock_add_second();
+
+#ifdef _WIN32
+        Sleep(100);
+#endif
+    }
+
 #else
 
     while (1)

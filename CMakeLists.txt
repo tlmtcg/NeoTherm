@@ -8,6 +8,12 @@ project(
 )
 
 # ==========================================================
+# Librairies externes
+# ==========================================================
+
+find_package(CURL REQUIRED)
+
+# ==========================================================
 # Standard C
 # ==========================================================
 
@@ -110,6 +116,25 @@ add_executable(
     src/tests/test_thermostat.c
     src/tests/test_trim.c
     src/tests/test_utils.c
+    src/core/weather/weather.c
+    src/tests/test_weather.c
+    src/services/weather_service/weather_service.c
+    src/services/time_service/time_service.c
+    src/tests/test_weather_service.c
+    src/tests/test_time_service.c
+    src/services/storage_service/storage_service.c
+    src/tests/test_storage_service.c
+    src/services/weather_provider/weather_provider.c
+    src/services/weather_provider/weather_provider_simulator.c
+    src/services/weather_provider/weather_provider_openmeteo.c
+    src/tests/test_weather_provider_openmeteo.c
+    src/infra/http/http_client.c
+    src/tests/test_http_client.c
+    src/services/weather_provider/weather_parser_openmeteo.c
+    external/cjson/cJSON.c
+    src/tests/test_runtime_weather.c
+    src/tests/test_weather_service_period.c
+    src/tests/test_scheduler_weather.c
 )
 
 
@@ -120,10 +145,14 @@ add_executable(
 target_include_directories(
     NeoTherm
     PRIVATE
+
+        # Application
         src/app
+
+        # Configuration
         src/app_config
-        src/infra/clock
-        src/infra/console
+
+        # Core métier
         src/core/alarm
         src/core/climate
         src/core/history
@@ -131,13 +160,27 @@ target_include_directories(
         src/core/relay
         src/core/thermal
         src/core/thermostat
-        src/debug
+        src/core/weather
+
+        # Services
+        src/services/weather_service
+        src/services/time_service
+        src/services/storage_service
+        src/services/weather_provider
+
+        # Infrastructure
+        src/infra/clock
+        src/infra/console
         src/infra/event
         src/infra/event_dispatcher
+        src/infra/http
         src/infra/logger
         src/infra/runtime
         src/infra/scheduler
         src/infra/storage
+
+        # Debug / System / Tests
+        src/debug
         src/system
         src/tests
 )
@@ -176,3 +219,13 @@ else()
     )
 
 endif()
+
+# ==========================================================
+# Link libraries
+# ==========================================================
+
+target_link_libraries(
+    NeoTherm
+    PRIVATE
+        CURL::libcurl
+)

@@ -159,29 +159,46 @@ bool clock_sync_to_runtime(void)
     return runtime_set_datetime(&s_time);
 }
 
+
 bool clock_sync_from_system(void)
 {
-    time_t now;
+    time_t now = time(NULL);
 
-    time(&now);
+    if (now == (time_t)-1)
+    {
+        LOG_ERROR("CLOCK",
+                  "Unable to read system time");
 
-    struct tm *tm_now =
-        localtime(&now);
+        return false;
+    }
 
-    if (tm_now == NULL)
+    struct tm *system_time = localtime(&now);
+
+    if (system_time == NULL)
+    {
+        LOG_ERROR("CLOCK",
+                  "Unable to convert system time");
+
+        return false;
+    }
+
+    clock_time_t clock =
+    {
+        .year   = (uint32_t)(system_time->tm_year + 1900),
+        .month  = (uint32_t)(system_time->tm_mon + 1),
+        .day    = (uint32_t) system_time->tm_mday,
+        .hour   = (uint32_t) system_time->tm_hour,
+        .minute = (uint32_t) system_time->tm_min,
+        .second = (uint32_t) system_time->tm_sec
+    };
+
+    if (!clock_set_time(&clock))
     {
         return false;
     }
 
-    clock_time_t t =
-    {
-        .year   = tm_now->tm_year + 1900,
-        .month  = tm_now->tm_mon + 1,
-        .day    = tm_now->tm_mday,
-        .hour   = tm_now->tm_hour,
-        .minute = tm_now->tm_min,
-        .second = tm_now->tm_sec
-    };
+    LOG_INFO("CLOCK",
+             "Clock synchronized from system");
 
-    return clock_set_time(&t);
+    return true;
 }

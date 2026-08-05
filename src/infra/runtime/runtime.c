@@ -7,16 +7,38 @@
 #include "climate.h"
 #include "relay.h"
 #include "thermal_model.h"
+#include "../weather_service/weather_service.h"
 
+#include <stdlib.h>
 const runtime_config_t runtime_default_config =
     {
+        /*
+         * Thermostat
+         */
         .mode = THERMOSTAT_AUTO,
+
         .setpoint = 20.5f,
+
         .hysteresis = 0.2f,
+
         .relay_delay = 180,
+
+        /*
+         * Weather
+         */
         .latitude = 50.681f,
+
         .longitude = 3.154f,
 
+        .weather_provider =
+            WEATHER_PROVIDER_OPENMETEO,
+
+        .weather_update_period_sec =
+            15 * 60,
+
+        /*
+         * Clock
+         */
         .date_time =
             {
                 .year = 2026,
@@ -111,6 +133,31 @@ bool runtime_set_location(float latitude,
     return true;
 }
 
+bool runtime_set_weather_provider(
+    weather_provider_t provider)
+{
+    s_runtime.weather_provider = provider;
+
+
+    return runtime_save();
+}
+
+bool runtime_set_weather_update_period(
+    uint32_t seconds)
+{
+    if (seconds == 0)
+    {
+        return false;
+    }
+
+
+    s_runtime.weather_update_period_sec =
+        seconds;
+
+
+    return runtime_save();
+}
+
 bool runtime_save(void)
 {
     LOG_INFO("RUNTIME",
@@ -165,9 +212,9 @@ bool runtime_load(void)
 }
 
 bool runtime_set_datetime(
-        const clock_time_t *time)
+    const clock_time_t *time)
 {
-    if(time == NULL)
+    if (time == NULL)
     {
         return false;
     }

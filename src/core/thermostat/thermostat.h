@@ -2,6 +2,7 @@
 #define THERMOSTAT_H
 
 #include <stdbool.h>
+#include "../weather/weather.h"
 
 #define HORS_GEL_SETPOINT 7.0f
 #define HORS_GEL_HYSTERESIS 1.0f
@@ -33,6 +34,12 @@ extern "C"
         bool relay_state;
 
         bool heating_request;
+
+        float outside_temperature;
+
+        float outside_humidity;
+
+        bool weather_valid;
 
     } thermostat_status_t;
 
@@ -78,6 +85,9 @@ extern "C"
         thermostat_mode_t *mode);
 
     void thermostat_set_hysteresis(float value);
+
+    bool weather_set(
+        const weather_t *data);
 
 #ifdef __cplusplus
 }

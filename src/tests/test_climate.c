@@ -6,17 +6,8 @@
 #include "climate.h"
 #include "thermal_model.h"
 #include "event.h"
-
-#define ASSERT_EQ_FLOAT(expected, actual)             \
-    do                                                \
-    {                                                 \
-        if (fabsf((expected) - (actual)) > 0.01f)     \
-        {                                             \
-            printf("FAIL : expected %.2f got %.2f\n", \
-                   expected, actual);                 \
-            return false;                             \
-        }                                             \
-    } while (0)
+#include "runtime.h"
+#include "test_utils.h"
 
 bool test_climate_run(void)
 {
@@ -42,8 +33,13 @@ bool test_climate_run(void)
     printf("Initial : %.2f C\n",
            temp);
 
+    /*
+     * Après initialisation, la température
+     * doit être initialisée avec la consigne
+     * courante du runtime.
+     */
     ASSERT_EQ_FLOAT(
-        21.5f,
+        runtime_get()->setpoint,
         temp);
 
     /*

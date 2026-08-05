@@ -7,6 +7,7 @@
 #include "logger.h"
 #include "runtime.h"
 #include "thermostat.h"
+#include "weather_provider.h"
 
 bool storage_init(void)
 {
@@ -110,6 +111,16 @@ bool storage_save_runtime(
             cfg->date_time.minute,
             cfg->date_time.second);
 
+    fprintf(fp,
+        "weather_update_period=%u\n",
+        cfg->weather_update_period_sec);
+
+    fprintf(fp,
+        "weather_provider=%s\n",
+        weather_provider_to_string(
+            cfg->weather_provider));
+    
+
     if (fclose(fp) != 0)
     {
         LOG_ERROR("STORAGE",
@@ -140,11 +151,9 @@ storage_load_result_t storage_load_runtime(
      */
     *cfg = runtime_default_config;
 
-
     FILE *fp = fopen(
         STORAGE_FILE,
         "r");
-
 
     if (fp == NULL)
     {
@@ -154,9 +163,7 @@ storage_load_result_t storage_load_runtime(
         return STORAGE_LOAD_DEFAULT;
     }
 
-
     char line[128];
-
 
     while (fgets(line,
                  sizeof(line),
@@ -164,25 +171,20 @@ storage_load_result_t storage_load_runtime(
     {
         char *value = strchr(line, '=');
 
-
         if (value == NULL)
         {
             continue;
         }
 
-
         *value++ = '\0';
-
 
         line[strcspn(line, "\r\n")] = '\0';
         value[strcspn(value, "\r\n")] = '\0';
 
-
-
         if (strcmp(line, "mode") == 0)
         {
             if (!thermostat_string_to_mode(value,
-                                &cfg->mode))
+                                           &cfg->mode))
             {
                 LOG_WARN("STORAGE",
                          "Invalid mode : %s",
@@ -190,20 +192,17 @@ storage_load_result_t storage_load_runtime(
             }
         }
 
-
         else if (strcmp(line, "setpoint") == 0)
         {
             cfg->setpoint =
                 strtof(value, NULL);
         }
 
-
         else if (strcmp(line, "hysteresis") == 0)
         {
             cfg->hysteresis =
                 strtof(value, NULL);
         }
-
 
         else if (strcmp(line, "relay_delay") == 0)
         {
@@ -213,13 +212,11 @@ storage_load_result_t storage_load_runtime(
                                   10);
         }
 
-
         else if (strcmp(line, "latitude") == 0)
         {
             cfg->latitude =
                 strtof(value, NULL);
         }
-
 
         else if (strcmp(line, "longitude") == 0)
         {
@@ -227,6 +224,33 @@ storage_load_result_t storage_load_runtime(
                 strtof(value, NULL);
         }
 
+        else if (strcmp(line, "weather_provider") == 0)
+        {
+            if (strcmp(value, "SIMULATOR") == 0)
+            {
+                cfg->weather_provider =
+                    WEATHER_PROVIDER_SIMULATOR;
+            }
+            else if (strcmp(value, "OPENMETEO") == 0)
+            {
+                cfg->weather_provider =
+                    WEATHER_PROVIDER_OPENMETEO;
+            }
+            else
+            {
+                LOG_WARN("STORAGE",
+                         "Invalid weather_provider : %s",
+                         value);
+            }
+        }
+
+        else if (strcmp(line, "weather_update_period") == 0)
+        {
+            cfg->weather_update_period_sec =
+                (uint32_t)strtoul(value,
+                                  NULL,
+                                  10);
+        }
 
         else if (strcmp(line, "date_time") == 0)
         {
@@ -237,7 +261,6 @@ storage_load_result_t storage_load_runtime(
             unsigned minute;
             unsigned second;
 
-
             if (sscanf(value,
                        "%u-%u-%u %u:%u:%u",
                        &year,
@@ -247,10 +270,10 @@ storage_load_result_t storage_load_runtime(
                        &minute,
                        &second) == 6)
             {
-                cfg->date_time.year   = year;
-                cfg->date_time.month  = month;
-                cfg->date_time.day    = day;
-                cfg->date_time.hour   = hour;
+                cfg->date_time.year = year;
+                cfg->date_time.month = month;
+                cfg->date_time.day = day;
+                cfg->date_time.hour = hour;
                 cfg->date_time.minute = minute;
                 cfg->date_time.second = second;
             }
@@ -262,7 +285,6 @@ storage_load_result_t storage_load_runtime(
             }
         }
 
-
         else if (line[0] != '[')
         {
             LOG_DEBUG("STORAGE",
@@ -270,7 +292,6 @@ storage_load_result_t storage_load_runtime(
                       line);
         }
     }
-
 
     if (fclose(fp) != 0)
     {
@@ -280,10 +301,8 @@ storage_load_result_t storage_load_runtime(
         return STORAGE_LOAD_ERROR;
     }
 
-
     LOG_INFO("STORAGE",
              "Runtime initialized");
-
 
     return STORAGE_LOAD_OK;
 }

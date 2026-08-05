@@ -20,6 +20,10 @@
 #include "alarm.h"
 #include "alarm_runtime.h"
 #include "console.h"
+#include "../core/weather/weather.h"
+#include "../services/weather_service/weather_service.h"
+#include "../services/storage_service/storage_service.h"
+#include "../services/time_service/time_service.h"
 
 bool system_init(void)
 {
@@ -70,7 +74,13 @@ bool system_init(void)
 
         return false;
     }
+    storage_service_init();
+    time_service_init();
     program_init();
+
+    weather_init();
+    weather_service_init();
+
     thermostat_init();
 
     scheduler_init();
@@ -117,6 +127,17 @@ bool system_init(void)
     {
         LOG_ERROR("SCHED",
                   "Unable to register History Csv Save task.");
+
+        return false;
+    }
+
+    if (!scheduler_register(
+            "WeatherService",
+            weather_service_tick,
+            1))
+    {
+        LOG_ERROR("SCHED",
+                  "Unable to register Thermostat task.");
 
         return false;
     }

@@ -21,6 +21,15 @@
 #include "test_alarm.h"
 #include "test_alarm_runtime.h"
 #include "test_trim.h"
+#include "test_weather.h"
+#include "test_weather_service.h"
+#include "test_time_service.h"
+#include "test_storage_service.h"
+#include "test_weather_provider_openmeteo.h"
+#include "test_http_client.h"
+#include "test_runtime_weather.h"
+#include "test_weather_service_period.h"
+#include "test_scheduler_weather.h"
 
 typedef bool (*test_func_t)(void);
 
@@ -49,10 +58,16 @@ static test_entry_t tests[] =
         {"Thermal", test_thermal_model_run},
         {"Alarmes", test_alarm_run},
         {"AlarmRuntime", test_alarm_runtime_run},
-                {"Trim", test_trim_run},
-        /*
-         * Tests à venir
-         */
+        {"Trim", test_trim_run},
+        {"Weather", test_weather_run},
+        {"Weather_service", test_weather_service_run},
+        {"Time_service", test_time_service_run},
+        {"Storage_service", test_storage_service_run},
+        {"Weather_provider_openmeteo", test_weather_provider_openmeteo_run},
+        {"HTTP client", test_http_client_run},
+        {"Runtime_weathe", test_runtime_weather_run},
+        {"Weather_period", test_weather_service_period_run},
+        {"Scheduler_weather", test_scheduler_weather_run},
 
 };
 

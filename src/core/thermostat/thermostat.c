@@ -11,8 +11,7 @@
 #include "history.h"
 #include "thermal_model.h"
 #include "program.h"
-
-
+#include "../services/storage_service/storage_service.h"
 
 static thermostat_status_t s_status =
     {
@@ -98,6 +97,30 @@ void thermostat_update(void)
 
     s_status.temperature =
         climate_get_temperature();
+
+    const weather_t *weather =
+        weather_get();
+
+    if (weather != NULL &&
+        weather->valid)
+    {
+        s_status.outside_temperature =
+            weather->temperature;
+
+        s_status.outside_humidity =
+            weather->humidity;
+
+        s_status.weather_valid = true;
+    }
+    else
+    {
+        s_status.outside_temperature =
+            thermal_model_get_outside_temperature();
+
+        s_status.outside_humidity = 0;
+
+        s_status.weather_valid = false;
+    }
 
     float temperature =
         s_status.temperature;
@@ -212,16 +235,17 @@ void thermostat_update(void)
         relay_get();
 
     LOG_DEBUG("THERMO",
-             "Mode=%s Temp=%.2f Set=%.2f Relay=%s HeatReq=%s",
-             thermostat_mode_name(s_status.mode),
-             s_status.temperature,
-             s_status.setpoint,
-             s_status.relay_state ? "ON" : "OFF",
-             s_status.heating_request ? "YES" : "NO");
+              "Mode=%s Inside=%.2f Outside=%.2f Set=%.2f Relay=%s HeatReq=%s",
+              thermostat_mode_name(s_status.mode),
+              s_status.temperature,
+              s_status.outside_temperature, // modif suite à ajout weather et status structure
+              s_status.setpoint,
+              s_status.relay_state ? "ON" : "OFF",
+              s_status.heating_request ? "YES" : "NO");
 
     history_add(
         temperature,
-        thermal_model_get_outside_temperature(),
+        s_status.outside_temperature, // modif suite à ajout weather et status structure
         thermostat_get_setpoint(),
         thermostat_get_mode(),
         relay_get(),
@@ -252,8 +276,9 @@ const thermostat_status_t *thermostat_get_status(void)
     return &s_status;
 }
 
-void thermostat_set_hysteresis(float value){
-    s_status.hysteresis=value;
+void thermostat_set_hysteresis(float value)
+{
+    s_status.hysteresis = value;
 }
 
 /*==========================================================
@@ -261,7 +286,7 @@ void thermostat_set_hysteresis(float value){
  *=========================================================*/
 
 bool thermostat_set_mode(
-        thermostat_mode_t mode)
+    thermostat_mode_t mode)
 {
     if ((mode < THERMOSTAT_OFF) ||
         (mode > THERMOSTAT_HORS_GEL))
@@ -273,7 +298,6 @@ bool thermostat_set_mode(
         return false;
     }
 
-
     /*
      * Aucun changement
      */
@@ -282,13 +306,11 @@ bool thermostat_set_mode(
         return true;
     }
 
-
     s_status.mode = mode;
-
 
     runtime_config_t cfg;
 
-    if (storage_load_runtime(&cfg))
+    if (storage_service_load_runtime(&cfg) != STORAGE_LOAD_ERROR)
     {
         cfg.mode = mode;
 
@@ -301,11 +323,9 @@ bool thermostat_set_mode(
         }
     }
 
-
     LOG_INFO("THERMO",
              "Mode changed : %s",
              thermostat_mode_name(mode));
-
 
     return true;
 }
@@ -344,7 +364,7 @@ bool thermostat_manual_set_relay(
  *=========================================================*/
 
 bool thermostat_set_setpoint(
-        float value)
+    float value)
 {
     if (value < 5.0f || value > 35.0f)
     {
@@ -355,17 +375,13 @@ bool thermostat_set_setpoint(
         return false;
     }
 
-
     s_status.setpoint = value;
-
 
     runtime_config_t cfg;
 
-
-    if (storage_load_runtime(&cfg))
+    if (storage_service_load_runtime(&cfg) != STORAGE_LOAD_ERROR)
     {
         cfg.setpoint = value;
-
 
         if (!storage_save_runtime(&cfg))
         {
@@ -376,11 +392,9 @@ bool thermostat_set_setpoint(
         }
     }
 
-
     LOG_INFO("THERMO",
              "Setpoint changed : %.1f C",
              value);
-
 
     return true;
 }

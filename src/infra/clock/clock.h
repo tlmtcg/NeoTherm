@@ -56,6 +56,15 @@ extern "C"
 
     bool clock_sync_to_runtime(void);
 
+    /*
+     * Synchronise l'horloge NeoTherm
+     * avec l'heure du système.
+     *
+     * PC      : heure Windows/Linux
+     * ESP32   : remplacé par NTP + RTC
+     */
+    bool clock_sync_from_system(void);
+
     bool clock_sync_from_system(void);
 
 #ifdef __cplusplus

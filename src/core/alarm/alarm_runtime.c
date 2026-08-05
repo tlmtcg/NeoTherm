@@ -1,7 +1,7 @@
 #include "alarm_runtime.h"
 
 #include "alarm.h"
-
+#include <stdlib.h>
 
 #define TEMP_MAX 30.0f
 #define TEMP_MIN 5.0f

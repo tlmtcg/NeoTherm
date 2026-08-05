@@ -6,6 +6,8 @@
 
 #include "thermostat.h"
 #include "clock.h"
+#include "../weather_provider/weather_provider.h"
+#include "../weather_service/weather_service.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -18,6 +20,9 @@ extern "C"
 
     typedef struct
     {
+        /*
+         * Thermostat
+         */
         thermostat_mode_t mode;
 
         float setpoint;
@@ -26,10 +31,20 @@ extern "C"
 
         uint32_t relay_delay;
 
+        /*
+         * Météo
+         */
         float latitude;
 
         float longitude;
 
+        weather_provider_t weather_provider;
+
+        uint32_t weather_update_period_sec;
+
+        /*
+         * Horloge
+         */
         clock_time_t date_time;
 
     } runtime_config_t;
@@ -89,6 +104,12 @@ extern "C"
     bool runtime_set_location(
         float latitude,
         float longitude);
+
+    bool runtime_set_weather_provider(
+        weather_provider_t provider);
+
+    bool runtime_set_weather_update_period(
+        uint32_t seconds);
 
     /*==========================================================
      * Sauvegarde / chargement

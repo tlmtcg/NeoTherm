@@ -1,6 +1,7 @@
 #include "event_dispatcher.h"
 
 #include "logger.h"
+#include <stdlib.h>
 
 bool event_dispatcher_init(void)
 {
