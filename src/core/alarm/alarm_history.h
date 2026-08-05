@@ -20,6 +20,15 @@ typedef struct
 } alarm_history_entry_t;
 
 
+
+typedef struct alarm_history_t
+{
+    alarm_history_entry_t entries[ALARM_HISTORY_SIZE];
+
+    uint32_t count;
+
+} alarm_history_t;
+
 /* Initialisation */
 void alarm_history_init(void);
 

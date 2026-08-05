@@ -142,6 +142,8 @@ add_executable(
     src/tests/test_alarm_event.c
     src/core/alarm/alarm_history.c
     src/tests/test_alarm_history.c
+    src/core/alarm/alarm_storage.c
+    src/tests/test_alarm_storage.c
 )
 
 

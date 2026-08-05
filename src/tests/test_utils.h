@@ -30,6 +30,43 @@ extern unsigned g_test_passed;
         return false;               \
     } while (0)
 
+#define TEST_FAIL_VALUE(msg, expected, actual)               \
+    do                                                       \
+    {                                                        \
+        printf("FAIL : %s\n", msg);                          \
+        printf("       Expected : %ld\n", (long)(expected)); \
+        printf("       Actual   : %ld\n", (long)(actual));   \
+        g_test_count++;                                      \
+        return false;                                        \
+    } while (0)
+
+#define TEST_FAIL_VALUE_U32(msg, expected, actual)          \
+    do                                                      \
+    {                                                       \
+        printf("FAIL : %s\n", msg);                         \
+        printf("       Expected : %u\n",                    \
+               (unsigned int)(expected));                  \
+        printf("       Actual   : %u\n",                    \
+               (unsigned int)(actual));                    \
+        g_test_count++;                                     \
+        return false;                                       \
+    } while (0)
+
+
+
+#define TEST_FAIL_VALUE_FLOAT(msg, expected, actual)        \
+    do                                                      \
+    {                                                       \
+        printf("FAIL : %s\n", msg);                         \
+        printf("       Expected : %.3f\n",                  \
+               (double)(expected));                         \
+        printf("       Actual   : %.3f\n",                  \
+               (double)(actual));                           \
+        g_test_count++;                                     \
+        return false;                                       \
+    } while (0)
+
+    
 /*----------------------------------------------------------
  * Bool
  *---------------------------------------------------------*/
