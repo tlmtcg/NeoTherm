@@ -52,6 +52,7 @@ void event_dispatcher_dispatch(
             "DISPATCHER",
             "Alarm activated : %s",
             alarm_get_name((alarm_type_t)event->data.value));
+        alarm_service_on_alarm_active(event);
 
         break;
 
@@ -60,7 +61,7 @@ void event_dispatcher_dispatch(
         LOG_INFO(
             "DISPATCHER",
             "Alarm cleared");
-        alarm_service_on_alarm_clear(event);
+            alarm_service_on_alarm_clear(event);
 
         break;
 
@@ -69,7 +70,8 @@ void event_dispatcher_dispatch(
         LOG_INFO(
             "DISPATCHER",
             "Alarm acknowledged");
-        alarm_service_on_alarm_ack(event);
+            alarm_service_on_alarm_ack(event);
+
         break;
 
         /* Weather */

@@ -159,7 +159,6 @@ bool clock_sync_to_runtime(void)
     return runtime_set_datetime(&s_time);
 }
 
-
 bool clock_sync_from_system(void)
 {
     time_t now = time(NULL);
@@ -183,14 +182,13 @@ bool clock_sync_from_system(void)
     }
 
     clock_time_t clock =
-    {
-        .year   = (uint32_t)(system_time->tm_year + 1900),
-        .month  = (uint32_t)(system_time->tm_mon + 1),
-        .day    = (uint32_t) system_time->tm_mday,
-        .hour   = (uint32_t) system_time->tm_hour,
-        .minute = (uint32_t) system_time->tm_min,
-        .second = (uint32_t) system_time->tm_sec
-    };
+        {
+            .year = (uint32_t)(system_time->tm_year + 1900),
+            .month = (uint32_t)(system_time->tm_mon + 1),
+            .day = (uint32_t)system_time->tm_mday,
+            .hour = (uint32_t)system_time->tm_hour,
+            .minute = (uint32_t)system_time->tm_min,
+            .second = (uint32_t)system_time->tm_sec};
 
     if (!clock_set_time(&clock))
     {
@@ -201,4 +199,26 @@ bool clock_sync_from_system(void)
              "Clock synchronized from system");
 
     return true;
+}
+
+uint32_t clock_get_timestamp(void)
+{
+    struct tm tm_time =
+        {
+            .tm_year = (int)s_time.year - 1900,
+            .tm_mon = (int)s_time.month - 1,
+            .tm_mday = (int)s_time.day,
+            .tm_hour = (int)s_time.hour,
+            .tm_min = (int)s_time.minute,
+            .tm_sec = (int)s_time.second,
+            .tm_isdst = -1};
+
+    time_t t = mktime(&tm_time);
+
+    if (t == (time_t)-1)
+    {
+        return 0;
+    }
+
+    return (uint32_t)t;
 }

@@ -24,6 +24,7 @@
 #include "time_service.h"
 #include "weather_service.h"
 #include "../services/alarm_service/alarm_service.h"
+#include "alarm_history.h"
 
 bool system_init(void)
 {
@@ -78,6 +79,7 @@ bool system_init(void)
     event_dispatcher_init();
 
     alarm_service_init();
+    alarm_history_init();
     alarm_runtime_init();
 
     console_init();

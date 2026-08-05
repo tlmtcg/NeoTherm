@@ -3,7 +3,8 @@
 #include <stdio.h>
 
 #include "logger.h"
-
+#include "event.h"
+#include "alarm_history.h"
 
 static bool s_initialized = false;
 
@@ -140,4 +141,47 @@ void alarm_service_dump(void)
 
 
     printf("------------------------------\n");
+}
+
+static void alarm_service_add_history(
+    const event_t *event)
+{
+    if (event == NULL)
+    {
+        return;
+    }
+
+    alarm_type_t type =
+        (alarm_type_t)event->data.value;
+
+    const alarm_t *alarm =
+        alarm_get(type);
+
+    if (alarm == NULL)
+    {
+        return;
+    }
+
+    alarm_history_add(
+        type,
+        alarm->state,
+        alarm->value);
+}
+
+void alarm_service_on_alarm_active(
+    const event_t *event)
+{
+    alarm_service_add_history(event);
+}
+
+void alarm_service_on_alarm_ack(
+    const event_t *event)
+{
+    alarm_service_add_history(event);
+}
+
+void alarm_service_on_alarm_clear(
+    const event_t *event)
+{
+    alarm_service_add_history(event);
 }

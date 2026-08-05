@@ -89,4 +89,7 @@ bool alarm_ack(alarm_type_t type);
 
 uint32_t alarm_get_active_count(void);
 
+const char *alarm_state_name(
+    alarm_state_t state);
+
 #endif

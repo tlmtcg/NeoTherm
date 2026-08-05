@@ -67,6 +67,8 @@ extern "C"
 
     bool clock_sync_from_system(void);
 
+    uint32_t clock_get_timestamp(void);
+
 #ifdef __cplusplus
 }
 #endif

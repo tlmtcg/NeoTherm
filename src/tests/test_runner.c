@@ -32,6 +32,7 @@
 #include "test_scheduler_weather.h"
 #include "test_alarm_service.h"
 #include "test_alarm_event.h"
+#include "test_alarm_history.h"
 
 typedef bool (*test_func_t)(void);
 
@@ -71,7 +72,8 @@ static test_entry_t tests[] =
         {"Weather_period", test_weather_service_period_run},
         {"Scheduler_weather", test_scheduler_weather_run},
         {"Alarm_service", test_alarm_service_run},
-                {"Alarm_event", test_alarm_event_run},
+        {"Alarm_event", test_alarm_event_run},
+        {"Alarm_history", test_alarm_history_run},
 
 };
 

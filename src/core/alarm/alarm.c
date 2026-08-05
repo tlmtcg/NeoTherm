@@ -296,3 +296,22 @@ uint32_t alarm_get_active_count(void)
 
     return count;
 }
+
+const char *alarm_state_name(
+    alarm_state_t state)
+{
+    switch (state)
+    {
+        case ALARM_STATE_CLEAR:
+            return "CLEAR";
+
+        case ALARM_STATE_ACTIVE:
+            return "ACTIVE";
+
+        case ALARM_STATE_ACK:
+            return "ACK";
+
+        default:
+            return "?";
+    }
+}
