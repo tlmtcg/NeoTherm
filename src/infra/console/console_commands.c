@@ -21,6 +21,7 @@
 #include "commands/cmd_version.h"
 #include "commands/cmd_config.h"
 #include "commands/cmd_clear.h"
+#include "commands/cmd_quit.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -54,11 +55,11 @@ static const console_command_t commands[] =
          cmd_clock,
          "Set / Display clock"},
 
-                {"cls",
+        {"cls",
          cmd_clear,
          "Clear screen"},
 
-                 {"config",
+        {"config",
          cmd_config,
          "Display configuration"},
 
@@ -93,6 +94,10 @@ static const console_command_t commands[] =
         {"program",
          cmd_program,
          "Display schedule / Set program"},
+
+        "quit",
+        cmd_quit,
+        "Exit simulator",
 
         {"relay",
          cmd_relay,
@@ -212,10 +217,11 @@ void console_commands_help(const char *args)
     printf("------------------------------\n");
 
     console_help_print("config");
-        console_help_print("cls");
-        console_help_print("help");
-        console_help_print("logger");
-         console_help_print("runtime");
+    console_help_print("cls");
+    console_help_print("help");
+    console_help_print("logger");
+    console_help_print("runtime");
+    console_help_print("quit");
     console_help_print("status");
     console_help_print("storage");
     console_help_print("version");

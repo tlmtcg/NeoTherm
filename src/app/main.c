@@ -8,9 +8,10 @@ int main(void)
         return 1;
     }
 
-
-    app_run();
-
+    if (!app_run())
+    {
+        return 1;
+    }
 
     return 0;
 }

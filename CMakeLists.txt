@@ -74,6 +74,7 @@ add_executable(
     src/infra/console/commands/cmd_mode.c
     src/infra/console/commands/cmd_outside.c
     src/infra/console/commands/cmd_program.c
+    src/infra/console/commands/cmd_quit.c
     src/infra/console/commands/cmd_relay.c
     src/infra/console/commands/cmd_runtime.c
     src/infra/console/commands/cmd_setpoint.c
