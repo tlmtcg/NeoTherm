@@ -88,6 +88,7 @@ bool test_scheduler_weather_run(void)
         count);
 
 
+        runtime_set_weather_update_period(60);
 
     printf("SCHEDULER WEATHER TEST PASS\n");
 

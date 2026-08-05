@@ -4,6 +4,9 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "event.h"
+#include "clock.h"
+
 static alarm_t alarm_table[ALARM_COUNT];
 
 void alarm_init(void)
@@ -24,17 +27,56 @@ bool alarm_set(
     alarm_type_t type,
     float value)
 {
-    if (type <= ALARM_NONE ||
-        type >= ALARM_COUNT)
+    if ((type <= ALARM_NONE) ||
+        (type >= ALARM_COUNT))
     {
         return false;
     }
 
-    alarm_table[type].state =
+
+    alarm_t *alarm =
+        &alarm_table[type];
+
+
+    /*
+     * Déjà active :
+     * on met seulement à jour la valeur
+     */
+    if (alarm->state ==
+        ALARM_STATE_ACTIVE)
+    {
+        alarm->value = value;
+
+        return true;
+    }
+
+
+    alarm->type =
+        type;
+
+    alarm->state =
         ALARM_STATE_ACTIVE;
 
-    alarm_table[type].value =
+    alarm->value =
         value;
+
+    alarm->timestamp =
+        clock_seconds_today();
+
+
+
+    event_t event =
+    {
+        .type =
+            EVENT_ALARM_ACTIVE,
+
+        .data.value =
+            (int32_t)type
+    };
+
+
+    event_post(&event);
+
 
     return true;
 }
@@ -42,14 +84,41 @@ bool alarm_set(
 bool alarm_clear(
     alarm_type_t type)
 {
-    if (type <= ALARM_NONE ||
-        type >= ALARM_COUNT)
+    if ((type <= ALARM_NONE) ||
+        (type >= ALARM_COUNT))
     {
         return false;
     }
 
-    alarm_table[type].state =
+
+    alarm_t *alarm =
+        &alarm_table[type];
+
+
+    if (alarm->state ==
+        ALARM_STATE_CLEAR)
+    {
+        return true;
+    }
+
+
+    alarm->state =
         ALARM_STATE_CLEAR;
+
+
+
+    event_t event =
+    {
+        .type =
+            EVENT_ALARM_CLEAR,
+
+        .data.value =
+            (int32_t)type
+    };
+
+
+    event_post(&event);
+
 
     return true;
 }
@@ -57,14 +126,16 @@ bool alarm_clear(
 bool alarm_is_active(
     alarm_type_t type)
 {
-    if (type <= ALARM_NONE ||
-        type >= ALARM_COUNT)
+    if ((type <= ALARM_NONE) ||
+        (type >= ALARM_COUNT))
     {
         return false;
     }
 
-    return alarm_table[type].state ==
-           ALARM_STATE_ACTIVE;
+
+    return
+        alarm_table[type].state !=
+        ALARM_STATE_CLEAR;
 }
 
 const alarm_t *alarm_get(
@@ -124,7 +195,9 @@ static const char *const alarm_names[ALARM_COUNT] =
 
     [ALARM_CONFIG]              = "Configuration",
 
-    [ALARM_I2C]                 = "I2C Bus"
+    [ALARM_I2C]                 = "I2C Bus",
+
+    [ALARM_WEATHER_ERROR]       = "WEATHER_ERROR",
 };
 
 const char *alarm_get_name(alarm_type_t type)
@@ -161,7 +234,9 @@ static const char *const alarm_command_names[ALARM_COUNT] =
 
     [ALARM_CONFIG]              = "CONFIG",
 
-    [ALARM_I2C]                 = "I2C_ERROR"
+    [ALARM_I2C]                 = "I2C_ERROR",
+
+    [ALARM_WEATHER_ERROR]       = "WEATHER_ERROR",
 };
 
 const char *alarm_get_command_name(alarm_type_t type)
@@ -172,4 +247,52 @@ const char *alarm_get_command_name(alarm_type_t type)
     }
 
     return alarm_command_names[type];
+}
+
+bool alarm_ack(
+    alarm_type_t type)
+{
+    if ((type <= ALARM_NONE) ||
+        (type >= ALARM_COUNT))
+    {
+        return false;
+    }
+
+
+    alarm_t *alarm =
+        &alarm_table[type];
+
+
+    if (alarm->state !=
+        ALARM_STATE_ACTIVE)
+    {
+        return false;
+    }
+
+
+    alarm->state =
+        ALARM_STATE_ACK;
+
+
+    return true;
+}
+
+uint32_t alarm_get_active_count(void)
+{
+    uint32_t count = 0;
+
+
+    for(int i = 0;
+        i < ALARM_COUNT;
+        i++)
+    {
+        if(alarm_table[i].state !=
+           ALARM_STATE_CLEAR)
+        {
+            count++;
+        }
+    }
+
+
+    return count;
 }

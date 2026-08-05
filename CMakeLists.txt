@@ -136,6 +136,10 @@ add_executable(
     src/tests/test_runtime_weather.c
     src/tests/test_weather_service_period.c
     src/tests/test_scheduler_weather.c
+    src/core/alarm/alarm_checks.c
+    src/services/alarm_service/alarm_service.c
+    src/tests/test_alarm_service.c
+    src/tests/test_alarm_event.c
 )
 
 

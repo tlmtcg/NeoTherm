@@ -33,12 +33,11 @@ bool app_exit_requested(void)
 
 bool app_init(void)
 {
-    if (!system_init())
-    {
-        return false;
-    }
+    LOG_INFO(
+        "APP",
+        "Starting NeoTherm");
 
-    return true;
+    return system_init();
 }
 
 /*

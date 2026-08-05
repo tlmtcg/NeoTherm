@@ -14,7 +14,6 @@ void app_config_load_logger(void)
             "INFO");
     }
 
-
     ini_get_string(
         "logger",
         "level",

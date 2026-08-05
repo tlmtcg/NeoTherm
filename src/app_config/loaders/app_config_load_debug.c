@@ -10,22 +10,22 @@ void app_config_load_debug(void)
 
     if (!ini_key_exists(
             "debug",
-            "enabled"))
+            "debug_enabled"))
     {
         ini_set_bool(
             "debug",
-            "enabled",
+            "debug_enabled",
             true);
     }
 
 
     if (!ini_key_exists(
             "debug",
-            "dump_config"))
+            "debug_dump_config"))
     {
         ini_set_bool(
             "debug",
-            "dump_config",
+            "debugdump_config",
             false);
     }
 
@@ -36,12 +36,12 @@ void app_config_load_debug(void)
 
     (void)ini_get_bool(
         "debug",
-        "enabled",
+        "debug_enabled",
         &s_config.debug_enabled);
 
 
     (void)ini_get_bool(
         "debug",
-        "dump_config",
+        "debug_dump_config",
         &s_config.debug_dump_config);
 }

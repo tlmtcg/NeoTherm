@@ -12,6 +12,7 @@
 #include "thermal_model.h"
 #include "program.h"
 #include "../services/storage_service/storage_service.h"
+#include "alarm_runtime.h"
 
 static thermostat_status_t s_status =
     {
@@ -250,6 +251,8 @@ void thermostat_update(void)
         thermostat_get_mode(),
         relay_get(),
         s_status.heating_request);
+
+    alarm_runtime_update(&s_status);
 }
 
 /*==========================================================

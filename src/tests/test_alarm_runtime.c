@@ -4,100 +4,123 @@
 
 #include "alarm.h"
 #include "alarm_runtime.h"
+
+#include "climate.h"
 #include "thermostat.h"
+#include "thermal_model.h"
+#include "event.h"
+
 #include "test_utils.h"
 
 
 bool test_alarm_runtime_run(void)
 {
-    bool result = true;
-
-
-    printf("\n--- Test Alarm Runtime ---\n");
-
-
-    alarm_init();
-    alarm_runtime_init();
-
-
-    thermostat_status_t status =
-    {
-        .mode = THERMOSTAT_AUTO,
-        .temperature = 20.0f,
-        .setpoint = 19.0f,
-        .hysteresis = 0.2f,
-        .relay_state = false,
-        .heating_request = false
-    };
+    printf("\n=============== ALARM RUNTIME TEST ===============\n");
 
 
     /*
-     * Température normale
+     * Initialisation système minimale
      */
-    alarm_runtime_update(&status);
+
+    event_init();
+
+    thermal_model_init();
+
+    climate_init();
+
+    alarm_init();
+
+    alarm_runtime_init();
+
+    thermostat_init();
 
 
-    if(alarm_is_active(ALARM_TEMP_HIGH))
-    {
-        TEST_FAIL("High temperature alarm should be OFF");
-        result = false;
-    }
+
+    /*
+     * Situation normale
+     */
+
+    climate_update(20.0f);
+
+    thermostat_update();
+
+
+    ASSERT_FALSE(
+        alarm_is_active(ALARM_TEMP_HIGH));
+
+
+    ASSERT_FALSE(
+        alarm_is_active(ALARM_TEMP_LOW));
 
 
 
     /*
      * Température trop haute
      */
-    status.temperature = 35.0f;
 
-    alarm_runtime_update(&status);
+    climate_update(35.0f);
+
+    thermostat_update();
+
+    printf("ALARM_TEMP_HIGH = %s\n",
+       alarm_is_active(ALARM_TEMP_HIGH) ? "ON" : "OFF");
+
+    ASSERT_TRUE(
+        alarm_is_active(ALARM_TEMP_HIGH));
 
 
-    if(!alarm_is_active(ALARM_TEMP_HIGH))
-    {
-        TEST_FAIL("High temperature alarm not triggered");
-        result = false;
-    }
+    ASSERT_FALSE(
+        alarm_is_active(ALARM_TEMP_LOW));
 
 
 
     /*
-     * Retour normal
+     * Retour température normale
      */
-    status.temperature = 20.0f;
 
-    alarm_runtime_update(&status);
+    climate_update(20.0f);
+
+    thermostat_update();
 
 
-    if(alarm_is_active(ALARM_TEMP_HIGH))
-    {
-        TEST_FAIL("High temperature alarm not cleared");
-        result = false;
-    }
+    ASSERT_FALSE(
+        alarm_is_active(ALARM_TEMP_HIGH));
 
 
 
     /*
      * Température trop basse
      */
-    status.temperature = 2.0f;
 
-    alarm_runtime_update(&status);
+    climate_update(2.0f);
 
-
-    if(!alarm_is_active(ALARM_TEMP_LOW))
-    {
-        TEST_FAIL("Low temperature alarm not triggered");
-        result = false;
-    }
+    thermostat_update();
 
 
-
-    if(result)
-    {
-        ASSERT_SUCCESS("Alarm runtime OK");
-    }
+    ASSERT_TRUE(
+        alarm_is_active(ALARM_TEMP_LOW));
 
 
-    return result;
+    ASSERT_FALSE(
+        alarm_is_active(ALARM_TEMP_HIGH));
+
+
+
+    /*
+     * Retour température normale
+     */
+
+    climate_update(20.0f);
+
+    thermostat_update();
+
+
+    ASSERT_FALSE(
+        alarm_is_active(ALARM_TEMP_LOW));
+
+
+
+    printf("ALARM RUNTIME TEST PASS\n");
+
+    return true;
 }

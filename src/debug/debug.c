@@ -1,5 +1,6 @@
 #include "debug.h"
-
+#include "logger.h"
+#include "console_utils.h"
 #include <stdio.h>
 
 /*==========================================================
@@ -8,7 +9,8 @@
 
 void debug_init(void)
 {
-    printf("Debug initialized\n");
+    LOG_INFO("DEBUG",
+         "Debug initialized");
 }
 
 /*==========================================================
@@ -18,31 +20,39 @@ void debug_init(void)
 void debug_dump_app_config(
     const app_config_t *config)
 {
+    console_print_header(
+        "Application configuration");
+
     if (config == NULL)
     {
-        printf("\n===== APPLICATION CONFIG =====\n");
-        printf("Configuration is NULL\n");
-        printf("================================\n");
+        console_print_string(
+            "Configuration",
+            "NULL");
+
+        console_print_separator();
 
         return;
     }
 
-    printf("\n===== APPLICATION CONFIG =====\n");
+    console_print_string(
+        "Logger level",
+        config->logger_level);
 
-    printf("Logger level       : %s\n",
-           config->logger_level);
+    console_print_uint(
+        "Relay GPIO",
+        config->relay_gpio);
 
-    printf("Relay GPIO         : %u\n",
-           config->relay_gpio);
+    console_print_uint(
+        "Climate period",
+        config->climate_period);
 
-    printf("Climate period     : %u ms\n",
-           config->climate_period);
+    console_print_uint(
+        "Thermostat period",
+        config->thermostat_period);
 
-    printf("Thermostat period  : %u ms\n",
-           config->thermostat_period);
+    console_print_uint(
+        "History save",
+        config->history_save_period);
 
-    printf("History save       : %u s\n",
-           config->history_save_period);
-
-    printf("================================\n");
+    console_print_separator();
 }

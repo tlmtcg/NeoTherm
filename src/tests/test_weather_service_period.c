@@ -237,8 +237,6 @@ bool test_weather_service_period_run(void)
 
     weather_service_dump();
 
-
-
     printf("WEATHER SERVICE PERIOD TEST PASS\n");
 
 

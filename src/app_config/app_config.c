@@ -42,7 +42,7 @@ app_config_t s_config =
 
         /* Debug */
         .debug_enabled = true,
-        .debug_dump_config = false,
+        .debug_dump_config = true,
 
         /* Thermal */
         .thermal_outside_temperature = 5.0f,

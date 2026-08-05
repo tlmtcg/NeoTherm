@@ -1,10 +1,11 @@
 #include "system_init.h"
 
-#include <stdio.h>
-
+#include "alarm.h"
+#include "alarm_runtime.h"
 #include "app_config.h"
 #include "climate.h"
 #include "clock.h"
+#include "console.h"
 #include "debug.h"
 #include "event.h"
 #include "event_dispatcher.h"
@@ -17,75 +18,119 @@
 #include "storage.h"
 #include "thermal_model.h"
 #include "thermostat.h"
-#include "alarm.h"
-#include "alarm_runtime.h"
-#include "console.h"
-#include "../core/weather/weather.h"
-#include "../services/weather_service/weather_service.h"
-#include "../services/storage_service/storage_service.h"
-#include "../services/time_service/time_service.h"
+#include "weather.h"
+
+#include "storage_service.h"
+#include "time_service.h"
+#include "weather_service.h"
+#include "../services/alarm_service/alarm_service.h"
 
 bool system_init(void)
 {
     logger_init();
 
-    LOG_INFO("APP",
-             "Application starting...");
+    LOG_INFO("SYSTEM",
+             "System initialization");
+
+    /*
+     * Configuration
+     */
 
     debug_init();
 
     if (!app_config_init("../app.ini"))
     {
         LOG_ERROR("CONFIG",
-                  "Unable to load configuration.");
+                  "Unable to load configuration");
 
         return false;
     }
 
-#ifdef DEBUG
-    debug_dump_app_config(app_config_get());
-#endif
+    const app_config_t *cfg =
+        app_config_get();
 
-    runtime_init();
+    if (cfg->debug_enabled)
+    {
+        debug_dump_app_config(cfg);
+    }
+
+    /*
+     * Runtime
+     */
+
+    if (!runtime_init())
+    {
+        LOG_ERROR("SYSTEM",
+                  "Runtime initialization failed");
+
+        return false;
+    }
 
     clock_init();
-
-    clock_sync_from_system(); // mise à l'heure par le PC
-
+    clock_sync_from_system();
     clock_sync_to_runtime();
+
+    /*
+     * Infrastructure
+     */
 
     event_init();
     event_dispatcher_init();
 
-    alarm_init();
+    alarm_service_init();
     alarm_runtime_init();
 
     console_init();
+
+    /*
+     * Core
+     */
 
     thermal_model_init();
     climate_init();
     relay_init();
     history_init();
+    program_init();
+
+    weather_init();
+
+    thermostat_init();
+
+    /*
+     * Storage
+     */
+
     if (!storage_init())
     {
         alarm_set(ALARM_STORAGE, 0);
 
-        LOG_ERROR("SYSTEM", "Alarm storage error");
+        LOG_ERROR("SYSTEM",
+                  "Storage initialization failed");
 
         return false;
     }
+
     storage_service_init();
+
+    /*
+     * Services
+     */
+
     time_service_init();
-    program_init();
 
-    weather_init();
-    weather_service_init();
+    if (!weather_service_init())
+    {
+        LOG_ERROR("SYSTEM",
+                  "Weather service initialization failed");
 
-    thermostat_init();
+        return false;
+    }
+
+    /*
+     * Scheduler
+     */
 
     scheduler_init();
-
-    const app_config_t *cfg = app_config_get();
 
     if (!scheduler_register(
             "Climate",
@@ -93,7 +138,7 @@ bool system_init(void)
             cfg->climate_period))
     {
         LOG_ERROR("SCHED",
-                  "Unable to register Climate task.");
+                  "Unable to register Climate");
 
         return false;
     }
@@ -104,7 +149,19 @@ bool system_init(void)
             cfg->thermostat_period))
     {
         LOG_ERROR("SCHED",
-                  "Unable to register Thermostat task.");
+                  "Unable to register Thermostat");
+
+        return false;
+    }
+
+    /* Vérifie chaque seconde si une mise à jour météo est nécessaire */
+    if (!scheduler_register(
+            "WeatherService",
+            weather_service_tick,
+            1))
+    {
+        LOG_ERROR("SCHED",
+                  "Unable to register WeatherService");
 
         return false;
     }
@@ -115,43 +172,28 @@ bool system_init(void)
             cfg->history_save_period))
     {
         LOG_ERROR("SCHED",
-                  "Unable to register History Save task.");
+                  "Unable to register HistorySave");
 
         return false;
     }
 
     if (!scheduler_register(
-            "HistoryToCav",
+            "HistoryCsv",
             history_csv_task_callback,
             3600))
     {
         LOG_ERROR("SCHED",
-                  "Unable to register History Csv Save task.");
+                  "Unable to register HistoryCsv");
 
         return false;
     }
 
-    if (!scheduler_register(
-            "WeatherService",
-            weather_service_tick,
-            1))
-    {
-        LOG_ERROR("SCHED",
-                  "Unable to register Thermostat task.");
-
-        return false;
-    }
-
-    LOG_INFO("APP",
+    LOG_INFO("SYSTEM",
              "%u task(s) registered",
              scheduler_task_count());
 
-#ifdef UNIT_TEST
-    debug_dump_app_config(app_config_get());
-#endif
-
-    LOG_INFO("APP",
-             "Application initialized.");
+    LOG_INFO("SYSTEM",
+             "System initialized");
 
     return true;
 }

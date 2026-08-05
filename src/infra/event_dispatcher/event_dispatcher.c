@@ -1,4 +1,5 @@
 #include "event_dispatcher.h"
+#include "../services/alarm_service/alarm_service.h"
 
 #include "logger.h"
 #include <stdlib.h>
@@ -16,38 +17,91 @@ void event_dispatcher_dispatch(
         return;
     }
 
-    switch(event->type)
+    switch (event->type)
     {
-        case EVENT_NONE:
-            break;
+    case EVENT_NONE:
+        break;
 
-        case EVENT_CLIMATE_UPDATE:
+    /* System */
+    case EVENT_TIMER_1S:
 
-            LOG_DEBUG("DISPATCHER",
-                     "EVENT_CLIMATE_UPDATE");
+        LOG_DEBUG("DISPATCHER",
+                  "EVENT_TIMER_1S");
 
-            break;
+        break;
 
-        case EVENT_TIMER_1S:
+    case EVENT_QUIT:
 
-            LOG_DEBUG("DISPATCHER",
-                      "EVENT_TIMER_1S");
+        LOG_DEBUG("DISPATCHER",
+                  "EVENT_QUIT");
 
-            break;
+        break;
 
-        case EVENT_QUIT:
+    /* Climate */
+    case EVENT_CLIMATE_UPDATE:
 
-            LOG_INFO("DISPATCHER",
-                     "EVENT_QUIT");
+        LOG_DEBUG("DISPATCHER",
+                  "EVENT_CLIMATE_UPDATE");
 
-            break;
+        break;
 
-        default:
+    /* Alarm */
+    case EVENT_ALARM_ACTIVE:
 
-            LOG_WARN("DISPATCHER",
-                     "Unknown event : %d",
-                     event->type);
+        LOG_INFO(
+            "DISPATCHER",
+            "Alarm activated : %s",
+            alarm_get_name((alarm_type_t)event->data.value));
 
-            break;
+        break;
+
+    case EVENT_ALARM_CLEAR:
+
+        LOG_INFO(
+            "DISPATCHER",
+            "Alarm cleared");
+        alarm_service_on_alarm_clear(event);
+
+        break;
+
+    case EVENT_ALARM_ACK:
+
+        LOG_INFO(
+            "DISPATCHER",
+            "Alarm acknowledged");
+        alarm_service_on_alarm_ack(event);
+        break;
+
+        /* Weather */
+    case EVENT_WEATHER_UPDATE:
+
+        LOG_DEBUG("DISPATCHER",
+                  "EVENT_WEATHER_UPDATE");
+
+        break;
+
+    /* Storage */
+    case EVENT_STORAGE_SAVE:
+
+        LOG_DEBUG("DISPATCHER",
+                  "EVENT_STORAGE_SAVE");
+
+        break;
+
+    /* History */
+    case EVENT_HISTORY_SAVE:
+
+        LOG_DEBUG("DISPATCHER",
+                  "EVENT_HISTORY_SAVE");
+
+        break;
+
+    default:
+
+        LOG_WARN("DISPATCHER",
+                 "Unknown event : %d",
+                 event->type);
+
+        break;
     }
 }

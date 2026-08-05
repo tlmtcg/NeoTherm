@@ -16,48 +16,52 @@ extern "C"
      *=========================================================*/
 
     typedef enum
-{
-    EVENT_NONE = 0,
+    {
+        EVENT_NONE = 0,
 
-    EVENT_CLIMATE_UPDATE,
+        EVENT_CLIMATE_UPDATE,
 
-    EVENT_RELAY_ON,
+        EVENT_RELAY_ON,
 
-    EVENT_RELAY_OFF,
+        EVENT_RELAY_OFF,
 
-    EVENT_MODE_CHANGED,
+        EVENT_MODE_CHANGED,
 
-    EVENT_SETPOINT_CHANGED,
+        EVENT_SETPOINT_CHANGED,
 
-    EVENT_TIMER_1S,
+        EVENT_TIMER_1S,
 
-    EVENT_QUIT,
+        EVENT_QUIT,
 
-    EVENT_SENSOR_DHT,
+        EVENT_SENSOR_DHT,
 
-    EVENT_SENSOR_SHT31,
+        EVENT_SENSOR_SHT31,
 
-    EVENT_SENSOR_ERROR_DHT,
+        EVENT_SENSOR_ERROR_DHT,
 
-    EVENT_SENSOR_ERROR_SHT31,
+        EVENT_SENSOR_ERROR_SHT31,
 
-    EVENT_MODE_CHANGE_REQUEST,
+        EVENT_MODE_CHANGE_REQUEST,
 
-    EVENT_MANUAL_SETPOINT_REQUEST,
+        EVENT_MANUAL_SETPOINT_REQUEST,
 
-    EVENT_WEATHER_UPDATE,
+        EVENT_WEATHER_UPDATE,
 
-    EVENT_NET_TIME_SYNCED,
+        EVENT_NET_TIME_SYNCED,
 
-    EVENT_RELAY_CHANGED,
+        EVENT_RELAY_CHANGED,
 
-    EVENT_HISTORY_SAVE,
+        EVENT_HISTORY_SAVE,
 
-    EVENT_STORAGE_SAVE,
+        EVENT_STORAGE_SAVE,
 
-    EVENT_COUNT
+        EVENT_ALARM_ACTIVE,
+        EVENT_ALARM_CLEAR,
+        EVENT_ALARM_ACK,
 
-} event_type_t;
+        EVENT_COUNT
+
+    } event_type_t;
 
     typedef union
     {
@@ -90,7 +94,7 @@ extern "C"
 
     void event_clear(void);
 
-    const char *event_type_to_string(event_type_t type);
+    const char *event_name(event_type_t type);
 
     void event_dump(void);
 
@@ -99,8 +103,6 @@ extern "C"
     uint32_t event_get_count(event_type_t type);
 
     uint32_t event_get_total_count(void);
-
-    const char *event_name(event_type_t type);
 
 #ifdef __cplusplus
 }

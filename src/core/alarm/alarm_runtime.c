@@ -1,50 +1,26 @@
 #include "alarm_runtime.h"
 
-#include "alarm.h"
+#include "alarm_checks.h"
+
 #include <stdlib.h>
-
-#define TEMP_MAX 30.0f
-#define TEMP_MIN 5.0f
-
 
 void alarm_runtime_init(void)
 {
-
 }
 
-
 void alarm_runtime_update(
-    const thermostat_status_t *status
-)
+    const thermostat_status_t *status)
 {
-    if(status == NULL)
+    if (status == NULL)
     {
         return;
     }
 
+    alarm_check_temperature(status);
 
-    if(status->temperature > TEMP_MAX)
-    {
-        alarm_set(
-            ALARM_TEMP_HIGH,
-            status->temperature
-        );
-    }
-    else
-    {
-        alarm_clear(ALARM_TEMP_HIGH);
-    }
+    alarm_check_heating(status);
 
+    alarm_check_sensor(status);
 
-    if(status->temperature < TEMP_MIN)
-    {
-        alarm_set(
-            ALARM_TEMP_LOW,
-            status->temperature
-        );
-    }
-    else
-    {
-        alarm_clear(ALARM_TEMP_LOW);
-    }
+    alarm_check_weather();
 }

@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-
 typedef enum
 {
     ALARM_NONE = 0,
@@ -38,10 +37,12 @@ typedef enum
     /* Bus */
     ALARM_I2C,
 
+    /* Météo */
+    ALARM_WEATHER_ERROR,
+
     ALARM_COUNT
 
 } alarm_type_t;
-
 
 typedef enum
 {
@@ -50,8 +51,6 @@ typedef enum
     ALARM_STATE_ACK
 
 } alarm_state_t;
-
-
 
 typedef struct
 {
@@ -65,35 +64,29 @@ typedef struct
 
 } alarm_t;
 
-
-
 void alarm_init(void);
-
 
 bool alarm_set(
     alarm_type_t type,
-    float value
-);
-
+    float value);
 
 bool alarm_clear(
-    alarm_type_t type
-);
-
+    alarm_type_t type);
 
 const alarm_t *alarm_get(
-    alarm_type_t type
-);
-
+    alarm_type_t type);
 
 bool alarm_is_active(
-    alarm_type_t type
-);
+    alarm_type_t type);
 
 void alarm_dump(void);
 
 const char *alarm_get_name(alarm_type_t type);
 
 const char *alarm_get_command_name(alarm_type_t type);
+
+bool alarm_ack(alarm_type_t type);
+
+uint32_t alarm_get_active_count(void);
 
 #endif
