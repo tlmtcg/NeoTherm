@@ -8,9 +8,7 @@
 #include "console_utils.h"
 #include "alarm_storage.h"
 
-
 static alarm_history_t s_history;
-
 
 void alarm_history_init(void)
 {
@@ -20,21 +18,17 @@ void alarm_history_init(void)
         sizeof(s_history));
 
     s_history.count = 0;
+    s_history.head = 0;
+    s_history.dirty = false;
 }
-
-
 
 void alarm_history_add(
     alarm_type_t type,
     alarm_state_t state,
     float value)
 {
-    uint32_t index =
-        s_history.count % ALARM_HISTORY_SIZE;
-
-
     alarm_history_entry_t *entry =
-        &s_history.entries[index];
+        &s_history.entries[s_history.head];
 
 
     entry->type = type;
@@ -43,23 +37,25 @@ void alarm_history_add(
     entry->timestamp = clock_get_timestamp();
 
 
+    s_history.head =
+        (s_history.head + 1)
+        % ALARM_HISTORY_SIZE;
+
+
     if (s_history.count < ALARM_HISTORY_SIZE)
     {
         s_history.count++;
     }
 
 
-    alarm_storage_save(&s_history);
+    s_history.dirty = true;
+
 }
-
-
 
 uint32_t alarm_history_count(void)
 {
     return s_history.count;
 }
-
-
 
 const alarm_history_entry_t *alarm_history_get(
     uint32_t index)
@@ -69,16 +65,20 @@ const alarm_history_entry_t *alarm_history_get(
         return NULL;
     }
 
+    uint32_t first =
+        (s_history.count == ALARM_HISTORY_SIZE)
+            ? s_history.head
+            : 0;
 
-    return &s_history.entries[index];
+    uint32_t pos =
+        (first + index) % ALARM_HISTORY_SIZE;
+
+    return &s_history.entries[pos];
 }
-
-
 
 void alarm_history_dump(void)
 {
     console_print_header("Alarm History");
-
 
     printf("%-12s %-10s %-8s %s\n",
            "Alarm",
@@ -86,9 +86,7 @@ void alarm_history_dump(void)
            "Value",
            "Date");
 
-
     console_print_separator();
-
 
     for (uint32_t i = 0;
          i < s_history.count;
@@ -97,15 +95,12 @@ void alarm_history_dump(void)
         const alarm_history_entry_t *entry =
             alarm_history_get(i);
 
-
         if (entry == NULL)
         {
             continue;
         }
 
-
         const char *state = "CLEAR";
-
 
         switch (entry->state)
         {
@@ -113,27 +108,21 @@ void alarm_history_dump(void)
             state = "ACTIVE";
             break;
 
-
         case ALARM_STATE_ACK:
             state = "ACK";
             break;
-
 
         default:
             break;
         }
 
-
-        char date[32] = "-";
-
+        char date[64] = "-";
 
         time_t t =
             (time_t)entry->timestamp;
 
-
         struct tm *tm =
             localtime(&t);
-
 
         if (tm != NULL)
         {
@@ -148,7 +137,6 @@ void alarm_history_dump(void)
                      tm->tm_sec);
         }
 
-
         printf("%-12s %-10s %-8.2f %s\n",
                alarm_get_command_name(entry->type),
                state,
@@ -156,6 +144,91 @@ void alarm_history_dump(void)
                date);
     }
 
-
     console_print_separator();
+}
+
+bool alarm_history_clear(void)
+{
+
+    memset(&s_history,
+           0,
+           sizeof(s_history));
+
+    s_history.count = 0;
+    s_history.head = 0;
+    s_history.dirty = true;
+
+    return true;
+}
+
+bool alarm_history_save(void)
+{
+    if (!s_history.dirty)
+    {
+        return true;
+    }
+
+    if (!alarm_storage_save(&s_history))
+    {
+        return false;
+    }
+
+    s_history.dirty = false;
+
+    return true;
+}
+
+bool alarm_history_load(void)
+{
+    alarm_history_t history;
+
+    memset(&history,
+           0,
+           sizeof(history));
+
+
+    bool ok = alarm_storage_load(&history);
+
+    if (!ok)
+    {
+        return false;
+    }
+
+
+    s_history = history;
+
+
+    if (s_history.count > ALARM_HISTORY_SIZE)
+    {
+        s_history.count = ALARM_HISTORY_SIZE;
+    }
+
+
+    if (s_history.head >= ALARM_HISTORY_SIZE)
+    {
+        s_history.head = 0;
+    }
+
+
+    s_history.dirty = false;
+
+    return true;
+}
+
+void alarm_history_task(void)
+{
+    if (!s_history.dirty)
+    {
+        return;
+    }
+
+    if (alarm_history_save())
+    {
+        s_history.dirty = false;
+    }
+}
+
+bool alarm_history_is_dirty(void)
+{
+    return s_history.dirty;
 }

@@ -34,6 +34,7 @@
 #include "test_alarm_event.h"
 #include "test_alarm_history.h"
 #include "test_alarm_storage.h"
+#include "test_cmd_alarm_history.h"
 
 typedef bool (*test_func_t)(void);
 
@@ -76,6 +77,7 @@ static test_entry_t tests[] =
         {"Alarm_event", test_alarm_event_run},
         {"Alarm_history", test_alarm_history_run},
         {"Alarm_storage", test_alarm_storage_run},
+        {"Alarm_history_storage", test_cmd_alarm_history_run},
 };
 
 void test_runner_run(void)

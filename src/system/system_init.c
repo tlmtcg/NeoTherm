@@ -26,6 +26,7 @@
 #include "../services/alarm_service/alarm_service.h"
 #include "alarm_history.h"
 #include "alarm_storage.h"
+#include "alarm_history_task.h"
 
 bool system_init(void)
 {
@@ -82,7 +83,7 @@ bool system_init(void)
     alarm_service_init();
     alarm_storage_init();
     alarm_history_init();
-    // alarm_history_load();
+    alarm_history_load();
     alarm_runtime_init();
 
     console_init();
@@ -189,6 +190,41 @@ bool system_init(void)
     {
         LOG_ERROR("SCHED",
                   "Unable to register HistoryCsv");
+
+        return false;
+    }
+
+     if (!scheduler_register(
+            "HistorySave",
+            history_task_callback,
+            cfg->history_save_period))
+    {
+        LOG_ERROR("SCHED",
+                  "Unable to register HistorySave");
+
+        return false;
+    }
+
+
+    if (!scheduler_register(
+            "HistoryCsv",
+            history_csv_task_callback,
+            3600))
+    {
+        LOG_ERROR("SCHED",
+                  "Unable to register HistoryCsv");
+
+        return false;
+    }
+
+
+    if (!scheduler_register(
+            "AlarmHistorySave",
+            alarm_history_task,
+            3600))
+    {
+        LOG_ERROR("SCHED",
+                  "Unable to register AlarmHistorySave");
 
         return false;
     }

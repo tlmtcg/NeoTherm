@@ -2,6 +2,7 @@
 #define ALARM_HISTORY_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "alarm.h"
 
@@ -24,8 +25,9 @@ typedef struct
 typedef struct alarm_history_t
 {
     alarm_history_entry_t entries[ALARM_HISTORY_SIZE];
-
+    uint32_t head;
     uint32_t count;
+    bool dirty;
 
 } alarm_history_t;
 
@@ -51,5 +53,15 @@ const alarm_history_entry_t *alarm_history_get(
 
 /* Affichage console */
 void alarm_history_dump(void);
+
+bool alarm_history_clear(void);
+
+bool alarm_history_save(void);
+
+bool alarm_history_load(void);
+
+void alarm_history_task(void);
+
+bool alarm_history_is_dirty(void);
 
 #endif
