@@ -34,6 +34,10 @@ static uint32_t s_task_count = 0;
 
 void scheduler_init(void)
 {
+    memset(s_tasks,
+           0,
+           sizeof(s_tasks));
+
     s_task_count = 0;
 
     LOG_INFO("SCHED",
@@ -159,20 +163,40 @@ bool scheduler_disable(const char *name)
 
 bool scheduler_remove(const char *name)
 {
-    for (uint32_t i = 0; i < s_task_count; i++)
+    if (name == NULL)
+    {
+        return false;
+    }
+
+    for (uint32_t i = 0;
+         i < s_task_count;
+         i++)
     {
         if (strcmp(s_tasks[i].name, name) == 0)
         {
-            for (uint32_t j = i; j < s_task_count - 1; j++)
+            /*
+             * Décale les tâches suivantes
+             */
+            for (uint32_t j = i;
+                 j < s_task_count - 1;
+                 j++)
             {
                 s_tasks[j] = s_tasks[j + 1];
             }
 
+            /*
+             * Nettoie l'ancienne dernière entrée
+             */
+            memset(&s_tasks[s_task_count - 1],
+                   0,
+                   sizeof(s_tasks[0]));
+
             s_task_count--;
 
-            LOG_INFO("SCHED",
-                     "Task '%s' removed",
-                     name);
+            LOG_INFO(
+                "SCHED",
+                "Task '%s' removed",
+                name);
 
             return true;
         }
@@ -231,4 +255,9 @@ void scheduler_dump(void)
            s_task_count);
 
     console_print_separator();
+}
+
+bool scheduler_exists(const char *name)
+{
+    return scheduler_find(name) != NULL;
 }

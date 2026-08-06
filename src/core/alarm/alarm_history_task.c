@@ -2,7 +2,7 @@
 #include "alarm_history.h"
 
 
-static void alarm_history_save_task(void)
+ void alarm_history_save_task(void)
 {
     if (alarm_history_is_dirty())
     {

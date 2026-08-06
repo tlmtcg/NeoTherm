@@ -6,6 +6,7 @@
 #include "alarm_storage.h"
 #include "clock.h"
 #include "test_utils.h"
+#include "../infra/console/commands/cmd_alarm.h"
 
 bool test_alarm_history_run(void)
 {
@@ -295,6 +296,29 @@ bool test_alarm_history_run(void)
 
     ASSERT_TRUE(
         entry != NULL);
+
+    /*
+     * Test commandes history
+     */
+
+    ASSERT_TRUE(
+        cmd_alarms("history"));
+
+    ASSERT_TRUE(
+        cmd_alarms("history save"));
+
+    ASSERT_TRUE(
+        cmd_alarms("history load"));
+
+    ASSERT_TRUE(
+        cmd_alarms("history clear"));
+
+    ASSERT_EQ_INT(
+        0,
+        alarm_history_count());
+
+    ASSERT_SUCCESS(
+    "CMD alarm history OK");
 
     if (result)
     {

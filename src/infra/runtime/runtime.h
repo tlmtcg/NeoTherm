@@ -47,6 +47,9 @@ extern "C"
          */
         clock_time_t date_time;
 
+        /* Divers */
+        uint32_t alarm_history_save_period;
+
     } runtime_config_t;
 
     typedef enum

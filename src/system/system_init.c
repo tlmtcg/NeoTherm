@@ -194,34 +194,34 @@ bool system_init(void)
         return false;
     }
 
-     if (!scheduler_register(
-            "HistorySave",
-            history_task_callback,
-            cfg->history_save_period))
-    {
-        LOG_ERROR("SCHED",
-                  "Unable to register HistorySave");
+    //  if (!scheduler_register(
+    //         "HistorySave",
+    //         history_task_callback,
+    //         cfg->history_save_period))
+    // {
+    //     LOG_ERROR("SCHED",
+    //               "Unable to register HistorySave");
 
-        return false;
-    }
+    //     return false;
+    // }
 
 
-    if (!scheduler_register(
-            "HistoryCsv",
-            history_csv_task_callback,
-            3600))
-    {
-        LOG_ERROR("SCHED",
-                  "Unable to register HistoryCsv");
+    // if (!scheduler_register(
+    //         "HistoryCsv",
+    //         history_csv_task_callback,
+    //         3600))
+    // {
+    //     LOG_ERROR("SCHED",
+    //               "Unable to register HistoryCsv");
 
-        return false;
-    }
+    //     return false;
+    // }
 
 
     if (!scheduler_register(
             "AlarmHistorySave",
             alarm_history_task,
-            3600))
+            cfg->history_save_period))
     {
         LOG_ERROR("SCHED",
                   "Unable to register AlarmHistorySave");

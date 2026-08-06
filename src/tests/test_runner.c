@@ -35,6 +35,14 @@
 #include "test_alarm_history.h"
 #include "test_alarm_storage.h"
 #include "test_cmd_alarm_history.h"
+#include "test_alarm_service_history.h"
+#include "test_alarm_history_scheduler.h"
+#include "test_scheduler_limit.h"
+#include "test_system_scheduler_init.h"
+#include "test_scheduler_enable_disable.h"
+#include "test_scheduler_period.h"
+#include "test_alarm_history_task.h"
+#include "test_system_scheduler_runtime.h"
 
 typedef bool (*test_func_t)(void);
 
@@ -78,6 +86,14 @@ static test_entry_t tests[] =
         {"Alarm_history", test_alarm_history_run},
         {"Alarm_storage", test_alarm_storage_run},
         {"Alarm_history_storage", test_cmd_alarm_history_run},
+        {"Alarm_history_service_history", test_alarm_service_history_run},
+        {"Alarm_history_scheduler", test_alarm_history_scheduler_run},
+        {"Scheduler Limit", test_scheduler_limit_run},
+        {"System scheduler init",test_system_scheduler_init_run},
+        {"Scheduler enable disable",test_scheduler_enable_disable_run},
+        {"Scheduler period",test_scheduler_period_run},
+        {"Alarm History test",test_alarm_history_task_run},
+        {"System scheduler runtime",test_system_scheduler_runtime_run},
 };
 
 void test_runner_run(void)

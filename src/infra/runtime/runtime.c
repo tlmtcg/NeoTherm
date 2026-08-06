@@ -46,9 +46,22 @@ const runtime_config_t runtime_default_config =
                 .day = 1,
                 .hour = 0,
                 .minute = 0,
-                .second = 0}};
+                .second = 0},
+            
+         /* Divers */
+        .alarm_history_save_period = 600,
+
+        };
+
 
 static runtime_config_t s_runtime;
+
+bool runtime_set_alarm_history_save_period(uint32_t period)
+{
+    s_runtime.alarm_history_save_period = period;
+
+    return true;
+}
 
 bool runtime_init(void)
 {
@@ -293,6 +306,10 @@ void runtime_dump(void)
     console_print_datetime(
         "Date/Time",
         &now);
+
+      console_print_uint(
+        "alarm_history_save period",
+        s_runtime.alarm_history_save_period);
 
     console_print_separator();
 }

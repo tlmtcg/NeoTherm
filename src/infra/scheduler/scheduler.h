@@ -60,6 +60,8 @@ bool scheduler_get_info(
 
 void scheduler_dump(void);
 
+bool scheduler_exists(const char *name);
+
 #ifdef __cplusplus
 }
 #endif

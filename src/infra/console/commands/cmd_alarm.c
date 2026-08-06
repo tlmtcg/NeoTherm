@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
 /*
  * Conversion texte -> type alarme
  */
@@ -18,7 +17,6 @@ static alarm_type_t alarm_from_string(
     {
         return ALARM_NONE;
     }
-
 
     for (alarm_type_t i = ALARM_TEMP_HIGH;
          i < ALARM_COUNT;
@@ -31,10 +29,8 @@ static alarm_type_t alarm_from_string(
         }
     }
 
-
     return ALARM_NONE;
 }
-
 
 /*
  * Liste des alarmes disponibles
@@ -43,7 +39,6 @@ static void alarm_list(void)
 {
     console_print_header(
         "Available alarms");
-
 
     for (alarm_type_t i = ALARM_TEMP_HIGH;
          i < ALARM_COUNT;
@@ -54,10 +49,8 @@ static void alarm_list(void)
                alarm_get_name(i));
     }
 
-
     console_print_separator();
 }
-
 
 /*
  * Effacement complet des alarmes actives
@@ -71,7 +64,6 @@ static void alarm_clear_all(void)
         alarm_clear(i);
     }
 }
-
 
 /*
  * Aide commande
@@ -96,7 +88,6 @@ static void alarm_usage(void)
     printf("  alarm clear all\n");
 }
 
-
 /*
  * Commande principale
  */
@@ -110,12 +101,10 @@ bool cmd_alarms(
         return true;
     }
 
-
     char command[32] = {0};
     char name[64] = {0};
 
     float value = 0.0f;
-
 
     int count =
         sscanf(args,
@@ -123,8 +112,6 @@ bool cmd_alarms(
                command,
                name,
                &value);
-
-
 
     /*
      * alarm status
@@ -135,27 +122,21 @@ bool cmd_alarms(
         return true;
     }
 
-
-
     /*
      * alarm storage
      */
     if (strcmp(command, "storage") == 0)
     {
-        printf("History entries : %u\n",
+        printf("Alarm history entries : %u\n",
                alarm_history_count());
 
-
-        printf("History dirty  : %s\n",
+        printf("Alamr history dirty  : %s\n",
                alarm_history_is_dirty()
                    ? "YES"
                    : "NO");
 
-
         return true;
     }
-
-
 
     /*
      * alarm history
@@ -181,11 +162,8 @@ bool cmd_alarms(
                 return true;
             }
 
-
             return false;
         }
-
-
 
         /*
          * save
@@ -200,14 +178,11 @@ bool cmd_alarms(
                 return true;
             }
 
-
             printf(
                 "Alarm history save failed.\n");
 
             return false;
         }
-
-
 
         /*
          * load
@@ -222,24 +197,27 @@ bool cmd_alarms(
                 return true;
             }
 
-
             printf(
                 "Alarm history load failed.\n");
 
             return false;
         }
 
-
-
         /*
          * affichage par défaut
          */
-        alarm_history_dump();
+        if (name[0] == '\0')
+        {
+            alarm_history_dump();
+            return true;
+        }
 
-        return true;
+        printf(
+            "Unknown history command : %s\n",
+            name);
+
+        return false;
     }
-
-
 
     /*
      * alarm list
@@ -249,8 +227,6 @@ bool cmd_alarms(
         alarm_list();
         return true;
     }
-
-
 
     /*
      * alarm set TYPE VALUE
@@ -265,10 +241,8 @@ bool cmd_alarms(
             return false;
         }
 
-
         alarm_type_t type =
             alarm_from_string(name);
-
 
         if (type == ALARM_NONE)
         {
@@ -278,7 +252,6 @@ bool cmd_alarms(
 
             return false;
         }
-
 
         if (alarm_set(type, value))
         {
@@ -290,11 +263,8 @@ bool cmd_alarms(
             return true;
         }
 
-
         return false;
     }
-
-
 
     /*
      * alarm ack TYPE
@@ -309,10 +279,8 @@ bool cmd_alarms(
             return false;
         }
 
-
         alarm_type_t type =
             alarm_from_string(name);
-
 
         if (type == ALARM_NONE)
         {
@@ -323,7 +291,6 @@ bool cmd_alarms(
             return false;
         }
 
-
         if (alarm_ack(type))
         {
             printf(
@@ -333,11 +300,8 @@ bool cmd_alarms(
             return true;
         }
 
-
         return false;
     }
-
-
 
     /*
      * alarm clear all
@@ -347,15 +311,11 @@ bool cmd_alarms(
     {
         alarm_clear_all();
 
-
         printf(
             "All alarms cleared.\n");
 
-
         return true;
     }
-
-
 
     /*
      * alarm clear TYPE
@@ -370,10 +330,8 @@ bool cmd_alarms(
             return false;
         }
 
-
         alarm_type_t type =
             alarm_from_string(name);
-
 
         if (type == ALARM_NONE)
         {
@@ -384,7 +342,6 @@ bool cmd_alarms(
             return false;
         }
 
-
         if (alarm_clear(type))
         {
             printf(
@@ -394,11 +351,8 @@ bool cmd_alarms(
             return true;
         }
 
-
         return false;
     }
-
-
 
     /*
      * Commande inconnue
@@ -407,9 +361,7 @@ bool cmd_alarms(
         "Unknown alarm command : %s\n",
         command);
 
-
     alarm_usage();
-
 
     return false;
 }

@@ -145,6 +145,15 @@ add_executable(
     src/core/alarm/alarm_storage.c
     src/tests/test_alarm_storage.c
     src/tests/test_cmd_alarm_history.c
+    src/core/alarm/alarm_history_task.c
+    src/tests/test_alarm_service_history.c
+    src/tests/test_alarm_history_scheduler.c
+    src/tests/test_scheduler_limit.c
+    src/tests/test_system_scheduler_init.c
+    src/tests/test_scheduler_enable_disable.c
+    src/tests/test_scheduler_period.c
+    src/tests/test_alarm_history_task.c
+    src/tests/test_system_scheduler_runtime.c
 )
 
 
