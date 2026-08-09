@@ -48,6 +48,12 @@ bool test_system_scheduler_init_run(void)
     ASSERT_TRUE(
         scheduler_exists("AlarmHistorySave"));
 
+    ASSERT_TRUE(
+        scheduler_exists("ThermalLearning"));
+
+    ASSERT_TRUE(
+        scheduler_exists("ThermalPrediction"));
+
     ASSERT_FALSE(
         scheduler_exists("Bidon"));
 

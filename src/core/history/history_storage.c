@@ -5,6 +5,9 @@
 
 #include "logger.h"
 #include "thermostat.h"
+#include "climate.h"
+#include "relay.h"
+#include "thermal_model.h"
 
 bool history_save(
     const char *filename)
@@ -180,7 +183,20 @@ bool history_load(
     return true;
 }
 
+// void history_task_callback(void)
+// {
+//     history_save("../history.dat");
+// }
+
 void history_task_callback(void)
 {
+    history_add(
+        climate_get_temperature(),
+        thermal_model_get_outside_temperature(),
+        thermostat_get_setpoint(),
+        thermostat_get_mode(),
+        relay_get(),
+        thermostat_get_status()->heating_request);
+
     history_save("../history.dat");
 }

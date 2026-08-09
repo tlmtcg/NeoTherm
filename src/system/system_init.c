@@ -27,6 +27,8 @@
 #include "alarm_history.h"
 #include "alarm_storage.h"
 #include "alarm_history_task.h"
+#include "../core/thermal_learning/thermal_learning.h"
+#include "../core/thermal_prediction/thermal_prediction.h"
 
 bool system_init(void)
 {
@@ -93,6 +95,7 @@ bool system_init(void)
      */
 
     thermal_model_init();
+    thermal_learning_init();
     climate_init();
     relay_init();
     history_init();
@@ -101,6 +104,8 @@ bool system_init(void)
     weather_init();
 
     thermostat_init();
+
+    thermostat_set_mode(THERMOSTAT_AUTO);
 
     /*
      * Storage
@@ -186,37 +191,13 @@ bool system_init(void)
     if (!scheduler_register(
             "HistoryCsv",
             history_csv_task_callback,
-            3600))
+            60))
     {
         LOG_ERROR("SCHED",
                   "Unable to register HistoryCsv");
 
         return false;
     }
-
-    //  if (!scheduler_register(
-    //         "HistorySave",
-    //         history_task_callback,
-    //         cfg->history_save_period))
-    // {
-    //     LOG_ERROR("SCHED",
-    //               "Unable to register HistorySave");
-
-    //     return false;
-    // }
-
-
-    // if (!scheduler_register(
-    //         "HistoryCsv",
-    //         history_csv_task_callback,
-    //         3600))
-    // {
-    //     LOG_ERROR("SCHED",
-    //               "Unable to register HistoryCsv");
-
-    //     return false;
-    // }
-
 
     if (!scheduler_register(
             "AlarmHistorySave",
@@ -229,6 +210,28 @@ bool system_init(void)
         return false;
     }
 
+        if (!scheduler_register(
+            "ThermalPrediction",
+            thermal_prediction_task_callback,
+            150))
+    {
+         LOG_ERROR("SCHED",
+                  "Unable to register ThermalPrediction");
+
+        return false;
+    }
+
+    if (!scheduler_register(
+            "ThermalLearning",
+            thermal_learning_task_callback,
+            150))
+    {
+         LOG_ERROR("SCHED",
+                  "Unable to register ThermalLearning");
+
+        return false;
+    }
+    
     LOG_INFO("SYSTEM",
              "%u task(s) registered",
              scheduler_task_count());

@@ -6,6 +6,8 @@
 #include "thermal_model.h"
 #include "runtime.h"
 
+#define UNIT_TEST
+
 static float s_temperature = 20.5f;
 
 static bool s_simulation_override = false;
@@ -65,13 +67,6 @@ void climate_tick(void)
     if (s_simulation_override)
     {
         return;
-    }
-
-    float heat = 0.0f;
-
-    if (relay_get())
-    {
-        heat = 1.0f;
     }
 
     s_temperature =

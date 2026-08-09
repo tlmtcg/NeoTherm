@@ -3,6 +3,7 @@
 
 #include "logger.h"
 #include "app_config.h"
+#include "../thermal_learning/thermal_learning.h"
 
 static thermal_model_t s_model;
 
@@ -173,4 +174,37 @@ void thermal_dump(void)
            s_model.thermal_mass);
 
     printf("\n");
+}
+
+void thermal_model_apply_learning(void)
+{
+    const thermal_learning_state_t *learning =
+        thermal_learning_get_state();
+
+
+    if (learning == NULL)
+    {
+        return;
+    }
+
+
+    if (learning->heating_samples > 10)
+    {
+        s_model.heat_power =
+            learning->heat_rate;
+    }
+
+
+    if (learning->cooling_samples > 10)
+    {
+        s_model.loss_factor =
+            learning->cooling_rate;
+    }
+
+
+    LOG_INFO(
+        "THERMAL",
+        "Learning applied Heat=%.3f Cool=%.3f",
+        s_model.heat_power,
+        s_model.loss_factor);
 }

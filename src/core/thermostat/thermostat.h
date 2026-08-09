@@ -21,27 +21,35 @@ extern "C"
 
     } thermostat_mode_t;
 
-    typedef struct
-    {
-        thermostat_mode_t mode;
+typedef struct
+{
+    thermostat_mode_t mode;
 
-        float temperature;
+    float temperature;
 
-        float setpoint;
+    float setpoint;
 
-        float hysteresis;
+    float hysteresis;
 
-        bool relay_state;
+    bool relay_state;
 
-        bool heating_request;
+    bool heating_request;
 
-        float outside_temperature;
+    float outside_temperature;
 
-        float outside_humidity;
+    float outside_humidity;
 
-        bool weather_valid;
+    bool weather_valid;
 
-    } thermostat_status_t;
+    float temp_forecast_1h;
+
+    float predicted_temperature_1h;
+
+    bool prediction_valid;
+
+    bool temperature_valid;
+
+} thermostat_status_t;
 
     const thermostat_status_t *thermostat_get_status(void);
 

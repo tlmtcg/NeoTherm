@@ -37,8 +37,14 @@ bool test_system_scheduler_runtime_run(void)
     ASSERT_TRUE(
         scheduler_exists("AlarmHistorySave"));
 
+    ASSERT_TRUE(
+        scheduler_exists("ThermalLearning"));
+
+        ASSERT_TRUE(
+        scheduler_exists("ThermalPrediction"));
+
     ASSERT_EQ_UINT32(
-        6,
+        8,
         scheduler_task_count());
 
     /*
@@ -70,8 +76,14 @@ bool test_system_scheduler_runtime_run(void)
     ASSERT_TRUE(
         scheduler_exists("AlarmHistorySave"));
 
+    ASSERT_TRUE(
+        scheduler_exists("ThermalLearning"));
+
+    ASSERT_TRUE(
+        scheduler_exists("ThermalPrediction"));
+
     ASSERT_EQ_UINT32(
-        6,
+        8,
         scheduler_task_count());
 
     printf("SYSTEM SCHEDULER RUNTIME TEST PASS\n");

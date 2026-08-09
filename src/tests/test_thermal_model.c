@@ -3,6 +3,7 @@
 
 #include "thermal_model.h"
 #include "test_utils.h"
+#include "../infra/console/console_utils.h"
 
 #define ASSERT_FLOAT_NEAR(expected, actual, epsilon) \
     ASSERT_TRUE(fabsf((expected) - (actual)) < (epsilon))
@@ -153,7 +154,48 @@ bool test_thermal_model_run(void)
         (t1 - 20.0f) >
         (t2 - 20.0f));
 
+/*
+ * Equilibre thermique
+ */
 
+console_print_header("Equilibre thermique");
+
+thermal_model_set_outside_temperature(20.0f);
+thermal_model_set_heat_power(1.0f);
+thermal_model_set_loss_factor(0.01f);
+thermal_model_set_thermal_mass(8.0f);
+
+
+t=
+    thermal_model_update(
+        20.0f,
+        false);
+
+
+ASSERT_FLOAT_NEAR(
+    20.0f,
+    t,
+    0.001f);
+
+printf("PASS : Equilibre thermique\n");
+
+console_print_header("chauffage compense exactement les pertes");
+thermal_model_set_outside_temperature(0.0f);
+thermal_model_set_loss_factor(0.1f);
+thermal_model_set_thermal_mass(10.0f);
+thermal_model_set_heat_power(2.0f);
+
+
+ t =
+    thermal_model_update(
+        20.0f,
+        true);
+
+
+ASSERT_FLOAT_NEAR(
+    20.0f,
+    t,
+    0.001f);
 
     printf("PASS : Thermal model\n");
 

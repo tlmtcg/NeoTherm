@@ -13,6 +13,10 @@
 #include "program.h"
 #include "../services/storage_service/storage_service.h"
 #include "alarm_runtime.h"
+#include "../thermal_prediction/thermal_prediction.h"
+
+#define THERMOSTAT_PREDICTION_MINUTES 10.0f
+#define THERMOSTAT_PREDICTION_MARGIN 0.10f
 
 static thermostat_status_t s_status =
     {
@@ -21,7 +25,12 @@ static thermostat_status_t s_status =
         .setpoint = 20.0f,
         .hysteresis = 0.2f,
         .relay_state = false,
-        .heating_request = false};
+        .heating_request = false,
+        .outside_temperature = 0.0f,
+        .outside_humidity = 0.0f,
+        .weather_valid = false,
+        .temp_forecast_1h = 0.0f,
+        .temperature_valid = false};
 
 static bool s_manual_relay = false;
 
@@ -95,9 +104,23 @@ bool thermostat_init(void)
 
 void thermostat_update(void)
 {
+    /*
+     * ======================================================
+     * TEMPERATURE INTERIEURE
+     * ======================================================
+     */
 
     s_status.temperature =
         climate_get_temperature();
+
+    float temperature =
+        s_status.temperature;
+
+    /*
+     * ======================================================
+     * METEO EXTERIEURE
+     * ======================================================
+     */
 
     const weather_t *weather =
         weather_get();
@@ -118,19 +141,70 @@ void thermostat_update(void)
         s_status.outside_temperature =
             thermal_model_get_outside_temperature();
 
-        s_status.outside_humidity = 0;
+        s_status.outside_humidity =
+            0.0f;
 
         s_status.weather_valid = false;
     }
 
-    float temperature =
-        s_status.temperature;
+    /*
+     * ======================================================
+     * PREDICTION THERMIQUE
+     * ======================================================
+     *
+     * Deux scénarios sont calculés :
+     *
+     * 1. natural_10min :
+     *    évolution sans chauffage
+     *
+     * 2. heated_10min :
+     *    évolution avec chauffage ON
+     *
+     * La prédiction est calculée indépendamment
+     * de l'état actuel du relais.
+     */
+
+    bool prediction_valid =
+        thermal_prediction_is_valid();
+
+    float natural_10min = temperature;
+    float heated_10min = temperature;
+    float predicted_1h = temperature;
+
+    if (prediction_valid)
+    {
+        natural_10min =
+            thermal_prediction_get_temperature_minutes_state(
+                THERMOSTAT_PREDICTION_MINUTES,
+                false);
+
+        heated_10min =
+            thermal_prediction_get_temperature_minutes_state(
+                THERMOSTAT_PREDICTION_MINUTES,
+                true);
+
+        predicted_1h =
+            thermal_prediction_get_temperature_minutes_state(
+                60.0f,
+                true);
+    }
+
+    s_status.temp_forecast_1h =
+        predicted_1h;
+
+    /*
+     * ======================================================
+     * MODE THERMOSTAT
+     * ======================================================
+     */
 
     switch (s_status.mode)
     {
 
         /*
-         * Arrêt forcé
+         * --------------------------------------------------
+         * OFF
+         * --------------------------------------------------
          */
 
     case THERMOSTAT_OFF:
@@ -142,74 +216,223 @@ void thermostat_update(void)
         break;
 
         /*
-         * Mode manuel
+         * --------------------------------------------------
+         * MANUAL
+         * --------------------------------------------------
          */
 
     case THERMOSTAT_MANUAL:
 
         relay_set(s_manual_relay);
 
-        s_status.heating_request = s_manual_relay;
+        s_status.heating_request =
+            s_manual_relay;
 
         break;
 
         /*
-         * Régulation automatique
+         * --------------------------------------------------
+         * AUTO
+         * --------------------------------------------------
          */
 
     case THERMOSTAT_AUTO:
-
-        s_status.setpoint = program_get_setpoint();
-
-        if (temperature <
-            (s_status.setpoint -
-             s_status.hysteresis))
-        {
-            bool switched = relay_set(true);
-
-            if (!switched)
-            {
-                LOG_DEBUG("THERMO",
-                          "Heating requested but relay blocked "
-                          "(anti-cycle delay)");
-            }
-
-            s_status.heating_request = true;
-        }
-
-        else if (temperature >
-                 (s_status.setpoint +
-                  s_status.hysteresis))
-        {
-            bool switched = relay_set(false);
-
-            if (!switched)
-            {
-                LOG_DEBUG("THERMO",
-                          "Relay OFF request blocked");
-            }
-
-            s_status.heating_request = false;
-        }
-
-        break;
+    {
+        s_status.setpoint =
+            program_get_setpoint();
 
         /*
-         * Hors gel
+         * --------------------------------------------------
+         * SEUILS DE REGULATION
+         * --------------------------------------------------
+         *
+         * ON  : consigne - hystérésis
+         * OFF : consigne + hystérésis
+         */
+
+        const float heating_on_threshold =
+            s_status.setpoint -
+            s_status.hysteresis;
+
+        const float heating_off_threshold =
+            s_status.setpoint +
+            s_status.hysteresis;
+
+        /*
+         * --------------------------------------------------
+         * DEMANDE NORMALE
+         * --------------------------------------------------
+         *
+         * La régulation classique demande le chauffage
+         * lorsque la température descend sous le seuil ON.
+         */
+
+        bool normal_heating_request =
+            temperature <=
+            heating_on_threshold;
+
+        /*
+         * --------------------------------------------------
+         * DEMANDE PREDICTIVE
+         * --------------------------------------------------
+         *
+         * La prédiction ne sert qu'à anticiper une baisse.
+         *
+         * Conditions :
+         *
+         * - prédiction valide
+         * - relais actuellement OFF
+         * - température actuelle sous la consigne
+         * - température naturelle prévue sous la marge
+         *
+         * Si le relais est déjà ON, la prédiction ne doit
+         * pas maintenir artificiellement la demande.
+         */
+
+        bool predictive_heating_request =
+            prediction_valid &&
+            !relay_get() &&
+            temperature < heating_off_threshold &&
+            natural_10min <
+                (s_status.setpoint -
+                 THERMOSTAT_PREDICTION_MARGIN);
+
+        /*
+         * --------------------------------------------------
+         * DEMANDE GLOBALE
+         * --------------------------------------------------
+         */
+
+        bool heating_request =
+            normal_heating_request ||
+            predictive_heating_request;
+
+        s_status.heating_request =
+            heating_request;
+
+        /*
+         * --------------------------------------------------
+         * COMMANDE DU RELAIS
+         * --------------------------------------------------
+         *
+         * IMPORTANT :
+         *
+         * La demande et l'état réel du relais sont deux
+         * informations différentes.
+         *
+         * relay_set() est responsable de l'anti-cycle.
+         */
+
+        if (heating_request)
+        {
+            /*
+             * Demande de chauffage.
+             *
+             * On ne demande un ON que si le relais est OFF.
+             */
+            if (!relay_get())
+            {
+                if (!relay_set(true))
+                {
+                    LOG_DEBUG(
+                        "THERMO",
+                        "Heating requested but relay "
+                        "ON blocked by anti-cycle delay");
+                }
+            }
+        }
+        else if (temperature >=
+                 heating_off_threshold)
+        {
+            /*
+             * Arrêt du chauffage.
+             *
+             * Le relais reste ON tant que la température
+             * n'a pas atteint le seuil supérieur.
+             */
+            if (relay_get())
+            {
+                if (!relay_set(false))
+                {
+                    LOG_DEBUG(
+                        "THERMO",
+                        "Heating stop requested but relay "
+                        "OFF blocked by anti-cycle delay");
+                }
+            }
+        }
+
+        /*
+         * --------------------------------------------------
+         * DEBUG
+         * --------------------------------------------------
+         */
+
+        LOG_INFO(
+            "THERMO",
+            "AUTO: temp=%.2f set=%.2f "
+            "ON<=%.2f OFF>=%.2f "
+            "natural+%.0f=%.2f "
+            "heated+%.0f=%.2f "
+            "relay=%d",
+            temperature,
+            s_status.setpoint,
+
+            heating_on_threshold,
+            heating_off_threshold,
+
+            THERMOSTAT_PREDICTION_MINUTES,
+            natural_10min,
+
+            THERMOSTAT_PREDICTION_MINUTES,
+            heated_10min,
+
+            relay_get());
+
+        LOG_INFO(
+            "THERMO",
+            "Normal=%s Predictive=%s "
+            "Request=%s Valid=%s",
+            normal_heating_request
+                ? "YES"
+                : "NO",
+
+            predictive_heating_request
+                ? "YES"
+                : "NO",
+
+            heating_request
+                ? "YES"
+                : "NO",
+
+            prediction_valid
+                ? "YES"
+                : "NO");
+
+        break;
+    }
+
+        /*
+         * --------------------------------------------------
+         * HORS GEL
+         * --------------------------------------------------
          */
 
     case THERMOSTAT_HORS_GEL:
 
-        if (temperature <
-            HORS_GEL_SETPOINT)
+        s_status.setpoint =
+            HORS_GEL_SETPOINT;
+
+        if (temperature <=
+            (s_status.setpoint -
+             HORS_GEL_HYSTERESIS))
         {
             relay_set(true);
 
             s_status.heating_request = true;
         }
-
-        else if (temperature >
-                 (HORS_GEL_SETPOINT +
+        else if (temperature >=
+                 (s_status.setpoint +
                   HORS_GEL_HYSTERESIS))
         {
             relay_set(false);
@@ -219,11 +442,18 @@ void thermostat_update(void)
 
         break;
 
+        /*
+         * --------------------------------------------------
+         * MODE INCONNU
+         * --------------------------------------------------
+         */
+
     default:
 
-        LOG_ERROR("THERMO",
-                  "Unknown mode %d",
-                  s_status.mode);
+        LOG_ERROR(
+            "THERMO",
+            "Unknown mode %d",
+            s_status.mode);
 
         relay_set(false);
 
@@ -232,27 +462,81 @@ void thermostat_update(void)
         break;
     }
 
+    /*
+     * ======================================================
+     * ETAT RELAIS
+     * ======================================================
+     */
+
     s_status.relay_state =
         relay_get();
 
-    LOG_DEBUG("THERMO",
-              "Mode=%s Inside=%.2f Outside=%.2f Set=%.2f Relay=%s HeatReq=%s",
-              thermostat_mode_name(s_status.mode),
-              s_status.temperature,
-              s_status.outside_temperature, // modif suite à ajout weather et status structure
-              s_status.setpoint,
-              s_status.relay_state ? "ON" : "OFF",
-              s_status.heating_request ? "YES" : "NO");
+    /*
+     * ======================================================
+     * LOG ETAT THERMOSTAT
+     * ======================================================
+     */
+
+    LOG_DEBUG(
+        "THERMO",
+        "Mode=%s Inside=%.2f Outside=%.2f "
+        "Set=%.2f Relay=%s HeatReq=%s",
+        thermostat_mode_name(s_status.mode),
+        s_status.temperature,
+        s_status.outside_temperature,
+        s_status.setpoint,
+
+        s_status.relay_state
+            ? "ON"
+            : "OFF",
+
+        s_status.heating_request
+            ? "YES"
+            : "NO");
+
+    /*
+     * ======================================================
+     * HISTORIQUE
+     * ======================================================
+     */
 
     history_add(
         temperature,
-        s_status.outside_temperature, // modif suite à ajout weather et status structure
-        thermostat_get_setpoint(),
+        s_status.outside_temperature,
+        s_status.setpoint,
         thermostat_get_mode(),
         relay_get(),
         s_status.heating_request);
 
-    alarm_runtime_update(&s_status);
+    /*
+     * ======================================================
+     * LOG PREDICTION
+     * ======================================================
+     */
+
+    LOG_INFO(
+        "THERMO",
+        "Prediction +%.0fmin : natural=%.2f C "
+        "heated=%.2f C",
+        THERMOSTAT_PREDICTION_MINUTES,
+        natural_10min,
+        heated_10min);
+
+    LOG_INFO(
+        "THERMO",
+        "Prediction valid=%s",
+        prediction_valid
+            ? "YES"
+            : "NO");
+
+    /*
+     * ======================================================
+     * ALARMES
+     * ======================================================
+     */
+
+    alarm_runtime_update(
+        &s_status);
 }
 
 /*==========================================================
@@ -310,6 +594,11 @@ bool thermostat_set_mode(
     }
 
     s_status.mode = mode;
+
+    if (mode == THERMOSTAT_HORS_GEL)
+    {
+        s_status.setpoint = HORS_GEL_SETPOINT;
+    }
 
     runtime_config_t cfg;
 

@@ -154,6 +154,21 @@ add_executable(
     src/tests/test_scheduler_period.c
     src/tests/test_alarm_history_task.c
     src/tests/test_system_scheduler_runtime.c
+    src/tests/test_scheduler_info.c
+    src/tests/test_alarm_history_overwrite.c
+    src/tests/test_alarm_set_twice.c
+    src/core/thermal_learning/thermal_learning.c
+    src/tests/test_thermal_learning.c
+    src/core/thermal_prediction/thermal_prediction.c
+    src/tests/test_thermal_prediction.c
+    src/tests/test_thermostat_prediction.c
+    src/tests/test_predictive_to_normal_request.c
+    src/tests/test_thermostat_prediction_transition.c
+    src/tests/test_thermostat_prediction_not_needed.c
+    src/tests/test_thermostat_prediction_invalid.c
+    src/tests/test_thermostat_prediction_above_setpoint.c
+    src/tests/test_thermostat_prediction_boundary.c
+    src/tests/test_thermostat_hysteresis.c
 )
 
 
@@ -178,6 +193,7 @@ target_include_directories(
         src/core/program
         src/core/relay
         src/core/thermal
+        scr/core/thermal_learning
         src/core/thermostat
         src/core/weather
 

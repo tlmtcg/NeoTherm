@@ -57,7 +57,7 @@ bool test_app_config_run(void)
     ASSERT_EQ_UINT32(60,
                      cfg->history_save_period);
 
-    ASSERT_EQ_UINT32(300,
+    ASSERT_EQ_UINT32(60,
                      cfg->history_csv_period);
 
     /*----------------------------------------------------------

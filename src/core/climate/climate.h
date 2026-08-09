@@ -2,6 +2,8 @@
 #define CLIMATE_H
 
 #include "app.h" // pour UNIT_TEST
+
+#define UNIT_TEST
  
 bool climate_init(void);
 

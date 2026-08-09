@@ -43,6 +43,19 @@
 #include "test_scheduler_period.h"
 #include "test_alarm_history_task.h"
 #include "test_system_scheduler_runtime.h"
+#include "test_scheduler_info.h"
+#include "test_alarm_history_overwrite.h"
+#include "test_alarm_set_twice.h"
+#include "test_thermal_learning.h"
+#include "test_thermal_prediction.h"
+#include "test_thermostat_prediction.h"
+#include "test_predictive_to_normal_request.h"
+#include "test_thermostat_prediction_transition.h"
+#include "test_thermostat_prediction_not_needed.h"
+#include "test_thermostat_prediction_invalid.h"
+#include "test_thermostat_prediction_above_setpoint.h"
+#include "test_thermostat_prediction_boundary.h"
+#include "test_thermostat_hysteresis.h"
 
 typedef bool (*test_func_t)(void);
 
@@ -89,11 +102,24 @@ static test_entry_t tests[] =
         {"Alarm_history_service_history", test_alarm_service_history_run},
         {"Alarm_history_scheduler", test_alarm_history_scheduler_run},
         {"Scheduler Limit", test_scheduler_limit_run},
-        {"System scheduler init",test_system_scheduler_init_run},
-        {"Scheduler enable disable",test_scheduler_enable_disable_run},
-        {"Scheduler period",test_scheduler_period_run},
-        {"Alarm History test",test_alarm_history_task_run},
-        {"System scheduler runtime",test_system_scheduler_runtime_run},
+        {"System scheduler init", test_system_scheduler_init_run},
+        {"Scheduler enable disable", test_scheduler_enable_disable_run},
+        {"Scheduler period", test_scheduler_period_run},
+        {"Alarm History test", test_alarm_history_task_run},
+        {"System scheduler runtime", test_system_scheduler_runtime_run},
+        {"Scheduler info", test_scheduler_info_run},
+        {"Alarm set twice", test_alarm_set_twice_run},
+        {"Alarm history Overwrite", test_alarm_history_overwrite_run},
+        {"Test thermal learning", test_thermal_learning_run},
+        {"Test thermal prediction", test_thermal_prediction_run},
+        {"Test thermostat prediction",test_thermostat_prediction_run},
+        {"Test predictive to normal request",test_predictive_to_normal_request_run},
+        {"Test predictive transistion",test_thermostat_prediction_transition_run},
+        {"Test thermostat prediction not needed",test_thermostat_prediction_not_needed_run},
+        {"Test thermostat prediction invalid",test_thermostat_prediction_invalid_run},
+        {"Test Thermostat prediction above",test_thermostat_prediction_above_setpoint_run},
+        {"Test Thermostat prediction boundary",test_thermostat_prediction_boundary_run},
+        {"Test thermostat hysteresis",test_thermostat_hysteresis_run},
 };
 
 void test_runner_run(void)
