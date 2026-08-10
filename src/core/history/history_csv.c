@@ -63,7 +63,7 @@ bool history_export_csv(
                 record.outside_temperature,
                 record.setpoint,
 
-                thermostat_mode_name(record.mode),
+                thermostat_mode_to_string(record.mode),
 
                 record.relay ? "ON" : "OFF",
 

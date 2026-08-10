@@ -42,7 +42,7 @@ bool test_storage_run(void)
     storage_load_runtime(&loaded));
 
     printf("Loaded mode        : %s\n",
-           thermostat_mode_name(loaded.mode));
+           thermostat_mode_to_string(loaded.mode));
 
     printf("Loaded setpoint    : %.1f\n",
            loaded.setpoint);

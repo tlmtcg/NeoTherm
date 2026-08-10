@@ -291,7 +291,7 @@ void history_dump_last(uint32_t count)
                r->inside_temperature,
                r->outside_temperature,
                r->setpoint,
-               thermostat_mode_name(r->mode),
+               thermostat_mode_to_string(r->mode),
                r->relay ? "ON" : "OFF",
                r->heating ? "YES" : "NO");
     }

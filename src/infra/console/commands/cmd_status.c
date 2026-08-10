@@ -37,7 +37,7 @@ bool cmd_status(const char *args)
      */
     console_print_string(
         "Mode",
-        thermostat_mode_name(
+        thermostat_mode_to_string(
             thermostat_get_mode()));
 
     console_print_float(
