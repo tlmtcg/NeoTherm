@@ -3,8 +3,7 @@
 
 #include "app.h" // pour UNIT_TEST
 
-#define UNIT_TEST
- 
+
 bool climate_init(void);
 
 float climate_get_temperature(void);
@@ -24,8 +23,8 @@ void climate_tick(void);
 /*
  * API TEST uniquement
  */
-#ifdef UNIT_TEST
+
 void climate_test_set_temperature(float temperature);
-#endif
+
 
 #endif

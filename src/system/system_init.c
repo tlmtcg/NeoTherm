@@ -29,6 +29,7 @@
 #include "alarm_history_task.h"
 #include "../core/thermal_learning/thermal_learning.h"
 #include "../core/thermal_prediction/thermal_prediction.h"
+#include "webserver.h"
 
 bool system_init(void)
 {
@@ -104,6 +105,8 @@ bool system_init(void)
     weather_init();
 
     thermostat_init();
+
+    webserver_init();
 
     thermostat_set_mode(THERMOSTAT_AUTO);
 
@@ -210,17 +213,6 @@ bool system_init(void)
         return false;
     }
 
-        if (!scheduler_register(
-            "ThermalPrediction",
-            thermal_prediction_task_callback,
-            150))
-    {
-         LOG_ERROR("SCHED",
-                  "Unable to register ThermalPrediction");
-
-        return false;
-    }
-
     if (!scheduler_register(
             "ThermalLearning",
             thermal_learning_task_callback,
@@ -232,6 +224,18 @@ bool system_init(void)
         return false;
     }
     
+
+        if (!scheduler_register(
+            "ThermalPrediction",
+            thermal_prediction_task_callback,
+            150))
+    {
+         LOG_ERROR("SCHED",
+                  "Unable to register ThermalPrediction");
+
+        return false;
+    }
+
     LOG_INFO("SYSTEM",
              "%u task(s) registered",
              scheduler_task_count());

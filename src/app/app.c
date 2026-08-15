@@ -12,6 +12,7 @@
 #include "clock.h"
 #include "event_dispatcher.h"
 #include "console.h"
+#include "webserver.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -69,6 +70,18 @@ bool app_run(void)
     test_runner_run();
 #endif
 
+    /*
+     * Démarrage du serveur Web.
+     */
+    if (!webserver_start())
+    {
+        LOG_ERROR(
+            "APP",
+            "Unable to start web server");
+
+        return false;
+    }
+
     while (!app_exit_requested())
     {
         scheduler_update();
@@ -77,12 +90,16 @@ bool app_run(void)
 
         console_update();
 
+        webserver_update();
+
         clock_add_second();
 
 #ifdef _WIN32
         Sleep(100);
 #endif
     }
+
+    webserver_stop();
 
     LOG_INFO(
         "APP",

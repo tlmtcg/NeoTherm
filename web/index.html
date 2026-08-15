@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>NeoTherm</title>
+
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <header class="header">
+      <h1>NeoTherm</h1>
+
+      <div class="header-status">
+        <span>
+          Système :
+          <strong id="system-status"> -- </strong>
+        </span>
+
+        <span>
+          <strong id="ui-header-current-time"> -- </strong>
+        </span>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <!-- =====================================================
+         THERMOSTAT
+         ===================================================== -->
+
+      <section class="card">
+        <h2>Thermostat</h2>
+
+        <div class="data-grid">
+          <div>
+            <span class="label"> Mode </span>
+
+            <strong id="ui-mode"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Température </span>
+
+            <strong id="ui-room-temperature"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Consigne </span>
+
+            <strong id="ui-target-temperature"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Hystérésis </span>
+
+            <strong id="ui-hysteresis"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Demande chauffage </span>
+
+            <strong id="ui-heating-request"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Chauffage </span>
+
+            <strong id="ui-heater"> -- </strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================
+         HORLOGE
+         ===================================================== -->
+
+      <section class="card">
+        <h2>Horloge</h2>
+
+        <div id="ui-current-time" class="large-value">--</div>
+      </section>
+
+      <!-- =====================================================
+         MÉTÉO
+         ===================================================== -->
+
+      <section class="card">
+        <h2>Météo</h2>
+
+        <div class="data-grid">
+          <div>
+            <span class="label"> Température extérieure </span>
+
+            <strong id="ui-outdoor-temperature"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Humidité </span>
+
+            <strong id="ui-outdoor-humidity"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Pression atmosphérique </span>
+
+            <strong id="ui-air-pressure"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Vent </span>
+
+            <strong id="ui-wind-speed"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Rafales </span>
+
+            <strong id="ui-wind-gust"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Direction </span>
+
+            <strong id="ui-wind-direction"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Pluie </span>
+
+            <strong id="ui-rain"> -- </strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================
+         ALARMES
+         ===================================================== -->
+
+      <section class="card">
+        <h2>Alarmes</h2>
+
+        <p>
+          Alarmes actives :
+
+          <strong id="ui-active-alarms"> -- </strong>
+        </p>
+
+        <div id="ui-alarm-list">
+          <p class="alarm-none">Chargement...</p>
+        </div>
+      </section>
+
+      <!-- =====================================================
+         RELAIS
+         ===================================================== -->
+
+      <section class="card">
+        <h2>Relais</h2>
+
+        <div class="data-grid">
+          <div>
+            <span class="label"> État </span>
+
+            <strong id="ui-relay-state"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Nombre de commutations </span>
+
+            <strong id="ui-relay-switch-count"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Dernière commutation </span>
+
+            <strong id="ui-relay-last-switch"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Délai minimum </span>
+
+            <strong id="ui-relay-min-delay"> -- s </strong>
+          </div>
+
+          <div>
+            <span class="label"> Temps écoulé </span>
+
+            <strong id="ui-relay-elapsed"> -- s </strong>
+          </div>
+
+          <div>
+            <span class="label"> Temps restant </span>
+
+            <strong id="iu-relay-remaining"> -- s </strong>
+          </div>
+
+          <div>
+            <span class="label"> Can switch</span>
+
+            <strong id="iu-relay-can-switch"> -- s </strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================
+         CLIMATE
+         ===================================================== -->
+
+      <section class="card">
+        <h2>Climate</h2>
+
+        <div class="data-grid">
+          <div>
+            <span class="label"> Température </span>
+
+            <strong id="ui-climate-temperature"> -- °C </strong>
+          </div>
+
+          <div>
+            <span class="label"> Chauffage </span>
+
+            <strong id="ui-climate-heating"> -- </strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================
+         MODÈLE THERMIQUE
+         ===================================================== -->
+
+      <section class="card">
+        <h2>Modèle thermique</h2>
+
+        <div class="data-grid">
+          <div>
+            <span class="label"> Température extérieure </span>
+
+            <strong id="ui-thermal-outside-temperature"> -- °C </strong>
+          </div>
+
+          <div>
+            <span class="label"> Puissance chauffage </span>
+
+            <strong id="ui-thermal-heat-power"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Facteur de perte </span>
+
+            <strong id="ui-thermal-loss-factor"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Masse thermique </span>
+
+            <strong id="ui-thermal-mass"> -- </strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================
+         APPRENTISSAGE THERMIQUE
+         ===================================================== -->
+
+      <section class="card">
+        <h2>Apprentissage thermique</h2>
+
+        <div class="data-grid">
+          <div>
+            <span class="label"> Taux de chauffe </span>
+
+            <strong id="learning-heat-rate"> -- °C/min </strong>
+          </div>
+
+          <div>
+            <span class="label"> Taux de refroidissement </span>
+
+            <strong id="learning-cooling-rate"> -- °C/min </strong>
+          </div>
+
+          <div>
+            <span class="label"> Dépassement </span>
+
+            <strong id="learning-overshoot"> -- °C </strong>
+          </div>
+
+          <div>
+            <span class="label"> Valide </span>
+
+            <strong id="learning-valid"> -- </strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================
+         PRÉDICTION THERMIQUE
+         ===================================================== -->
+
+      <section class="card">
+        <h2>Prédiction thermique</h2>
+
+        <div class="data-grid">
+          <div>
+            <span class="label"> Température actuelle </span>
+
+            <strong id="ui-prediction-current"> -- °C </strong>
+          </div>
+
+          <div>
+            <span class="label"> Prochaine température </span>
+
+            <strong id="ui-prediction-next-tick"> -- °C </strong>
+          </div>
+
+          <div>
+            <span class="label"> Température chauffée </span>
+
+            <strong id="ui-prediction-heated"> -- °C </strong>
+          </div>
+
+          <div>
+            <span class="label"> Température naturelle </span>
+
+            <strong id="ui-prediction-natural"> -- °C/min </strong>
+          </div>
+
+          <div>
+            <span class="label"> Valide </span>
+
+            <strong id="ui-prediction-valid"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Next tick </span>
+
+            <strong id="ui-next-tick"> -- </strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================
+         RUNTIME
+         ===================================================== -->
+
+      <section class="card">
+        <h2>Configuration runtime</h2>
+
+        <div class="data-grid">
+          <div>
+            <span class="label"> Mode </span>
+
+            <strong id="ui-runtime-mode"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Consigne </span>
+
+            <strong id="ui-runtime-setpoint"> -- °C </strong>
+          </div>
+
+          <div>
+            <span class="label"> Hystérésis </span>
+
+            <strong id="ui-runtime-hysteresis"> -- °C </strong>
+          </div>
+
+          <div>
+            <span class="label"> Délai relais </span>
+
+            <strong id="ui-runtime-relay-delay"> -- s </strong>
+          </div>
+
+          <div>
+            <span class="label"> Latitude </span>
+
+            <strong id="ui-runtime-latitude"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Longitude </span>
+
+            <strong id="ui-runtime-longitude"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Fournisseur météo </span>
+
+            <strong id="ui-runtime-weather-provider"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Période météo </span>
+
+            <strong id="ui-runtime-weather-period"> -- s </strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================
+         SCHEDULER
+         ===================================================== -->
+
+      <section class="card card-wide">
+        <h2>Scheduler</h2>
+
+        <p>
+          Tâches :
+          <strong id="ui-scheduler-count">--</strong>
+        </p>
+
+        <div id="ui-scheduler-list">
+          <p>Chargement...</p>
+        </div>
+      </section>
+
+      <!-- =====================================================
+         ÉVÉNEMENTS
+         ===================================================== -->
+      <section class="card card-wide">
+        <h2>Événements</h2>
+
+        <div class="data-grid">
+          <div>
+            <span class="label">Total</span>
+            <strong id="ui-event-total">--</strong>
+          </div>
+
+          <div>
+            <span class="label">File</span>
+            <strong id="ui-event-queue-count">--</strong>
+          </div>
+
+          <div>
+            <span class="label">Taille file</span>
+            <strong id="ui-event-queue-size">--</strong>
+          </div>
+
+          <div>
+            <span class="label">File vide</span>
+            <strong id="ui-event-queue-empty">--</strong>
+          </div>
+
+          <div>
+            <span class="label">File pleine</span>
+            <strong id="ui-event-queue-full">--</strong>
+          </div>
+        </div>
+
+        <div id="ui-event-list">
+          <p>Chargement...</p>
+        </div>
+      </section>
+
+      <!-- =====================================================
+         STOCKAGE
+         ===================================================== -->
+
+      <section class="card">
+        <h2>Stockage</h2>
+
+        <div class="data-grid">
+          <div>
+            <span class="label">Source</span>
+            <strong id="ui-storage-source">--</strong>
+          </div>
+
+          <div>
+            <span class="label">Mode</span>
+            <strong id="ui-storage-mode">--</strong>
+          </div>
+
+          <div>
+            <span class="label">Consigne</span>
+            <strong id="ui-storage-setpoint">--</strong>
+          </div>
+
+          <div>
+            <span class="label">Hystérésis</span>
+            <strong id="ui-storage-hysteresis">--</strong>
+          </div>
+
+          <div>
+            <span class="label">Délai relais</span>
+            <strong id="ui-storage-relay-delay">--</strong>
+          </div>
+
+          <div>
+            <span class="label">Fournisseur météo</span>
+            <strong id="ui-storage-weather-provider">--</strong>
+          </div>
+
+          <div>
+            <span class="label">Période météo</span>
+            <strong id="ui-storage-weather-period">--</strong>
+          </div>
+
+          <div>
+            <span class="label">Latitude</span>
+            <strong id="ui-storage-latitude">--</strong>
+          </div>
+
+          <div>
+            <span class="label">Longitude</span>
+            <strong id="ui-storage-longitude">--</strong>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">NeoTherm Simulator</footer>
+
+    <script src="/js/app.js"></script>
+  </body>
+</html>

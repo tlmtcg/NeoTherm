@@ -495,3 +495,23 @@ int schedule_day_from_name(const char *name)
 
     return -1;
 }
+
+bool schedule_get_day(
+    uint8_t day,
+    schedule_day_t *schedule)
+{
+    if (schedule == NULL)
+    {
+        return false;
+    }
+
+    if (day >= 7)
+    {
+        return false;
+    }
+
+    *schedule =
+        s_schedule[day];
+
+    return true;
+}

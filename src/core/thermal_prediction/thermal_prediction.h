@@ -59,4 +59,18 @@ void thermal_prediction_dump(void);
 
 void thermal_prediction_task_callback(void);
 
+float thermal_prediction_get_current_temperature(void);
+
+bool thermal_prediction_is_heating(void);
+
+float thermal_prediction_get_heat_rate(void);
+
+bool thermal_prediction_is_heat_rate_valid(void);
+
+float thermal_prediction_get_cooling_rate(void);
+
+bool thermal_prediction_is_cooling_rate_valid(void);
+
+float thermal_prediction_get_next_tick_temperature(void);
+
 #endif /* THERMAL_PREDICTION_H */

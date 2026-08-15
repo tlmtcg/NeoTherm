@@ -437,8 +437,6 @@ static bool test_auto_predictive_request(void)
     return true;
 }
 
-
-
 /*
  * ======================================================
  * TEST : PREDICTION NE DOIT PAS MAINTENIR LE RELAIS
@@ -461,38 +459,60 @@ static bool test_prediction_does_not_hold_relay(void)
     thermostat_set_mode(
         THERMOSTAT_AUTO);
 
-    const thermostat_status_t *status =
-        thermostat_get_status();
-
     /*
-     * Température dans la bande d'hystérésis.
+     * --------------------------------------------------
+     * 1. Déclenchement normal du chauffage
+     * --------------------------------------------------
      *
-     * Elle est supérieure au seuil ON,
-     * mais inférieure au seuil OFF.
+     * On passe sous le seuil ON afin de créer
+     * une demande normale.
      */
 
-    float temperature =
-        status->setpoint;
-
-    climate_test_set_temperature(
-        temperature);
+    climate_test_set_temperature(17.60f);
 
     thermostat_update();
 
-    /*
-     * Le relais doit rester ON.
-     *
-     * Mais heating_request doit être FALSE :
-     * la prédiction ne maintient pas la demande.
-     */
+    ASSERT_TRUE(
+        thermostat_get_status()->heating_request);
 
     ASSERT_TRUE(
         relay_get());
 
-    ASSERT_FALSE(
+    /*
+     * --------------------------------------------------
+     * 2. Retour dans la bande d'hystérésis
+     * --------------------------------------------------
+     *
+     * La température remonte à la consigne.
+     *
+     * La demande normale doit être conservée.
+     *
+     * La prédiction ne doit pas être nécessaire
+     * pour maintenir le chauffage.
+     */
+
+    climate_test_set_temperature(18.00f);
+
+    thermostat_update();
+
+    const thermostat_status_t *status =
+        thermostat_get_status();
+
+    /*
+     * Le relais reste ON.
+     */
+    ASSERT_TRUE(
+        relay_get());
+
+    /*
+     * La demande reste ON grâce à l'hystérésis,
+     * et non grâce à la prédiction.
+     */
+    ASSERT_TRUE(
         status->heating_request);
 
-    printf("PASS\n");
+    printf(
+        "PASS\n");
 
     return true;
 }

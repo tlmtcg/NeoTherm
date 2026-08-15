@@ -6,8 +6,6 @@
 #include "thermal_model.h"
 #include "runtime.h"
 
-#define UNIT_TEST
-
 static float s_temperature = 20.5f;
 
 static bool s_simulation_override = false;
@@ -18,7 +16,18 @@ static bool s_simulation_override = false;
 
 bool climate_init(void)
 {
-    s_temperature = runtime_get()->setpoint;
+    const runtime_config_t *cfg = runtime_get();
+
+    if (cfg == NULL)
+    {
+        LOG_ERROR("CLIMATE",
+                  "Runtime configuration unavailable");
+
+        return false;
+    }
+
+    s_temperature = cfg->setpoint;
+    s_simulation_override = false;
 
     LOG_INFO("CLIMATE",
              "Climate initialized : %.1f C",
@@ -38,17 +47,14 @@ void climate_update(float temperature)
 
     event_t event = {0};
 
-    event.type =
-        EVENT_CLIMATE_UPDATE;
-
-    event.data.temperature =
-        s_temperature;
+    event.type = EVENT_CLIMATE_UPDATE;
+    event.data.temperature = s_temperature;
 
     if (event_post(&event))
     {
         LOG_DEBUG("CLIMATE",
-                 "Temperature = %.2f C",
-                 s_temperature);
+                  "Temperature = %.2f C",
+                  s_temperature);
     }
 }
 
@@ -61,9 +67,12 @@ float climate_get_temperature(void)
     return s_temperature;
 }
 
+/*==========================================================
+ * Simulation thermique
+ *=========================================================*/
+
 void climate_tick(void)
 {
-
     if (s_simulation_override)
     {
         return;
@@ -76,20 +85,17 @@ void climate_tick(void)
 
     event_t event = {0};
 
-    event.type =
-        EVENT_CLIMATE_UPDATE;
-
-    event.data.temperature =
-        s_temperature;
+    event.type = EVENT_CLIMATE_UPDATE;
+    event.data.temperature = s_temperature;
 
     event_post(&event);
 
     LOG_DEBUG("CLIMATE",
-             "Temperature = %.2f C",
-             s_temperature);
+              "Temperature = %.2f C",
+              s_temperature);
 }
 
-#ifdef UNIT_TEST
+#ifndef UNIT_TEST
 
 void climate_test_set_temperature(float temperature)
 {

@@ -6,13 +6,14 @@
 #include "history.h"
 #include "logger.h"
 
+#define THERMAL_LEARNING_MAX_RATE 1.0f
+#define THERMAL_LEARNING_MIN_SAMPLES 10
 
 /*==========================================================
  * Variables privées
  *=========================================================*/
 
 static thermal_learning_state_t s_learning;
-
 
 /*==========================================================
  * Calcul durée entre deux timestamps
@@ -43,7 +44,7 @@ static float thermal_learning_delta_minutes(
         previous_seconds;
 
     /*
-     * Gestion du passage à minuit.
+     * Passage à minuit.
      */
     if (delta_seconds < 0)
     {
@@ -52,7 +53,6 @@ static float thermal_learning_delta_minutes(
 
     return (float)delta_seconds / 60.0f;
 }
-
 
 /*==========================================================
  * Initialisation
@@ -71,7 +71,6 @@ bool thermal_learning_init(void)
 
     return true;
 }
-
 
 /*==========================================================
  * Analyse historique
@@ -97,13 +96,12 @@ bool thermal_learning_analyze(void)
     }
 
     /*
-     * On repart toujours de zéro.
+     * Analyse complète de l'historique.
      */
     memset(
         &s_learning,
         0,
         sizeof(s_learning));
-
 
     history_record_t previous;
 
@@ -114,16 +112,15 @@ bool thermal_learning_analyze(void)
         return false;
     }
 
-
     float heat_sum = 0.0f;
     float cool_sum = 0.0f;
+    float warming_sum = 0.0f;
 
-    bool heating_stopped = false;
-
+    bool overshoot_active = false;
 
     /*======================================================
      * Parcours historique
-     *======================================================*/
+     *=====================================================*/
 
     for (uint32_t i = 1;
          i < count;
@@ -138,9 +135,8 @@ bool thermal_learning_analyze(void)
             continue;
         }
 
-
         /*==================================================
-         * Durée entre deux mesures
+         * Durée
          *==================================================*/
 
         float dt_minutes =
@@ -148,57 +144,78 @@ bool thermal_learning_analyze(void)
                 &previous.timestamp,
                 &current.timestamp);
 
-
         if (dt_minutes <= 0.0f)
         {
             previous = current;
             continue;
         }
 
+        /*==================================================
+         * Variation température
+         *==================================================*/
 
         float delta_temperature =
             current.inside_temperature -
             previous.inside_temperature;
 
+        float rate =
+            delta_temperature /
+            dt_minutes;
+
+        LOG_DEBUG(
+            "LEARNING",
+            "dt=%.3f min delta=%.3f rate=%+.4f "
+            "heating=%s",
+            dt_minutes,
+            delta_temperature,
+            rate,
+            previous.heating ? "YES" : "NO");
 
         /*==================================================
-         * Chauffage actif
+         * CHAUFFAGE
          *==================================================*/
 
-        if (current.heating)
+        if (previous.heating)
         {
-            float rate =
-                delta_temperature /
-                dt_minutes;
-
-
             if (rate > 0.0f)
             {
-                heat_sum += rate;
+                if (rate <=
+                    THERMAL_LEARNING_MAX_RATE)
+                {
+                    heat_sum += rate;
 
-                s_learning.heating_samples++;
+                    s_learning.heating_samples++;
+                }
+                else
+                {
+                    LOG_WARN(
+                        "LEARNING",
+                        "Heating sample rejected: "
+                        "dt=%.3f delta=%.3f "
+                        "rate=%.3f C/min",
+                        dt_minutes,
+                        delta_temperature,
+                        rate);
+                }
             }
-
-            heating_stopped = false;
         }
 
-
         /*==================================================
-         * Passage chauffage -> arrêt
+         * TRANSITION CHAUFFAGE -> OFF
          *==================================================*/
 
-        if (!current.heating &&
-            previous.heating)
+        if (previous.heating &&
+            !current.heating)
         {
-            heating_stopped = true;
+            overshoot_active = true;
         }
 
-
         /*==================================================
-         * Overshoot
+         * OVERSHOOT
          *==================================================*/
 
-        if (heating_stopped)
+        if (overshoot_active &&
+            !current.heating)
         {
             if (current.inside_temperature >
                 current.setpoint)
@@ -206,7 +223,6 @@ bool thermal_learning_analyze(void)
                 float overshoot =
                     current.inside_temperature -
                     current.setpoint;
-
 
                 if (overshoot >
                     s_learning.overshoot)
@@ -217,34 +233,91 @@ bool thermal_learning_analyze(void)
             }
         }
 
-
         /*==================================================
-         * Refroidissement
+         * CHAUFFAGE OFF
          *==================================================*/
 
-        if (!current.heating)
+        if (!previous.heating)
         {
-            float rate =
-                delta_temperature /
-                dt_minutes;
-
+            /*
+             * ----------------------------------------------
+             * Refroidissement naturel
+             * ----------------------------------------------
+             */
 
             if (rate < 0.0f)
             {
-                cool_sum += -rate;
+                float cooling_rate =
+                    -rate;
 
-                s_learning.cooling_samples++;
+                if (cooling_rate <=
+                    THERMAL_LEARNING_MAX_RATE)
+                {
+                    cool_sum += cooling_rate;
+
+                    s_learning.cooling_samples++;
+                }
+                else
+                {
+                    LOG_WARN(
+                        "LEARNING",
+                        "Cooling sample rejected: "
+                        "dt=%.3f delta=%.3f "
+                        "rate=%.3f C/min",
+                        dt_minutes,
+                        delta_temperature,
+                        cooling_rate);
+                }
+            }
+
+            /*
+             * ----------------------------------------------
+             * Réchauffement naturel
+             * ----------------------------------------------
+             */
+
+            else if (rate > 0.0f)
+            {
+                float warming_rate =
+                    rate;
+
+                if (warming_rate <=
+                    THERMAL_LEARNING_MAX_RATE)
+                {
+                    warming_sum += warming_rate;
+
+                    s_learning.warming_samples++;
+                }
+                else
+                {
+                    LOG_WARN(
+                        "LEARNING",
+                        "Warming sample rejected: "
+                        "dt=%.3f delta=%.3f "
+                        "rate=%.3f C/min",
+                        dt_minutes,
+                        delta_temperature,
+                        warming_rate);
+                }
             }
         }
 
+        /*==================================================
+         * NOUVEAU DÉMARRAGE CHAUFFAGE
+         *==================================================*/
+
+        if (!previous.heating &&
+            current.heating)
+        {
+            overshoot_active = false;
+        }
 
         previous = current;
     }
 
-
     /*======================================================
-     * Calcul des moyennes
-     *======================================================*/
+     * Moyennes
+     *=====================================================*/
 
     if (s_learning.heating_samples > 0)
     {
@@ -253,7 +326,6 @@ bool thermal_learning_analyze(void)
             (float)s_learning.heating_samples;
     }
 
-
     if (s_learning.cooling_samples > 0)
     {
         s_learning.cooling_rate =
@@ -261,22 +333,30 @@ bool thermal_learning_analyze(void)
             (float)s_learning.cooling_samples;
     }
 
+    if (s_learning.warming_samples > 0)
+    {
+        s_learning.warming_rate =
+            warming_sum /
+            (float)s_learning.warming_samples;
+    }
 
     /*======================================================
      * Log
-     *======================================================*/
+     *=====================================================*/
 
     LOG_INFO(
         "LEARNING",
-        "Heat=%.4f C/min Cool=%.4f C/min Overshoot=%.2f C",
+        "Heat=%.4f C/min "
+        "Cool=%.4f C/min "
+        "Warm=%.4f C/min "
+        "Overshoot=%.2f C",
         s_learning.heat_rate,
         s_learning.cooling_rate,
+        s_learning.warming_rate,
         s_learning.overshoot);
-
 
     return true;
 }
-
 
 /*==========================================================
  * Accès à l'état
@@ -288,7 +368,6 @@ thermal_learning_get_state(void)
     return &s_learning;
 }
 
-
 /*==========================================================
  * Getters
  *=========================================================*/
@@ -298,18 +377,20 @@ float thermal_learning_get_heat_rate(void)
     return s_learning.heat_rate;
 }
 
-
 float thermal_learning_get_cooling_rate(void)
 {
     return s_learning.cooling_rate;
 }
 
+float thermal_learning_get_warming_rate(void)
+{
+    return s_learning.warming_rate;
+}
 
 float thermal_learning_get_overshoot(void)
 {
     return s_learning.overshoot;
 }
-
 
 /*==========================================================
  * Debug
@@ -334,6 +415,10 @@ void thermal_learning_dump(void)
         s_learning.cooling_rate);
 
     printf(
+        "Warming rate   : %.5f C/min\n",
+        s_learning.warming_rate);
+
+    printf(
         "Overshoot      : %.2f C\n",
         s_learning.overshoot);
 
@@ -345,9 +430,12 @@ void thermal_learning_dump(void)
         "Cool samples   : %u\n",
         s_learning.cooling_samples);
 
+    printf(
+        "Warm samples   : %u\n",
+        s_learning.warming_samples);
+
     printf("\n");
 }
-
 
 /*==========================================================
  * Scheduler
@@ -358,7 +446,6 @@ void thermal_learning_task_callback(void)
     thermal_learning_analyze();
 }
 
-
 /*==========================================================
  * Update
  *=========================================================*/
@@ -368,26 +455,32 @@ bool thermal_learning_update(void)
     return thermal_learning_analyze();
 }
 
-
 /*==========================================================
  * Validation
  *=========================================================*/
 
 bool thermal_learning_is_valid(void)
 {
-    const uint32_t MIN_SAMPLES = 10;
-
-    /*
-     * Au moins une des deux phases doit être correctement apprise.
-     */
-
     bool heating_valid =
-        (s_learning.heating_samples >= MIN_SAMPLES) &&
+        (s_learning.heating_samples >=
+         THERMAL_LEARNING_MIN_SAMPLES) &&
         (s_learning.heat_rate > 0.0f);
 
     bool cooling_valid =
-        (s_learning.cooling_samples >= MIN_SAMPLES) &&
+        (s_learning.cooling_samples >=
+         THERMAL_LEARNING_MIN_SAMPLES) &&
         (s_learning.cooling_rate > 0.0f);
 
-    return heating_valid || cooling_valid;
+    bool warming_valid =
+        (s_learning.warming_samples >=
+         THERMAL_LEARNING_MIN_SAMPLES) &&
+        (s_learning.warming_rate > 0.0f);
+
+    /*
+     * Le learning global est valide dès qu'au moins
+     * un scénario est suffisamment appris.
+     */
+    return heating_valid ||
+           cooling_valid ||
+           warming_valid;
 }

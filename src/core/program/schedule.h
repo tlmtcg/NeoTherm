@@ -23,7 +23,7 @@ typedef struct
 {
     uint8_t day;
 
-    uint8_t count;
+    uint32_t count;
 
     schedule_point_t points[SCHEDULE_MAX_POINTS];
 
@@ -64,5 +64,9 @@ int schedule_day_from_name(const char *name);
 bool schedule_remove_point(uint8_t day,
                            uint8_t hour,
                            uint8_t minute);
+
+bool schedule_get_day(
+    uint8_t day,
+    schedule_day_t *schedule);
 
 #endif

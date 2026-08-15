@@ -11,6 +11,7 @@ typedef struct
      */
     float heat_rate;    // °C / tick
     float cooling_rate; // °C / tick
+    float warming_rate;
     float overshoot;    // °C
 
     /*
@@ -18,6 +19,7 @@ typedef struct
      */
     uint32_t heating_samples;
     uint32_t cooling_samples;
+    uint32_t warming_samples;
 
     /*
      * Etat interne
@@ -48,6 +50,7 @@ float thermal_learning_get_heat_rate(void);
 float thermal_learning_get_cooling_rate(void);
 float thermal_learning_get_overshoot(void);
 void thermal_model_apply_learning(void);
+float thermal_learning_get_warming_rate(void);
 
 /* Analyse / mise à jour du learning */
 bool thermal_learning_update(void);

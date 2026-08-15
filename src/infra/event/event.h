@@ -104,6 +104,8 @@ extern "C"
 
     uint32_t event_get_total_count(void);
 
+    size_t event_get_queue_count(void);
+
 #ifdef __cplusplus
 }
 #endif

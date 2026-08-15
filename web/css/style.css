@@ -1,0 +1,300 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    background: #111827;
+
+    color: #f9fafb;
+}
+
+/* ==========================================================
+ * HEADER
+ * ========================================================== */
+
+header {
+    padding: 20px;
+
+    background: #1f2937;
+
+    border-bottom:
+        1px solid #374151;
+}
+
+header h1 {
+    margin: 0;
+
+    font-size: 28px;
+}
+
+header p {
+    margin: 5px 0 0;
+
+    color: #9ca3af;
+}
+
+/* ==========================================================
+ * DASHBOARD
+ * ========================================================== */
+
+.dashboard {
+    width: 100%;
+
+    max-width: 1600px;
+
+    margin: 0 auto;
+
+    padding: 20px;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(320px, 1fr)
+        );
+
+    gap: 20px;
+
+    align-items: start;
+}
+
+/* ==========================================================
+ * CARDS
+ * ========================================================== */
+
+.card {
+    min-width: 0;
+
+    background: #1f2937;
+
+    border-radius: 12px;
+
+    padding: 20px;
+
+    box-shadow:
+        0 4px 12px
+        rgba(0, 0, 0, 0.25);
+}
+
+.card h2 {
+    margin-top: 0;
+
+    margin-bottom: 16px;
+
+    font-size: 18px;
+
+    color: #d1d5db;
+}
+
+/* ==========================================================
+ * DATA GRID
+ * ========================================================== */
+
+.data-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(130px, 1fr)
+        );
+
+    gap: 16px;
+}
+
+.data-grid > div {
+    min-width: 0;
+}
+
+/* ==========================================================
+ * VALUES
+ * ========================================================== */
+
+.large-value {
+    font-size: 32px;
+
+    font-weight: bold;
+
+    text-align: center;
+
+    padding: 20px 0;
+}
+
+.temperature {
+    font-size: 42px;
+
+    font-weight: bold;
+
+    margin-bottom: 12px;
+}
+
+.value {
+    font-size: 24px;
+
+    font-weight: bold;
+}
+
+.label {
+    display: block;
+
+    color: #9ca3af;
+
+    font-size: 14px;
+
+    margin-bottom: 5px;
+}
+
+/* ==========================================================
+ * ROW
+ * ========================================================== */
+
+.row {
+    display: flex;
+
+    justify-content:
+        space-between;
+
+    padding: 7px 0;
+
+    border-bottom:
+        1px solid #374151;
+}
+
+.row:last-child {
+    border-bottom: none;
+}
+
+/* ==========================================================
+ * STATUS
+ * ========================================================== */
+
+.on {
+    color: #22c55e;
+
+    font-weight: bold;
+}
+
+.off {
+    color: #9ca3af;
+}
+
+.alarm {
+    color: #ef4444;
+
+    font-weight: bold;
+}
+
+.ok {
+    color: #22c55e;
+
+    font-weight: bold;
+}
+
+/* ==========================================================
+ * STATUS BAR
+ * ========================================================== */
+
+.status-bar {
+    margin-top: 16px;
+
+    color: #9ca3af;
+
+    font-size: 13px;
+}
+
+/* ==========================================================
+ * NAVIGATION
+ * ========================================================== */
+
+.nav {
+    margin-top: 20px;
+}
+
+.nav a {
+    color: #60a5fa;
+
+    margin-right: 20px;
+
+    text-decoration: none;
+}
+
+.nav a:hover {
+    text-decoration: underline;
+}
+
+/* ==========================================================
+ * RESPONSIVE
+ * ========================================================== */
+
+/* Tablette */
+
+@media (max-width: 900px) {
+
+    .dashboard {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        padding: 16px;
+
+        gap: 16px;
+    }
+}
+
+/* Smartphone */
+
+@media (max-width: 600px) {
+
+    .dashboard {
+        grid-template-columns: 1fr;
+
+        padding: 12px;
+
+        gap: 12px;
+    }
+
+    .card {
+        padding: 16px;
+    }
+
+    .data-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Petit smartphone */
+
+@media (max-width: 400px) {
+
+    .data-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.dashboard {
+    max-width: 1600px;
+
+    margin: 0 auto;
+
+    padding: 20px;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(320px, 1fr)
+        );
+
+    gap: 16px;
+}
+
+.card-wide {
+    grid-column: span 2;
+}

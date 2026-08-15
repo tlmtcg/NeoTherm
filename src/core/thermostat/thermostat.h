@@ -113,6 +113,8 @@
 
 #define HORS_GEL_SETPOINT   7.0f
 #define HORS_GEL_HYSTERESIS 1.0f
+#define THERMOSTAT_PREDICTION_MINUTES 10.0f
+#define THERMOSTAT_PREDICTION_MARGIN 0.10f
 
 #ifdef __cplusplus
 extern "C"

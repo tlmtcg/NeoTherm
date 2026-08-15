@@ -6,6 +6,7 @@
 #include "logger.h"
 #include "weather.h"
 #include "runtime.h"
+#include "thermal_model.h"
 
 /*==========================================================
  * Configuration
@@ -100,6 +101,12 @@ bool weather_service_update(void)
         return false;
     }
 
+    /*
+     * Synchronisation avec le modèle thermique.
+     */
+    thermal_model_set_outside_temperature(
+        weather.temperature);
+
     s_available = true;
 
     s_last_update =
@@ -125,13 +132,11 @@ void weather_service_tick(void)
         return;
     }
 
-
     if (!s_available)
     {
         weather_service_update();
         return;
     }
-
 
     if (weather_service_age() >=
         runtime->weather_update_period_sec)

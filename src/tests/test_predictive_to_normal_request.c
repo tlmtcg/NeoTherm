@@ -10,21 +10,18 @@ bool test_predictive_to_normal_request_run(void)
     console_print_header(
         "PREDICTIVE TO NORMAL REQUEST");
 
+
     /*
      * --------------------------------------------------
-     * TEMPERATURE INITIALE
+     * INITIALISATION
      * --------------------------------------------------
      *
      * Consigne : 18.0 °C
      * Hystérésis : 0.3 °C
      *
      * Seuil ON : 17.7 °C
-     *
-     * À 17.9 °C :
-     * - demande normale = NON
-     * - prédiction naturelle sous la marge
-     * - demande prédictive = OUI
      */
+
 
     climate_test_set_temperature(
         17.90f);
@@ -37,6 +34,18 @@ bool test_predictive_to_normal_request_run(void)
     const thermostat_status_t *status =
         thermostat_get_status();
 
+
+    /*
+     * À 17.90 °C :
+     *
+     * 17.90 > 17.70
+     *
+     * donc pas de demande normale.
+     *
+     * La prédiction doit cependant demander
+     * le chauffage.
+     */
+
     ASSERT_TRUE(
         status->heating_request);
 
@@ -46,14 +55,17 @@ bool test_predictive_to_normal_request_run(void)
     printf(
         "Predictive request : ON\n");
 
+
     /*
      * --------------------------------------------------
-     * DESCENTE SOUS LE SEUIL ON
+     * PASSAGE SOUS LE SEUIL ON
      * --------------------------------------------------
      *
-     * La température passe sous 17.70 °C.
+     * 17.60 <= 17.70
      *
      * La demande devient maintenant normale.
+     *
+     * La demande de chauffage doit rester active.
      */
 
     climate_test_set_temperature(
@@ -64,9 +76,6 @@ bool test_predictive_to_normal_request_run(void)
     status =
         thermostat_get_status();
 
-    /*
-     * La demande doit toujours être active.
-     */
 
     ASSERT_TRUE(
         status->heating_request);
@@ -74,13 +83,9 @@ bool test_predictive_to_normal_request_run(void)
     ASSERT_TRUE(
         relay_get());
 
-    printf(
-        "Normal request     : ON\n");
 
     /*
-     * --------------------------------------------------
-     * VERIFICATION DU SEUIL
-     * --------------------------------------------------
+     * Vérification du seuil.
      */
 
     ASSERT_TRUE(
@@ -88,7 +93,12 @@ bool test_predictive_to_normal_request_run(void)
         (status->setpoint -
          status->hysteresis));
 
-    printf("PASS\n");
+
+    printf(
+        "Normal request     : ON\n");
+
+    printf(
+        "PASS\n");
 
     return true;
 }

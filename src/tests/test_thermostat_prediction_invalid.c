@@ -114,22 +114,36 @@ bool test_thermostat_prediction_invalid_run(void)
     console_print_header(
         "PREDICTION INVALID");
 
+    /*
+     * Aucun apprentissage disponible.
+     */
     ASSERT_TRUE(
-        thermal_learning_get_heat_rate() > 0.0f);
+        thermal_learning_init());
 
-    ASSERT_TRUE(
-        thermal_learning_get_cooling_rate() <= 0.0f);
+    ASSERT_FALSE(
+        thermal_learning_is_valid());
+
+    ASSERT_EQ_FLOAT(
+        0.0f,
+        thermal_learning_get_heat_rate());
+
+    ASSERT_EQ_FLOAT(
+        0.0f,
+        thermal_learning_get_cooling_rate());
 
     /*
      * La dernière mesure de l'historique est utilisée
      * par thermal_prediction_update().
+     *
+     * Aucun taux n'étant disponible, la prédiction
+     * est invalide.
      */
     ASSERT_FALSE(
         thermal_prediction_update());
 
     ASSERT_FALSE(
         thermal_prediction_is_valid());
-
+        
     /*
      * --------------------------------------------------
      * THERMOSTAT

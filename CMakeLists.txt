@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project(
     NeoTherm
-    VERSION 0.1.0
+    VERSION 0.1.1
     DESCRIPTION "NeoTherm Simulator"
     LANGUAGES C
 )
@@ -169,6 +169,40 @@ add_executable(
     src/tests/test_thermostat_prediction_above_setpoint.c
     src/tests/test_thermostat_prediction_boundary.c
     src/tests/test_thermostat_hysteresis.c
+    src/core/thermostat/thermostat_inputs.c
+    src/core/thermostat/thermostat_prediction.c
+    src/core/thermostat/thermostat_control.c
+    src/tests/test_mode_relay.c
+    src/tests/test_manual_relay.c
+    src/tests/test_hors_gel.c
+    src/tests/test_setpoint.c
+    src/tests/test_hysteresis.c
+    src/tests/test_thermostat_integration.c
+    src/tests/test_thermostat_thermal_integration.c
+    src/tests/test_thermostat_cycle.c
+    src/webserver/webserver.c
+    src/webserver/webserver_router.c
+    src/webserver/webserver_http.c
+    src/webserver/api/api_thermostat.c
+        src/webserver/api/api_history.c
+        src/webserver/api/api_system.c
+        src/webserver/webserver_request.c
+        src/webserver/api/api_weather.c
+        src/webserver/api/api_alarm.c
+        src/webserver/api/api_climate.c
+        src/webserver/api/api_config.c
+        src/webserver/api/api_schedule.c
+        src/webserver/api/api_relay.c
+        src/webserver/api/api_thermal.c
+        src/webserver/api/api_thermal_learning.c
+        src/webserver/api/api_thermal_prediction.c
+        src/webserver/api/api_clock.c
+        src/webserver/api/api_event.c
+        src/webserver/api/api_runtime.c
+        src/webserver/api/api_scheduler.c
+        src/webserver/api/api_storage.c
+        src/webserver/api/api_pages.c
+        src/webserver/webserver_static.c
 )
 
 
@@ -193,7 +227,7 @@ target_include_directories(
         src/core/program
         src/core/relay
         src/core/thermal
-        scr/core/thermal_learning
+        src/core/thermal_learning
         src/core/thermostat
         src/core/weather
 
@@ -218,6 +252,7 @@ target_include_directories(
         src/debug
         src/system
         src/tests
+        src/webserver
 )
 
 # ==========================================================
@@ -228,7 +263,7 @@ target_compile_definitions(
     NeoTherm
     PRIVATE
         APP_VERSION="${PROJECT_VERSION}"
-        UNIT_TEST
+        # UNIT_TEST
 )
 
 # ==========================================================
@@ -263,4 +298,6 @@ target_link_libraries(
     NeoTherm
     PRIVATE
         CURL::libcurl
+        ws2_32
+
 )

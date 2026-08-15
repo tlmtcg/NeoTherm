@@ -10,7 +10,6 @@
 #include "test_utils.h"
 #include "../console/console_utils.h"
 
-
 bool test_thermal_prediction_run(void)
 {
     printf(
@@ -118,12 +117,7 @@ bool test_thermal_prediction_run(void)
      * PREDICTION COMPLETE
      * ======================================================
      *
-     * Les deux taux sont disponibles :
-     *
-     *     heat_rate    > 0
-     *     cooling_rate > 0
-     *
-     * La prédiction complète doit donc être valide.
+     * Les deux taux sont disponibles.
      */
 
     ASSERT_TRUE(
@@ -134,7 +128,7 @@ bool test_thermal_prediction_run(void)
 
     /*
      * La dernière température enregistrée est
-     * proche de 19.90 °C.
+     * proche de 20.00 °C.
      */
 
     float current =
@@ -142,23 +136,25 @@ bool test_thermal_prediction_run(void)
             0.0f);
 
     float prediction_1 =
-        thermal_prediction_get_temperature_minutes(
-            1.0f);
+        thermal_prediction_get_temperature_minutes_state(
+            1.0f,
+            false);
 
     float prediction_5 =
-        thermal_prediction_get_temperature_minutes(
-            5.0f);
+        thermal_prediction_get_temperature_minutes_state(
+            5.0f,
+            false);
 
     printf(
         "Current         : %.4f C\n",
         current);
 
     printf(
-        "Prediction +1   : %.4f C\n",
+        "Natural +1 min  : %.4f C\n",
         prediction_1);
 
     printf(
-        "Prediction +5   : %.4f C\n",
+        "Natural +5 min  : %.4f C\n",
         prediction_5);
 
     /*
@@ -187,11 +183,12 @@ bool test_thermal_prediction_run(void)
      * Le chauffage est appris mais aucun refroidissement
      * n'est disponible.
      *
-     * La prédiction complète doit donc rester invalide.
+     * La prédiction globale reste valide car au moins
+     * un scénario est disponible.
      */
 
     console_print_header(
-        "INCOMPLETE LEARNING");
+        "HEATING ONLY");
 
     history_clear();
 
@@ -202,6 +199,8 @@ bool test_thermal_prediction_run(void)
         thermal_prediction_init());
 
     t.hour = 13;
+    t.minute = 0;
+    t.second = 0;
 
     ASSERT_TRUE(
         clock_set_time(&t));
@@ -210,9 +209,27 @@ bool test_thermal_prediction_run(void)
 
     temp = 18.0f;
 
-    for (int i = 0; i < 30; i++)
+    /*
+     * Première mesure.
+     */
+    history_add(
+        temp,
+        5.0f,
+        21.0f,
+        THERMOSTAT_AUTO,
+        true,
+        true);
+
+    /*
+     * Mesures de chauffage :
+     *
+     * +0.15 °C / minute
+     */
+    for (int i = 1; i < 30; i++)
     {
         clock_tick(60);
+
+        temp += 0.15f;
 
         history_add(
             temp,
@@ -221,12 +238,51 @@ bool test_thermal_prediction_run(void)
             THERMOSTAT_AUTO,
             true,
             true);
-
-        temp += 0.15f;
     }
+
+    /*
+     * ======================================================
+     * ANALYSE LEARNING
+     * ======================================================
+     */
 
     ASSERT_TRUE(
         thermal_learning_update());
+
+    printf(
+        "Heat rate      : %.4f C/min\n",
+        thermal_learning_get_heat_rate());
+
+    printf(
+        "Cooling rate   : %.4f C/min\n",
+        thermal_learning_get_cooling_rate());
+
+    printf(
+        "Learning valid : %s\n",
+        thermal_learning_is_valid()
+            ? "YES"
+            : "NO");
+
+    /*
+     * Le chauffage doit être correctement appris.
+     */
+    ASSERT_TRUE(
+        thermal_learning_get_heat_rate() > 0.0f);
+
+    /*
+     * Aucun refroidissement n'est disponible.
+     */
+    ASSERT_EQ_FLOAT(
+        0.0f,
+        thermal_learning_get_cooling_rate());
+
+    /*
+     * Le learning global reste valide grâce
+     * au scénario chauffage.
+     */
+    ASSERT_TRUE(
+        thermal_learning_is_valid());
+        
 
     /*
      * Le chauffage est appris.
@@ -244,18 +300,49 @@ bool test_thermal_prediction_run(void)
         thermal_learning_get_cooling_rate());
 
     /*
-     * La prédiction complète doit être refusée,
-     * car natural_10min nécessite cooling_rate.
+     * La prédiction globale est valide :
+     * le scénario chauffage est disponible.
      */
 
-    ASSERT_FALSE(
+    ASSERT_TRUE(
         thermal_prediction_update());
 
-    ASSERT_FALSE(
+    ASSERT_TRUE(
         thermal_prediction_is_valid());
 
+    /*
+     * La prédiction chauffage doit fonctionner.
+     */
+
+    float heating_prediction =
+        thermal_prediction_get_heated_temperature_minutes(
+            10.0f);
+
     printf(
-        "Heat only      : prediction invalid\n");
+        "Heat only      : +10 min = %.4f C\n",
+        heating_prediction);
+
+    ASSERT_TRUE(
+        heating_prediction > temp);
+
+    /*
+     * La prédiction naturelle n'est pas disponible
+     * car aucun cooling_rate n'a été appris.
+     *
+     * Elle doit donc rester à la température courante.
+     */
+
+    float natural_prediction =
+        thermal_prediction_get_temperature_minutes_state(
+            10.0f,
+            false);
+
+    ASSERT_EQ_FLOAT(
+        temp,
+        natural_prediction);
+
+    printf(
+        "Natural only   : unavailable\n");
 
     /*
      * ======================================================
@@ -297,4 +384,3 @@ bool test_thermal_prediction_run(void)
 
     return true;
 }
-

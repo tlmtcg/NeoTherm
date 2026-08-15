@@ -48,8 +48,7 @@ static bool test_temperature(
      * Relais
      * ------------------------------------------------------
      *
-     * Ici on veut tester l'hystérésis.
-     * On contrôle donc explicitement l'état initial.
+     * On impose explicitement l'état initial du relais.
      */
 
     relay_test_reset();
@@ -72,20 +71,10 @@ static bool test_temperature(
 
     /*
      * ------------------------------------------------------
-     * Prédiction invalide volontairement
+     * Prédiction invalide
      * ------------------------------------------------------
      *
-     * Le test porte sur la régulation classique.
-     *
-     * On ne doit donc pas laisser la prédiction
-     * influencer la demande.
-     */
-
-    /*
-     * Pas d'appel à thermal_prediction_update().
-     *
-     * Après thermal_prediction_init(), la prédiction
-     * doit rester invalide.
+     * Ce test vérifie uniquement l'hystérésis classique.
      */
 
     ASSERT_TRUE(
@@ -206,9 +195,6 @@ bool test_thermostat_hysteresis_run(void)
      * ------------------------------------------------------
      * Heure du test
      * ------------------------------------------------------
-     *
-     * On utilise l'heure qui donne la consigne programme
-     * souhaitée.
      */
 
     clock_time_t test_time =
@@ -266,16 +252,13 @@ bool test_thermostat_hysteresis_run(void)
         "Seuil OFF          : %.2f C\n",
         off_threshold);
 
+
     /*
      * ======================================================
      * TEST 1
      * ======================================================
      *
-     * Température sous le seuil ON.
-     *
-     * Exemple :
-     *
-     *     17.69 <= 17.70
+     * Sous le seuil ON.
      *
      * => demande ON
      * => relais ON
@@ -292,6 +275,7 @@ bool test_thermostat_hysteresis_run(void)
             true,
             true));
 
+
     /*
      * ======================================================
      * TEST 2
@@ -299,9 +283,10 @@ bool test_thermostat_hysteresis_run(void)
      *
      * Exactement sur le seuil ON.
      *
-     * Le code utilise <=.
+     * <= seuil ON
      *
-     * => ON
+     * => demande ON
+     * => relais ON
      */
 
     console_print_header(
@@ -315,17 +300,18 @@ bool test_thermostat_hysteresis_run(void)
             true,
             true));
 
+
     /*
      * ======================================================
      * TEST 3
      * ======================================================
      *
-     * Entre les deux seuils avec relais déjà ON.
+     * Dans la zone de maintien avec relais ON.
      *
-     * Le chauffage doit rester ON.
+     * Le relais était ON.
      *
-     * IMPORTANT :
-     * c'est le véritable test de l'hystérésis.
+     * => la demande reste ON
+     * => le relais reste ON
      */
 
     console_print_header(
@@ -336,18 +322,21 @@ bool test_thermostat_hysteresis_run(void)
             setpoint,
             setpoint,
             true,
-            false,
+            true,
             true));
+
 
     /*
      * ======================================================
      * TEST 4
      * ======================================================
      *
-     * Au-dessus du seuil ON mais sous le seuil OFF,
-     * relais initialement OFF.
+     * Dans la zone de maintien avec relais OFF.
      *
-     * Il ne doit PAS démarrer.
+     * Le relais était OFF.
+     *
+     * => la demande reste OFF
+     * => le relais reste OFF
      */
 
     console_print_header(
@@ -361,6 +350,7 @@ bool test_thermostat_hysteresis_run(void)
             false,
             false));
 
+
     /*
      * ======================================================
      * TEST 5
@@ -368,9 +358,7 @@ bool test_thermostat_hysteresis_run(void)
      *
      * Exactement sur le seuil OFF.
      *
-     * Le code utilise >=.
-     *
-     * Si le relais est ON :
+     * >= seuil OFF
      *
      * => demande OFF
      * => relais OFF
@@ -387,6 +375,7 @@ bool test_thermostat_hysteresis_run(void)
             false,
             false));
 
+
     /*
      * ======================================================
      * TEST 6
@@ -394,7 +383,8 @@ bool test_thermostat_hysteresis_run(void)
      *
      * Au-dessus du seuil OFF.
      *
-     * => OFF
+     * => demande OFF
+     * => relais OFF
      */
 
     console_print_header(
@@ -407,6 +397,7 @@ bool test_thermostat_hysteresis_run(void)
             true,
             false,
             false));
+
 
     /*
      * ======================================================

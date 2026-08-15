@@ -283,3 +283,8 @@ void event_dump(void)
 
     console_print_separator();
 }
+
+size_t event_get_queue_count(void)
+{
+    return s_runtime.count;
+}

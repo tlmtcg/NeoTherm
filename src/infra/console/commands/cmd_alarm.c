@@ -88,6 +88,9 @@ static void alarm_usage(void)
     printf("  alarm clear all\n");
 }
 
+    // alarm set TEMP_HIGH 30.5
+
+
 /*
  * Commande principale
  */

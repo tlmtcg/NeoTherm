@@ -56,6 +56,14 @@
 #include "test_thermostat_prediction_above_setpoint.h"
 #include "test_thermostat_prediction_boundary.h"
 #include "test_thermostat_hysteresis.h"
+#include "test_mode_relay.h"
+#include "test_manual_relay.h"
+#include "test_hors_gel.h"
+#include "test_setpoint.h"
+#include "test_hysteresis.h"
+#include "test_thermostat_integration.h"
+#include "test_thermostat_thermal_integration.h"
+#include "test_thermostat_cycle.h"
 
 typedef bool (*test_func_t)(void);
 
@@ -98,7 +106,7 @@ static test_entry_t tests[] =
         {"Alarm_event", test_alarm_event_run},
         {"Alarm_history", test_alarm_history_run},
         {"Alarm_storage", test_alarm_storage_run},
-        {"Alarm_history_storage", test_cmd_alarm_history_run},
+        {"Test alarm_history_storage", test_cmd_alarm_history_run},
         {"Alarm_history_service_history", test_alarm_service_history_run},
         {"Alarm_history_scheduler", test_alarm_history_scheduler_run},
         {"Scheduler Limit", test_scheduler_limit_run},
@@ -112,14 +120,22 @@ static test_entry_t tests[] =
         {"Alarm history Overwrite", test_alarm_history_overwrite_run},
         {"Test thermal learning", test_thermal_learning_run},
         {"Test thermal prediction", test_thermal_prediction_run},
-        {"Test thermostat prediction",test_thermostat_prediction_run},
-        {"Test predictive to normal request",test_predictive_to_normal_request_run},
-        {"Test predictive transistion",test_thermostat_prediction_transition_run},
-        {"Test thermostat prediction not needed",test_thermostat_prediction_not_needed_run},
-        {"Test thermostat prediction invalid",test_thermostat_prediction_invalid_run},
-        {"Test Thermostat prediction above",test_thermostat_prediction_above_setpoint_run},
-        {"Test Thermostat prediction boundary",test_thermostat_prediction_boundary_run},
-        {"Test thermostat hysteresis",test_thermostat_hysteresis_run},
+        {"Test thermostat prediction", test_thermostat_prediction_run},
+        {"Test predictive to normal request", test_predictive_to_normal_request_run},
+        {"Test predictive transition", test_thermostat_prediction_transition_run},
+        {"Test thermostat prediction not needed", test_thermostat_prediction_not_needed_run},
+        {"Test thermostat prediction invalid", test_thermostat_prediction_invalid_run},
+        {"Test Thermostat prediction above", test_thermostat_prediction_above_setpoint_run},
+        {"Test Thermostat prediction boundary", test_thermostat_prediction_boundary_run},
+        {"Test thermostat hysteresis", test_thermostat_hysteresis_run},
+        {"Test mode relay", test_mode_relay_run},
+        {"Test manual relay", test_manual_relay_run},
+        {"Test hors gel relay", test_hors_gel_run},
+        {"Test set point", test_setpoint_run},
+        {"Test hysteresis", test_hysteresis_run},
+        {"Test thermostat integration", test_thermostat_integration_run},
+        {"Test thermostat thermal integration", test_thermostat_thermal_integration_run},
+         {"Test thermostat cycle", test_thermostat_cycle_run},
 };
 
 void test_runner_run(void)
@@ -133,6 +149,10 @@ void test_runner_run(void)
 
     uint32_t count =
         sizeof(tests) / sizeof(tests[0]);
+
+    printf(
+        "Nombre de tests : %u\n",
+        count);
 
     for (uint32_t i = 0; i < count; i++)
     {

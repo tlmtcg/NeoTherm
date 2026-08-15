@@ -68,7 +68,7 @@ float thermal_model_update(
     float new_temperature =
         inside_temperature + delta;
 
-    LOG_DEBUG("THERMAL",
+    LOG_INFO("THERMAL",
              "Inside=%.2f Outside=%.2f Loss=%+.3f Heat=%+.3f Delta=%+.3f -> %.2f",
              inside_temperature,
              s_model.outside_temperature,
