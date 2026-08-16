@@ -12,10 +12,13 @@
  *=========================================================*/
 
 static float s_current_temperature = 0.0f;
-static bool  s_heating = false;
+static bool s_heating = false;
 
 static float s_predicted_temperature = 0.0f;
-static bool  s_valid = false;
+static bool s_valid = false;
+
+static float s_natural_rate = 0.0f;
+static bool s_natural_rate_valid = false;
 
 /*
  * Taux d'apprentissage mémorisés.
@@ -25,13 +28,13 @@ static bool  s_valid = false;
  * cooling : température qui descend naturellement, chauffage OFF
  */
 static float s_heat_rate = 0.0f;
-static bool  s_heat_rate_valid = false;
+static bool s_heat_rate_valid = false;
 
 static float s_warming_rate = 0.0f;
-static bool  s_warming_rate_valid = false;
+static bool s_warming_rate_valid = false;
 
 static float s_cooling_rate = 0.0f;
-static bool  s_cooling_rate_valid = false;
+static bool s_cooling_rate_valid = false;
 
 /*==========================================================
  * Initialisation
@@ -53,6 +56,9 @@ bool thermal_prediction_init(void)
 
     s_cooling_rate = 0.0f;
     s_cooling_rate_valid = false;
+
+    s_natural_rate = 0.0f;
+    s_natural_rate_valid = false;
 
     LOG_INFO(
         "PREDICTION",
@@ -90,6 +96,9 @@ bool thermal_prediction_update(void)
         s_cooling_rate = 0.0f;
         s_cooling_rate_valid = false;
 
+        s_natural_rate = 0.0f;
+        s_natural_rate_valid = false;
+
         LOG_WARN(
             "PREDICTION",
             "No history available");
@@ -125,13 +134,119 @@ bool thermal_prediction_update(void)
      *------------------------------------------------------*/
 
     s_heat_rate_valid =
-        s_heat_rate > 0.0f;
+        thermal_learning_is_heat_rate_valid();
 
     s_warming_rate_valid =
-        s_warming_rate > 0.0f;
+        thermal_learning_is_warming_rate_valid();
 
     s_cooling_rate_valid =
-        s_cooling_rate > 0.0f;
+        thermal_learning_is_cooling_rate_valid();
+
+    /*------------------------------------------------------
+     * Tendance naturelle actuelle
+     *
+     * Chauffage OFF :
+     *
+     *     température monte  -> warming_rate
+     *     température baisse -> cooling_rate
+     *
+     * Si la tendance récente n'est pas disponible,
+     * on utilise le seul taux naturel valide.
+     *------------------------------------------------------*/
+
+    s_natural_rate = 0.0f;
+    s_natural_rate_valid = false;
+
+    if (!s_heating)
+    {
+        uint32_t count =
+            history_count();
+
+        /*
+         * Tentative de détermination à partir
+         * des deux dernières mesures.
+         */
+        if (count >= 2)
+        {
+            history_record_t previous;
+
+            if (history_get(
+                    count - 2,
+                    &previous))
+            {
+                /*
+                 * Les deux mesures doivent être
+                 * prises chauffage OFF.
+                 */
+                if (!previous.heating &&
+                    !record.heating)
+                {
+                    float delta =
+                        record.inside_temperature -
+                        previous.inside_temperature;
+
+                    /*
+                     * Réchauffement naturel
+                     */
+                    if (delta > 0.0f)
+                    {
+                        if (s_warming_rate_valid)
+                        {
+                            s_natural_rate =
+                                s_warming_rate;
+
+                            s_natural_rate_valid =
+                                true;
+                        }
+                    }
+
+                    /*
+                     * Refroidissement naturel
+                     */
+                    else if (delta < 0.0f)
+                    {
+                        if (s_cooling_rate_valid)
+                        {
+                            s_natural_rate =
+                                -s_cooling_rate;
+
+                            s_natural_rate_valid =
+                                true;
+                        }
+                    }
+                }
+            }
+        }
+
+        /*
+         * Fallback :
+         *
+         * Si aucune tendance récente n'est disponible,
+         * mais qu'un seul des deux taux naturels est valide,
+         * celui-ci peut être utilisé.
+         */
+        if (!s_natural_rate_valid)
+        {
+            if (s_cooling_rate_valid &&
+                !s_warming_rate_valid)
+            {
+                s_natural_rate =
+                    -s_cooling_rate;
+
+                s_natural_rate_valid =
+                    true;
+            }
+            else if (s_warming_rate_valid &&
+                     !s_cooling_rate_valid)
+            {
+                s_natural_rate =
+                    s_warming_rate;
+
+                s_natural_rate_valid =
+                    true;
+            }
+        }
+    }
 
     /*------------------------------------------------------
      * Validité de la prédiction correspondant à l'état
@@ -140,7 +255,7 @@ bool thermal_prediction_update(void)
      *     il faut le taux de chauffage.
      *
      * Chauffage OFF :
-     *     il faut un taux naturel.
+     *     il faut une tendance naturelle valide.
      *------------------------------------------------------*/
 
     if (s_heating)
@@ -151,8 +266,7 @@ bool thermal_prediction_update(void)
     else
     {
         s_valid =
-            s_warming_rate_valid ||
-            s_cooling_rate_valid;
+            s_natural_rate_valid;
     }
 
     /*------------------------------------------------------
@@ -173,17 +287,11 @@ bool thermal_prediction_update(void)
     }
     else
     {
-        if (s_warming_rate_valid)
+        if (s_natural_rate_valid)
         {
             s_predicted_temperature =
                 s_current_temperature +
-                (s_warming_rate / 60.0f);
-        }
-        else if (s_cooling_rate_valid)
-        {
-            s_predicted_temperature =
-                s_current_temperature -
-                (s_cooling_rate / 60.0f);
+                (s_natural_rate / 60.0f);
         }
     }
 
@@ -197,6 +305,7 @@ bool thermal_prediction_update(void)
         "HeatRate=%.4f (%s) "
         "WarmRate=%.4f (%s) "
         "CoolRate=%.4f (%s) "
+        "NaturalRate=%+.4f (%s) "
         "NextTick=%.2f "
         "Valid=%s",
 
@@ -221,6 +330,12 @@ bool thermal_prediction_update(void)
         s_cooling_rate,
 
         s_cooling_rate_valid
+            ? "VALID"
+            : "INVALID",
+
+        s_natural_rate,
+
+        s_natural_rate_valid
             ? "VALID"
             : "INVALID",
 
@@ -258,10 +373,9 @@ float thermal_prediction_get_temperature_minutes_state(
         return s_current_temperature;
     }
 
-    /*------------------------------------------------------
-     * Scénario chauffage
-     *------------------------------------------------------*/
-
+    /*
+     * Scénario chauffage.
+     */
     if (heating)
     {
         if (!s_heat_rate_valid)
@@ -273,26 +387,16 @@ float thermal_prediction_get_temperature_minutes_state(
                s_heat_rate * minutes;
     }
 
-    /*------------------------------------------------------
-     * Scénario naturel
-     *
-     * Priorité au réchauffement naturel.
-     * Sinon refroidissement naturel.
-     *------------------------------------------------------*/
-
-    if (s_warming_rate_valid)
+    /*
+     * Scénario naturel.
+     */
+    if (!s_natural_rate_valid)
     {
-        return s_current_temperature +
-               s_warming_rate * minutes;
+        return s_current_temperature;
     }
 
-    if (s_cooling_rate_valid)
-    {
-        return s_current_temperature -
-               s_cooling_rate * minutes;
-    }
-
-    return s_current_temperature;
+    return s_current_temperature +
+           s_natural_rate * minutes;
 }
 
 /*==========================================================

@@ -135,7 +135,7 @@ static test_entry_t tests[] =
         {"Test hysteresis", test_hysteresis_run},
         {"Test thermostat integration", test_thermostat_integration_run},
         {"Test thermostat thermal integration", test_thermostat_thermal_integration_run},
-         {"Test thermostat cycle", test_thermostat_cycle_run},
+        {"Test thermostat cycle", test_thermostat_cycle_run},
 };
 
 void test_runner_run(void)

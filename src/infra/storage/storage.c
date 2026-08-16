@@ -311,11 +311,16 @@ bool storage_test_clear(void)
 {
     if (remove(STORAGE_FILE) != 0)
     {
-        return false;
+        /*
+         * Le fichier n'existe déjà pas :
+         * le stockage est donc bien vide.
+         */
+        return true;
     }
 
-    LOG_INFO("STORAGE",
-             "Runtime storage cleared");
+    LOG_INFO(
+        "STORAGE",
+        "Runtime storage cleared");
 
     return true;
 }

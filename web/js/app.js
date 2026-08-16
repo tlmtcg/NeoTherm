@@ -431,9 +431,9 @@ async function updateRelay() {
 
     setText("ui-relay-elapsed", data.elapsed_delay + " s");
 
-    setText("iu-relay-can-switch", data.can_switch);
+    setText("ui-relay-can-switch", data.can_switch);
 
-    setText("iu-relay-remaining", data.remaining_delay);
+    setText("ui-relay-remaining", data.remaining_delay);
   } catch (error) {
     console.error("Relay:", error);
   }
@@ -787,11 +787,18 @@ async function updateLearning() {
       formatNumber(data.cooling_rate) + " °C/min",
     );
 
+        setText(
+      "ui-learning-warming-rate",
+      formatNumber(data.warming_rate) + " °C/min",
+    );
+
     setText("ui-learning-overshoot", formatNumber(data.overshoot) + " °C");
 
     setText("ui-learning-heating-samples", data.heating_samples);
 
     setText("ui-learning-cooling-samples", data.cooling_samples);
+
+    //  setText("ui-learning-warming-samples", data.warming_samples);
 
     setText("ui-learning-valid", data.valid ? "OUI" : "NON");
   } catch (error) {

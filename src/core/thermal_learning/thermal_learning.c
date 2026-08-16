@@ -116,7 +116,20 @@ bool thermal_learning_analyze(void)
     float cool_sum = 0.0f;
     float warming_sum = 0.0f;
 
+    /*
+     * Etat du cycle d'overshoot.
+     */
     bool overshoot_active = false;
+
+    /*
+     * Overshoot du cycle actuellement observé.
+     */
+    float cycle_overshoot = 0.0f;
+
+    /*
+     * Overshoot du dernier cycle terminé.
+     */
+    float last_overshoot = 0.0f;
 
     /*======================================================
      * Parcours historique
@@ -162,20 +175,30 @@ bool thermal_learning_analyze(void)
             delta_temperature /
             dt_minutes;
 
+        /*
+         * Le relais représente le chauffage physique réel.
+         *
+         * previous.heating représente la demande logique
+         * du thermostat.
+         */
+        bool physically_heating =
+            previous.relay;
+
         LOG_DEBUG(
             "LEARNING",
             "dt=%.3f min delta=%.3f rate=%+.4f "
-            "heating=%s",
+            "relay=%s heating=%s",
             dt_minutes,
             delta_temperature,
             rate,
+            previous.relay ? "ON" : "OFF",
             previous.heating ? "YES" : "NO");
 
         /*==================================================
-         * CHAUFFAGE
+         * CHAUFFAGE PHYSIQUE
          *==================================================*/
 
-        if (previous.heating)
+        if (physically_heating)
         {
             if (rate > 0.0f)
             {
@@ -202,12 +225,19 @@ bool thermal_learning_analyze(void)
 
         /*==================================================
          * TRANSITION CHAUFFAGE -> OFF
+         *
+         * Le thermostat vient d'arrêter la demande.
+         * Le relais peut éventuellement être encore ON
+         * à cause de l'anti-cycle.
+         *
+         * On démarre donc l'observation de l'overshoot.
          *==================================================*/
 
         if (previous.heating &&
             !current.heating)
         {
             overshoot_active = true;
+            cycle_overshoot = 0.0f;
         }
 
         /*==================================================
@@ -225,19 +255,19 @@ bool thermal_learning_analyze(void)
                     current.setpoint;
 
                 if (overshoot >
-                    s_learning.overshoot)
+                    cycle_overshoot)
                 {
-                    s_learning.overshoot =
+                    cycle_overshoot =
                         overshoot;
                 }
             }
         }
 
         /*==================================================
-         * CHAUFFAGE OFF
+         * CHAUFFAGE PHYSIQUE OFF
          *==================================================*/
 
-        if (!previous.heating)
+        if (!physically_heating)
         {
             /*
              * ----------------------------------------------
@@ -304,16 +334,50 @@ bool thermal_learning_analyze(void)
 
         /*==================================================
          * NOUVEAU DÉMARRAGE CHAUFFAGE
+         *
+         * Le cycle précédent est terminé.
+         *
+         * On mémorise son overshoot puis on commence
+         * un nouveau cycle vierge.
          *==================================================*/
 
         if (!previous.heating &&
             current.heating)
         {
+            if (overshoot_active)
+            {
+                last_overshoot =
+                    cycle_overshoot;
+            }
+
             overshoot_active = false;
+            cycle_overshoot = 0.0f;
         }
 
         previous = current;
     }
+
+    /*======================================================
+     * FIN DU DERNIER CYCLE
+     *
+     * Si le dernier cycle est terminé mais qu'aucun nouveau
+     * chauffage n'a commencé, son overshoot est encore dans
+     * cycle_overshoot.
+     *=====================================================*/
+
+    if (overshoot_active)
+    {
+        last_overshoot =
+            cycle_overshoot;
+    }
+
+    /*
+     * Résultat final :
+     *
+     * overshoot du dernier cycle terminé.
+     */
+    s_learning.overshoot =
+        last_overshoot;
 
     /*======================================================
      * Moyennes
@@ -461,32 +525,28 @@ bool thermal_learning_update(void)
 
 bool thermal_learning_is_valid(void)
 {
-    return
-        thermal_learning_is_heat_rate_valid() ||
-        thermal_learning_is_cooling_rate_valid() ||
-        thermal_learning_is_warming_rate_valid();
+    return thermal_learning_is_heat_rate_valid() ||
+           thermal_learning_is_cooling_rate_valid() ||
+           thermal_learning_is_warming_rate_valid();
 }
 
 bool thermal_learning_is_heat_rate_valid(void)
 {
-    return
-        s_learning.heating_samples >=
-            THERMAL_LEARNING_MIN_SAMPLES &&
-        s_learning.heat_rate > 0.0f;
+    return s_learning.heating_samples >=
+               THERMAL_LEARNING_MIN_SAMPLES &&
+           s_learning.heat_rate > 0.0f;
 }
 
 bool thermal_learning_is_cooling_rate_valid(void)
 {
-    return
-        s_learning.cooling_samples >=
-            THERMAL_LEARNING_MIN_SAMPLES &&
-        s_learning.cooling_rate > 0.0f;
+    return s_learning.cooling_samples >=
+               THERMAL_LEARNING_MIN_SAMPLES &&
+           s_learning.cooling_rate > 0.0f;
 }
 
 bool thermal_learning_is_warming_rate_valid(void)
 {
-    return
-        s_learning.warming_samples >=
-            THERMAL_LEARNING_MIN_SAMPLES &&
-        s_learning.warming_rate > 0.0f;
+    return s_learning.warming_samples >=
+               THERMAL_LEARNING_MIN_SAMPLES &&
+           s_learning.warming_rate > 0.0f;
 }

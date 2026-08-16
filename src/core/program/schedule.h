@@ -6,7 +6,7 @@
 
 #include "clock.h"
 
-#define DEFAULT_SETPOINT 17.0f
+#define DEFAULT_SETPOINT 18.0f
 #define SCHEDULE_MAX_POINTS 10
 
 typedef struct

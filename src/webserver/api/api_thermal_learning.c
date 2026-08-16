@@ -29,7 +29,7 @@ void api_thermal_learning_handle_status(
         return;
     }
 
-    char body[256];
+    char body[384];
 
     snprintf(
         body,
@@ -38,17 +38,21 @@ void api_thermal_learning_handle_status(
         "{"
         "\"heat_rate\":%.4f,"
         "\"cooling_rate\":%.4f,"
+        "\"warming_rate\":%.4f,"
         "\"overshoot\":%.2f,"
         "\"heating_samples\":%u,"
         "\"cooling_samples\":%u,"
+        "\"warming_samples\":%u,"
         "\"valid\":%s"
         "}",
 
         state->heat_rate,
         state->cooling_rate,
+        state->warming_rate,
         state->overshoot,
         state->heating_samples,
         state->cooling_samples,
+        state->warming_samples,
         thermal_learning_is_valid()
             ? "true"
             : "false");
@@ -98,6 +102,29 @@ void api_thermal_learning_handle_cooling_rate(
         sizeof(body),
         "{\"cooling_rate\":%.4f}",
         thermal_learning_get_cooling_rate());
+
+    webserver_http_send_response(
+        client_socket,
+        200,
+        "OK",
+        "application/json",
+        body);
+}
+
+/*==========================================================
+ * GET /api/thermal/learning/warming_rate
+ *=========================================================*/
+
+void api_thermal_learning_handle_warming_rate(
+    SOCKET client_socket)
+{
+    char body[64];
+
+    snprintf(
+        body,
+        sizeof(body),
+        "{\"warming_rate\":%.4f}",
+        thermal_learning_get_warming_rate());
 
     webserver_http_send_response(
         client_socket,

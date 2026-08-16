@@ -32,7 +32,7 @@ const runtime_config_t runtime_default_config =
         .longitude = -6.7388131f,
 
         .weather_provider =
-            WEATHER_PROVIDER_OPENMETEO,
+            WEATHER_PROVIDER_SIMULATOR,
 
         .weather_update_period_sec =
             15 * 3600,

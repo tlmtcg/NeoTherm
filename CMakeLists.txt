@@ -203,6 +203,10 @@ add_executable(
         src/webserver/api/api_storage.c
         src/webserver/api/api_pages.c
         src/webserver/webserver_static.c
+        src/webserver/websocket/websocket.c
+        src/webserver/websocket/websocket_handshake.c
+        src/webserver/websocket/websocket_frame.c
+        src/webserver/websocket/websocket_server.c
 )
 
 
