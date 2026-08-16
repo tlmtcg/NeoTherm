@@ -35,12 +35,14 @@ async function updateDashboard() {
     await updateRelay();
     await updateClimate();
     await updateThermalModel();
-    // await updateLearning();
+    await updateLearning();
     await updatePrediction();
     await updateRuntime();
     await updateScheduler();
     await updateEvents();
     await updateStorage();
+    await updateHistory();
+    await updateProgram();
   } finally {
     dashboardUpdating = false;
   }
@@ -174,6 +176,216 @@ async function updateAlarms() {
   }
 }
 
+function drawHistoryChart(records) {
+  const canvas = document.getElementById("ui-history-chart");
+
+  if (canvas === null) {
+    return;
+  }
+
+  const ctx = canvas.getContext("2d");
+
+  if (ctx === null) {
+    return;
+  }
+
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+
+  if (width === 0 || height === 0) {
+    return;
+  }
+
+  const devicePixelRatio = window.devicePixelRatio || 1;
+
+  canvas.width = width * devicePixelRatio;
+
+  canvas.height = height * devicePixelRatio;
+
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+
+  ctx.clearRect(0, 0, width, height);
+
+  if (!Array.isArray(records) || records.length === 0) {
+    ctx.fillText("Aucune donnée", 20, 30);
+
+    return;
+  }
+
+  const marginLeft = 55;
+  const marginRight = 20;
+  const marginTop = 20;
+  const marginBottom = 40;
+
+  const chartWidth = width - marginLeft - marginRight;
+
+  const chartHeight = height - marginTop - marginBottom;
+
+  /*
+   * Recherche des températures min/max.
+   */
+
+  let minTemperature = Infinity;
+  let maxTemperature = -Infinity;
+
+  records.forEach((record) => {
+    if (typeof record.temperature === "number") {
+      minTemperature = Math.min(minTemperature, record.temperature);
+
+      maxTemperature = Math.max(maxTemperature, record.temperature);
+    }
+
+    if (typeof record.setpoint === "number") {
+      minTemperature = Math.min(minTemperature, record.setpoint);
+
+      maxTemperature = Math.max(maxTemperature, record.setpoint);
+    }
+  });
+
+  if (!Number.isFinite(minTemperature) || !Number.isFinite(maxTemperature)) {
+    return;
+  }
+
+  /*
+   * Petite marge verticale.
+   */
+
+  const range = Math.max(maxTemperature - minTemperature, 1);
+
+  minTemperature -= range * 0.1;
+
+  maxTemperature += range * 0.1;
+
+  /*
+   * Conversion température -> Y.
+   */
+
+  function temperatureToY(value) {
+    return (
+      marginTop +
+      chartHeight -
+      ((value - minTemperature) / (maxTemperature - minTemperature)) *
+        chartHeight
+    );
+  }
+
+  /*
+   * Conversion index -> X.
+   */
+
+  function indexToX(index) {
+    if (records.length === 1) {
+      return marginLeft;
+    }
+
+    return marginLeft + (index / (records.length - 1)) * chartWidth;
+  }
+
+  /*
+   * Grille horizontale.
+   */
+
+  ctx.beginPath();
+
+  for (let i = 0; i <= 5; i++) {
+    const y = marginTop + (i / 5) * chartHeight;
+
+    ctx.moveTo(marginLeft, y);
+
+    ctx.lineTo(marginLeft + chartWidth, y);
+  }
+
+  ctx.stroke();
+
+  /*
+   * Axe Y.
+   */
+
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+
+  for (let i = 0; i <= 5; i++) {
+    const value = maxTemperature - (i / 5) * (maxTemperature - minTemperature);
+
+    const y = marginTop + (i / 5) * chartHeight;
+
+    ctx.fillText(value.toFixed(1) + " °C", marginLeft - 8, y);
+  }
+
+  /*
+   * Fonction pour dessiner une courbe.
+   */
+
+  function drawLine(field) {
+    ctx.beginPath();
+
+    let started = false;
+
+    records.forEach((record, index) => {
+      const value = record[field];
+
+      if (typeof value !== "number") {
+        return;
+      }
+
+      const x = indexToX(index);
+
+      const y = temperatureToY(value);
+
+      if (!started) {
+        ctx.moveTo(x, y);
+
+        started = true;
+      } else {
+        ctx.lineTo(x, y);
+      }
+    });
+
+    if (started) {
+      ctx.stroke();
+    }
+  }
+
+  /*
+   * Température intérieure.
+   */
+
+  drawLine("temperature");
+
+  /*
+   * Consigne.
+   */
+
+  drawLine("setpoint");
+
+  /*
+   * Température extérieure.
+   */
+
+  drawLine("outside_temperature");
+
+  /*
+   * Axe X : heures.
+   */
+
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+
+  const labelCount = Math.min(records.length, 6);
+
+  for (let i = 0; i < labelCount; i++) {
+    const index = Math.round(
+      (i * (records.length - 1)) / (labelCount - 1 || 1),
+    );
+
+    const record = records[index];
+
+    const x = indexToX(index);
+
+    ctx.fillText(record.time, x, marginTop + chartHeight + 10);
+  }
+}
+
 /*==========================================================
  * Horloge
  *=========================================================*/
@@ -269,6 +481,20 @@ async function updateThermalModel() {
     setText("ui-thermal-loss-factor", formatNumber(data.loss_factor));
 
     setText("ui-thermal-mass", formatNumber(data.mass));
+
+    setText("ui-thermal-heat-rate", formatNumber(data.heat_rate) + " °C/min");
+
+    setText(
+      "ui-thermal-cooling-rate",
+      formatNumber(data.cooling_rate) + " °C/min",
+    );
+
+    setText(
+      "ui-thermal-warming-rate",
+      formatNumber(data.warming_rate) + " °C/min",
+    );
+
+    setText("ui-thermal-overshoot", formatTemperature(data.overshoot));
   } catch (error) {
     console.error("Thermal model:", error);
   }
@@ -542,6 +768,176 @@ async function updateStorage() {
   }
 }
 
+async function updateLearning() {
+  try {
+    const response = await fetch("/api/thermal/learning", {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      throw new Error("HTTP " + response.status);
+    }
+
+    const data = await response.json();
+
+    setText("ui-learning-heat-rate", formatNumber(data.heat_rate) + " °C/min");
+
+    setText(
+      "ui-learning-cooling-rate",
+      formatNumber(data.cooling_rate) + " °C/min",
+    );
+
+    setText("ui-learning-overshoot", formatNumber(data.overshoot) + " °C");
+
+    setText("ui-learning-heating-samples", data.heating_samples);
+
+    setText("ui-learning-cooling-samples", data.cooling_samples);
+
+    setText("ui-learning-valid", data.valid ? "OUI" : "NON");
+  } catch (error) {
+    console.error("Learning:", error);
+  }
+}
+
+async function updateHistory() {
+  try {
+    const limitElement = document.getElementById("ui-history-limit");
+
+    const limit = limitElement !== null ? limitElement.value : "50";
+
+    const response = await fetch("/api/history?limit=" + limit, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      throw new Error("HTTP " + response.status);
+    }
+
+    const data = await response.json();
+
+    drawHistoryChart(data.records);
+  } catch (error) {
+    console.error("History:", error);
+  }
+}
+
+async function updateProgram() {
+  try {
+    const response = await fetch("/api/schedule", {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      throw new Error("HTTP " + response.status);
+    }
+
+    const data = await response.json();
+
+    const container = document.getElementById("ui-program-week");
+
+    if (container === null) {
+      return;
+    }
+
+    container.innerHTML = "";
+
+    if (!Array.isArray(data.days)) {
+      container.innerHTML = "<p>Programme indisponible</p>";
+
+      return;
+    }
+
+    const today = new Date().getDay();
+
+    /*
+     * JavaScript :
+     * 0 = dimanche
+     * 1 = lundi
+     * ...
+     * 6 = samedi
+     *
+     * Notre JSON :
+     * MONDAY ... SUNDAY
+     */
+
+    const dayOrder = [
+      "SUNDAY",
+      "MONDAY",
+      "TUESDAY",
+      "WEDNESDAY",
+      "THURSDAY",
+      "FRIDAY",
+      "SATURDAY",
+    ];
+
+    const dayNames = {
+      MONDAY: "Lundi",
+      TUESDAY: "Mardi",
+      WEDNESDAY: "Mercredi",
+      THURSDAY: "Jeudi",
+      FRIDAY: "Vendredi",
+      SATURDAY: "Samedi",
+      SUNDAY: "Dimanche",
+    };
+
+    data.days.forEach((day) => {
+      const column = document.createElement("div");
+
+      column.className = "program-day";
+
+      const dayIndex = dayOrder.indexOf(day.day);
+
+      if (dayIndex === today) {
+        column.classList.add("program-today");
+      }
+
+      const title = document.createElement("div");
+
+      title.className = "program-day-title";
+
+      title.textContent = dayNames[day.day] || day.day;
+
+      column.appendChild(title);
+
+      if (!Array.isArray(day.points) || day.points.length === 0) {
+        const empty = document.createElement("div");
+
+        empty.className = "program-empty";
+
+        empty.textContent = "Aucun point";
+
+        column.appendChild(empty);
+      } else {
+        day.points.forEach((point) => {
+          const item = document.createElement("div");
+
+          item.className = "program-point";
+
+          const hour = String(point.hour).padStart(2, "0");
+
+          const minute = String(point.minute).padStart(2, "0");
+
+          item.innerHTML = `
+            <span class="program-time">
+              ${hour}:${minute}
+            </span>
+
+            <strong class="program-setpoint">
+              ${Number(point.setpoint).toFixed(1)} °C
+            </strong>
+          `;
+
+          column.appendChild(item);
+        });
+      }
+
+      container.appendChild(column);
+    });
+  } catch (error) {
+    console.error("Program:", error);
+  }
+}
+
 /*==========================================================
  * Utilitaires
  *=========================================================*/
@@ -559,7 +955,7 @@ function formatTemperature(value) {
     return "--";
   }
 
-  return value.toFixed(1) + " °C";
+  return value.toFixed(2) + " °C";
 }
 
 function formatNumber(value) {
@@ -567,7 +963,7 @@ function formatNumber(value) {
     return "--";
   }
 
-  return value.toFixed(1);
+  return value.toFixed(2);
 }
 
 function escapeHtml(value) {

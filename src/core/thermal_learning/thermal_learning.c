@@ -461,26 +461,32 @@ bool thermal_learning_update(void)
 
 bool thermal_learning_is_valid(void)
 {
-    bool heating_valid =
-        (s_learning.heating_samples >=
-         THERMAL_LEARNING_MIN_SAMPLES) &&
-        (s_learning.heat_rate > 0.0f);
+    return
+        thermal_learning_is_heat_rate_valid() ||
+        thermal_learning_is_cooling_rate_valid() ||
+        thermal_learning_is_warming_rate_valid();
+}
 
-    bool cooling_valid =
-        (s_learning.cooling_samples >=
-         THERMAL_LEARNING_MIN_SAMPLES) &&
-        (s_learning.cooling_rate > 0.0f);
+bool thermal_learning_is_heat_rate_valid(void)
+{
+    return
+        s_learning.heating_samples >=
+            THERMAL_LEARNING_MIN_SAMPLES &&
+        s_learning.heat_rate > 0.0f;
+}
 
-    bool warming_valid =
-        (s_learning.warming_samples >=
-         THERMAL_LEARNING_MIN_SAMPLES) &&
-        (s_learning.warming_rate > 0.0f);
+bool thermal_learning_is_cooling_rate_valid(void)
+{
+    return
+        s_learning.cooling_samples >=
+            THERMAL_LEARNING_MIN_SAMPLES &&
+        s_learning.cooling_rate > 0.0f;
+}
 
-    /*
-     * Le learning global est valide dès qu'au moins
-     * un scénario est suffisamment appris.
-     */
-    return heating_valid ||
-           cooling_valid ||
-           warming_valid;
+bool thermal_learning_is_warming_rate_valid(void)
+{
+    return
+        s_learning.warming_samples >=
+            THERMAL_LEARNING_MIN_SAMPLES &&
+        s_learning.warming_rate > 0.0f;
 }

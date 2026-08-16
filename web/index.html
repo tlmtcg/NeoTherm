@@ -236,27 +236,51 @@
 
         <div class="data-grid">
           <div>
-            <span class="label"> Température extérieure </span>
+            <span class="label">Température extérieure</span>
 
             <strong id="ui-thermal-outside-temperature"> -- °C </strong>
           </div>
 
           <div>
-            <span class="label"> Puissance chauffage </span>
+            <span class="label">Puissance chauffage</span>
 
-            <strong id="ui-thermal-heat-power"> -- </strong>
+            <strong id="ui-thermal-heat-power"> -- C/tick </strong>
           </div>
 
           <div>
-            <span class="label"> Facteur de perte </span>
+            <span class="label">Facteur de perte</span>
 
             <strong id="ui-thermal-loss-factor"> -- </strong>
           </div>
 
           <div>
-            <span class="label"> Masse thermique </span>
+            <span class="label">Masse thermique</span>
 
             <strong id="ui-thermal-mass"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label">Vitesse de chauffage</span>
+
+            <strong id="ui-thermal-heat-rate"> -- °C/min </strong>
+          </div>
+
+          <div>
+            <span class="label">Vitesse de refroidissement</span>
+
+            <strong id="ui-thermal-cooling-rate"> -- °C/min </strong>
+          </div>
+
+          <div>
+            <span class="label">Vitesse de réchauffement naturel</span>
+
+            <strong id="ui-thermal-warming-rate"> -- °C/min </strong>
+          </div>
+
+          <div>
+            <span class="label">Dépassement</span>
+
+            <strong id="ui-thermal-overshoot"> -- °C </strong>
           </div>
         </div>
       </section>
@@ -272,25 +296,37 @@
           <div>
             <span class="label"> Taux de chauffe </span>
 
-            <strong id="learning-heat-rate"> -- °C/min </strong>
+            <strong id="ui-learning-heat-rate"> -- °C/min </strong>
           </div>
 
           <div>
             <span class="label"> Taux de refroidissement </span>
 
-            <strong id="learning-cooling-rate"> -- °C/min </strong>
+            <strong id="ui-learning-cooling-rate"> -- °C/min </strong>
           </div>
 
           <div>
             <span class="label"> Dépassement </span>
 
-            <strong id="learning-overshoot"> -- °C </strong>
+            <strong id="ui-learning-overshoot"> -- °C </strong>
+          </div>
+
+          <div>
+            <span class="label"> Échantillons chauffage </span>
+
+            <strong id="ui-learning-heating-samples"> -- </strong>
+          </div>
+
+          <div>
+            <span class="label"> Échantillons refroidissement </span>
+
+            <strong id="ui-learning-cooling-samples"> -- </strong>
           </div>
 
           <div>
             <span class="label"> Valide </span>
 
-            <strong id="learning-valid"> -- </strong>
+            <strong id="ui-learning-valid"> -- </strong>
           </div>
         </div>
       </section>
@@ -338,6 +374,29 @@
 
             <strong id="ui-next-tick"> -- </strong>
           </div>
+        </div>
+      </section>
+
+      <!-- =====================================================
+         GRAPHIQUE
+         ===================================================== -->
+
+      <section class="card card-full">
+        <h2>Historique thermique</h2>
+
+        <div class="history-controls">
+          <label for="ui-history-limit"> Nombre de mesures </label>
+
+          <select id="ui-history-limit">
+            <option value="20">20</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+          </select>
+        </div>
+
+        <div class="history-chart-container">
+          <canvas id="ui-history-chart"></canvas>
         </div>
       </section>
 
@@ -506,6 +565,14 @@
             <span class="label">Longitude</span>
             <strong id="ui-storage-longitude">--</strong>
           </div>
+        </div>
+      </section>
+
+      <section class="card card-full">
+        <h2>Programme hebdomadaire</h2>
+
+        <div id="ui-program-week" class="program-week">
+          <p>Chargement...</p>
         </div>
       </section>
     </main>

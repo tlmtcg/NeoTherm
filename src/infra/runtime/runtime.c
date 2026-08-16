@@ -8,6 +8,7 @@
 #include "relay.h"
 #include "thermal_model.h"
 #include "../weather_service/weather_service.h"
+#include "thermal_learning.h"
 
 #include <stdlib.h>
 const runtime_config_t runtime_default_config =
@@ -28,13 +29,13 @@ const runtime_config_t runtime_default_config =
          */
         .latitude = 50.681f,
 
-        .longitude = 3.154f,
+        .longitude = -6.7388131f,
 
         .weather_provider =
             WEATHER_PROVIDER_OPENMETEO,
 
         .weather_update_period_sec =
-            15 * 60,
+            15 * 3600,
 
         /*
          * Clock
@@ -247,6 +248,9 @@ void runtime_dump(void)
 
     console_print_header("Runtime");
 
+    /*
+     * Thermostat
+     */
     console_print_string(
         "Mode",
         thermostat_mode_to_string(thermostat_get_mode()));
@@ -283,6 +287,11 @@ void runtime_dump(void)
         "Relay delay",
         relay_get_min_switch_delay());
 
+    console_print_separator();
+
+    /*
+     * Thermal model
+     */
     console_print_float(
         "Outside temp",
         thermal_model_get_outside_temperature(),
@@ -303,11 +312,41 @@ void runtime_dump(void)
         thermal_model_get_thermal_mass(),
         "");
 
+    console_print_separator();
+
+    /*
+     * Thermal learning
+     */
+    console_print_float(
+        "Heat rate",
+        thermal_learning_get_heat_rate(),
+        "C/min");
+
+    console_print_float(
+        "Cooling rate",
+        thermal_learning_get_cooling_rate(),
+        "C/min");
+
+    console_print_float(
+        "Warming rate",
+        thermal_learning_get_warming_rate(),
+        "C/min");
+
+    console_print_float(
+        "Overshoot",
+        thermal_learning_get_overshoot(),
+        "C");
+
+    console_print_separator();
+
+    /*
+     * Runtime
+     */
     console_print_datetime(
         "Date/Time",
         &now);
 
-      console_print_uint(
+    console_print_uint(
         "alarm_history_save period",
         s_runtime.alarm_history_save_period);
 

@@ -298,3 +298,128 @@ header p {
 .card-wide {
     grid-column: span 2;
 }
+
+.card-full {
+    grid-column: 1 / -1;
+}
+
+.history-chart-container {
+    width: 100%;
+    height: 350px;
+    position: relative;
+}
+
+#ui-history-chart {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.history-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.history-controls label {
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+.history-controls select {
+    background: #111827;
+    color: #f9fafb;
+    border: 1px solid #374151;
+    border-radius: 6px;
+    padding: 5px 8px;
+}
+
+.program-week {
+    display: grid;
+
+    grid-template-columns:
+        repeat(7, minmax(130px, 1fr));
+
+    gap: 10px;
+
+    width: 100%;
+
+    overflow-x: auto;
+}
+
+.program-day {
+    background: #111827;
+
+    border: 1px solid #374151;
+
+    border-radius: 8px;
+
+    padding: 10px;
+
+    min-width: 130px;
+}
+
+.program-day-title {
+    text-align: center;
+
+    font-weight: bold;
+
+    font-size: 15px;
+
+    color: #d1d5db;
+
+    padding-bottom: 10px;
+
+    margin-bottom: 5px;
+
+    border-bottom:
+        1px solid #374151;
+}
+
+.program-point {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 8px 2px;
+
+    border-bottom:
+        1px solid #374151;
+
+    font-size: 13px;
+}
+
+.program-point:last-child {
+    border-bottom: none;
+}
+
+.program-time {
+    color: #9ca3af;
+}
+
+.program-setpoint {
+    white-space: nowrap;
+}
+
+.program-empty {
+    text-align: center;
+
+    color: #6b7280;
+
+    font-size: 13px;
+
+    padding: 15px 5px;
+}
+
+.program-today {
+    border: 2px solid #60a5fa;
+}
+
+.program-today .program-day-title {
+    color: #60a5fa;
+}

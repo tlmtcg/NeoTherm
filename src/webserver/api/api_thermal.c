@@ -9,44 +9,21 @@
 #include "thermal_model.h"
 #include "webserver_http.h"
 #include "webserver_request.h"
+#include "../thermal_learning/thermal_learning.h"
 
 /*==========================================================
- * GET /api/thermal
+ * Utilitaire
  *=========================================================*/
 
-void api_thermal_handle_status(
-    SOCKET client_socket)
-{
-    char body[256];
-
-    snprintf(
-        body,
-        sizeof(body),
-
-        "{"
-        "\"outside_temperature\":%.2f,"
-        "\"heat_power\":%.3f,"
-        "\"loss_factor\":%.4f,"
-        "\"mass\":%.2f"
-        "}",
-
-        thermal_model_get_outside_temperature(),
-        thermal_model_get_heat_power(),
-        thermal_model_get_loss_factor(),
-        thermal_model_get_thermal_mass());
-
-    webserver_http_send_response(
-        client_socket,
-        200,
-        "OK",
-        "application/json",
-        body);
-}
-
-/*==========================================================
- * Lecture d'un float dans le JSON
- *=========================================================*/
-
+/*
+ * Lit une valeur float dans le JSON du body HTTP.
+ *
+ * Exemple :
+ *
+ * {
+ *     "value": 0.25
+ * }
+ */
 static bool api_thermal_get_float(
     const char *request,
     const char *name,
@@ -96,18 +73,62 @@ static bool api_thermal_get_float(
 }
 
 /*==========================================================
+ * GET /api/thermal
+ *=========================================================*/
+
+void api_thermal_handle_status(
+    SOCKET client_socket)
+{
+    char body[512];
+
+    snprintf(
+        body,
+        sizeof(body),
+
+        "{"
+        "\"outside_temperature\":%.2f,"
+        "\"heat_power\":%.3f,"
+        "\"loss_factor\":%.4f,"
+        "\"mass\":%.2f,"
+        "\"heat_rate\":%.5f,"
+        "\"cooling_rate\":%.5f,"
+        "\"warming_rate\":%.5f,"
+        "\"overshoot\":%.2f"
+        "}",
+
+        thermal_model_get_outside_temperature(),
+        thermal_model_get_heat_power(),
+        thermal_model_get_loss_factor(),
+        thermal_model_get_thermal_mass(),
+
+        thermal_learning_get_heat_rate(),
+        thermal_learning_get_cooling_rate(),
+        thermal_learning_get_warming_rate(),
+        thermal_learning_get_overshoot());
+
+    webserver_http_send_response(
+        client_socket,
+        200,
+        "OK",
+        "application/json",
+        body);
+}
+
+/*==========================================================
  * GET /api/thermal/outside_temperature
  *=========================================================*/
 
 void api_thermal_handle_outside_temperature(
     SOCKET client_socket)
 {
-    char response[64];
+    char response[128];
 
     snprintf(
         response,
         sizeof(response),
+
         "{\"outside_temperature\":%.2f}",
+
         thermal_model_get_outside_temperature());
 
     webserver_http_send_response(
@@ -125,12 +146,14 @@ void api_thermal_handle_outside_temperature(
 void api_thermal_handle_heat_power(
     SOCKET client_socket)
 {
-    char response[64];
+    char response[128];
 
     snprintf(
         response,
         sizeof(response),
+
         "{\"heat_power\":%.3f}",
+
         thermal_model_get_heat_power());
 
     webserver_http_send_response(
@@ -148,12 +171,14 @@ void api_thermal_handle_heat_power(
 void api_thermal_handle_loss_factor(
     SOCKET client_socket)
 {
-    char response[64];
+    char response[128];
 
     snprintf(
         response,
         sizeof(response),
+
         "{\"loss_factor\":%.4f}",
+
         thermal_model_get_loss_factor());
 
     webserver_http_send_response(
@@ -171,13 +196,115 @@ void api_thermal_handle_loss_factor(
 void api_thermal_handle_mass(
     SOCKET client_socket)
 {
-    char response[64];
+    char response[128];
 
     snprintf(
         response,
         sizeof(response),
+
         "{\"mass\":%.2f}",
+
         thermal_model_get_thermal_mass());
+
+    webserver_http_send_response(
+        client_socket,
+        200,
+        "OK",
+        "application/json",
+        response);
+}
+
+/*==========================================================
+ * GET /api/thermal/heat_rate
+ *=========================================================*/
+
+void api_thermal_handle_heat_rate(
+    SOCKET client_socket)
+{
+    char response[128];
+
+    snprintf(
+        response,
+        sizeof(response),
+
+        "{\"heat_rate\":%.5f}",
+
+        thermal_learning_get_heat_rate());
+
+    webserver_http_send_response(
+        client_socket,
+        200,
+        "OK",
+        "application/json",
+        response);
+}
+
+/*==========================================================
+ * GET /api/thermal/cooling_rate
+ *=========================================================*/
+
+void api_thermal_handle_cooling_rate(
+    SOCKET client_socket)
+{
+    char response[128];
+
+    snprintf(
+        response,
+        sizeof(response),
+
+        "{\"cooling_rate\":%.5f}",
+
+        thermal_learning_get_cooling_rate());
+
+    webserver_http_send_response(
+        client_socket,
+        200,
+        "OK",
+        "application/json",
+        response);
+}
+
+/*==========================================================
+ * GET /api/thermal/warming_rate
+ *=========================================================*/
+
+void api_thermal_handle_warming_rate(
+    SOCKET client_socket)
+{
+    char response[128];
+
+    snprintf(
+        response,
+        sizeof(response),
+
+        "{\"warming_rate\":%.5f}",
+
+        thermal_learning_get_warming_rate());
+
+    webserver_http_send_response(
+        client_socket,
+        200,
+        "OK",
+        "application/json",
+        response);
+}
+
+/*==========================================================
+ * GET /api/thermal/overshoot
+ *=========================================================*/
+
+void api_thermal_handle_overshoot(
+    SOCKET client_socket)
+{
+    char response[128];
+
+    snprintf(
+        response,
+        sizeof(response),
+
+        "{\"overshoot\":%.2f}",
+
+        thermal_learning_get_overshoot());
 
     webserver_http_send_response(
         client_socket,
@@ -196,16 +323,6 @@ void api_thermal_handle_set_outside_temperature(
     const char *request)
 {
     float value;
-
-    printf("========== RAW REQUEST ==========\n");
-    printf("%s\n", request ? request : "NULL");
-    printf("=================================\n");
-
-    const char *body =
-        webserver_request_get_body(request);
-
-    printf("THERMAL BODY = [%s]\n",
-           body ? body : "NULL");
 
     if (!api_thermal_get_float(
             request,
@@ -230,7 +347,9 @@ void api_thermal_handle_set_outside_temperature(
     snprintf(
         response,
         sizeof(response),
+
         "{\"outside_temperature\":%.2f}",
+
         thermal_model_get_outside_temperature());
 
     webserver_http_send_response(
@@ -254,8 +373,7 @@ void api_thermal_handle_set_heat_power(
     if (!api_thermal_get_float(
             request,
             "value",
-            &value) ||
-        value <= 0.0f)
+            &value))
     {
         webserver_http_send_response(
             client_socket,
@@ -267,14 +385,29 @@ void api_thermal_handle_set_heat_power(
         return;
     }
 
-    thermal_model_set_heat_power(value);
+    if (value <= 0.0f)
+    {
+        webserver_http_send_response(
+            client_socket,
+            400,
+            "Bad Request",
+            "application/json",
+            "{\"error\":\"invalid heat power\"}");
+
+        return;
+    }
+
+    thermal_model_set_heat_power(
+        value);
 
     char response[128];
 
     snprintf(
         response,
         sizeof(response),
+
         "{\"heat_power\":%.3f}",
+
         thermal_model_get_heat_power());
 
     webserver_http_send_response(
@@ -298,8 +431,7 @@ void api_thermal_handle_set_loss_factor(
     if (!api_thermal_get_float(
             request,
             "value",
-            &value) ||
-        value <= 0.0f)
+            &value))
     {
         webserver_http_send_response(
             client_socket,
@@ -311,14 +443,29 @@ void api_thermal_handle_set_loss_factor(
         return;
     }
 
-    thermal_model_set_loss_factor(value);
+    if (value <= 0.0f)
+    {
+        webserver_http_send_response(
+            client_socket,
+            400,
+            "Bad Request",
+            "application/json",
+            "{\"error\":\"invalid loss factor\"}");
+
+        return;
+    }
+
+    thermal_model_set_loss_factor(
+        value);
 
     char response[128];
 
     snprintf(
         response,
         sizeof(response),
+
         "{\"loss_factor\":%.4f}",
+
         thermal_model_get_loss_factor());
 
     webserver_http_send_response(
@@ -342,8 +489,7 @@ void api_thermal_handle_set_mass(
     if (!api_thermal_get_float(
             request,
             "value",
-            &value) ||
-        value <= 0.1f)
+            &value))
     {
         webserver_http_send_response(
             client_socket,
@@ -355,14 +501,29 @@ void api_thermal_handle_set_mass(
         return;
     }
 
-    thermal_model_set_thermal_mass(value);
+    if (value <= 0.1f)
+    {
+        webserver_http_send_response(
+            client_socket,
+            400,
+            "Bad Request",
+            "application/json",
+            "{\"error\":\"invalid mass\"}");
+
+        return;
+    }
+
+    thermal_model_set_thermal_mass(
+        value);
 
     char response[128];
 
     snprintf(
         response,
         sizeof(response),
+
         "{\"mass\":%.2f}",
+
         thermal_model_get_thermal_mass());
 
     webserver_http_send_response(

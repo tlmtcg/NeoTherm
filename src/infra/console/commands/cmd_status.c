@@ -10,6 +10,7 @@
 #include "schedule.h"
 #include "thermal_model.h"
 #include "thermostat.h"
+#include "../thermal_learning/thermal_learning.h"
 
 bool cmd_status(const char *args)
 {
@@ -131,6 +132,31 @@ bool cmd_status(const char *args)
         "Thermal mass",
         thermal_model_get_thermal_mass(),
         "");
+
+    console_print_separator();
+
+    /*
+     * Thermal learning
+     */
+    console_print_float(
+        "Heat rate",
+        thermal_learning_get_heat_rate(),
+        "C/min");
+
+    console_print_float(
+        "Cooling rate",
+        thermal_learning_get_cooling_rate(),
+        "C/min");
+
+    console_print_float(
+        "Warming rate",
+        thermal_learning_get_warming_rate(),
+        "C/min");
+
+    console_print_float(
+        "Overshoot",
+        thermal_learning_get_overshoot(),
+        "C");
 
     console_print_separator();
 

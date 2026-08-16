@@ -11,7 +11,7 @@ typedef struct
      */
     float heat_rate;    // °C / tick
     float cooling_rate; // °C / tick
-    float warming_rate;
+    float warming_rate; // °C / tick
     float overshoot;    // °C
 
     /*
@@ -46,15 +46,30 @@ thermal_learning_get_state(void);
 
 void thermal_learning_dump(void);
 
+/*
+ * Getters
+ */
 float thermal_learning_get_heat_rate(void);
 float thermal_learning_get_cooling_rate(void);
-float thermal_learning_get_overshoot(void);
-void thermal_model_apply_learning(void);
 float thermal_learning_get_warming_rate(void);
+float thermal_learning_get_overshoot(void);
 
-/* Analyse / mise à jour du learning */
+/*
+ * Application au modèle thermique
+ */
+void thermal_model_apply_learning(void);
+
+/*
+ * Analyse / mise à jour du learning
+ */
 bool thermal_learning_update(void);
 
+/*
+ * Validation du learning
+ */
 bool thermal_learning_is_valid(void);
+bool thermal_learning_is_heat_rate_valid(void);
+bool thermal_learning_is_cooling_rate_valid(void);
+bool thermal_learning_is_warming_rate_valid(void);
 
 #endif

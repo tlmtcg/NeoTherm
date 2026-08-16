@@ -22,13 +22,20 @@ bool thermal_model_init(void)
     {
         s_model.thermal_mass = config->thermal_mass;
     }
+    s_model.heat_rate = 0.0f;
+    s_model.cooling_rate = 0.0f;
+    s_model.warming_rate = 0.0f;
 
-    LOG_INFO("THERMAL",
-             "Model : Outside=%.1f C Heat=%.2f C/tick Loss=%.3f Mass=%.1f",
-             s_model.outside_temperature,
-             s_model.heat_power,
-             s_model.loss_factor,
-             s_model.thermal_mass);
+    LOG_INFO(
+        "THERMAL",
+        "Model : Outside=%.1f C "
+        "Heat=%.2f C/tick "
+        "Loss=%.3f "
+        "Mass=%.1f",
+        s_model.outside_temperature,
+        s_model.heat_power,
+        s_model.loss_factor,
+        s_model.thermal_mass);
 
     return true;
 }
@@ -155,25 +162,19 @@ void thermal_model_set_thermal_mass(float value)
     }
 }
 
-void thermal_dump(void)
+float thermal_model_get_heat_rate(void)
 {
-    printf("\n");
-    printf("Thermal model\n");
-    printf("------------------------------\n");
+    return s_model.heat_rate;
+}
 
-    printf("Outside temperature : %.2f C\n",
-           s_model.outside_temperature);
+float thermal_model_get_cooling_rate(void)
+{
+    return s_model.cooling_rate;
+}
 
-    printf("Heat power          : %.3f C/tick\n",
-           s_model.heat_power);
-
-    printf("Loss factor         : %.3f\n",
-           s_model.loss_factor);
-
-    printf("Thermal mass        : %.2f\n",
-           s_model.thermal_mass);
-
-    printf("\n");
+float thermal_model_get_warming_rate(void)
+{
+    return s_model.warming_rate;
 }
 
 void thermal_model_apply_learning(void)
@@ -181,30 +182,102 @@ void thermal_model_apply_learning(void)
     const thermal_learning_state_t *learning =
         thermal_learning_get_state();
 
-
     if (learning == NULL)
     {
         return;
     }
 
-
-    if (learning->heating_samples > 10)
+    /*
+     * Taux de chauffe appris.
+     */
+    if (learning->heating_samples > 10 &&
+        learning->heat_rate > 0.0f)
     {
+        s_model.heat_rate =
+            learning->heat_rate;
+
         s_model.heat_power =
             learning->heat_rate;
     }
 
-
-    if (learning->cooling_samples > 10)
+    /*
+     * Taux de refroidissement appris.
+     */
+    if (learning->cooling_samples > 10 &&
+        learning->cooling_rate > 0.0f)
     {
-        s_model.loss_factor =
+        s_model.cooling_rate =
             learning->cooling_rate;
     }
 
+    /*
+     * Taux de réchauffement naturel appris.
+     */
+    if (learning->warming_samples > 10 &&
+        learning->warming_rate > 0.0f)
+    {
+        s_model.warming_rate =
+            learning->warming_rate;
+    }
 
+    /*
+     * Le loss_factor reste le paramètre
+     * physique du modèle pour l'instant.
+     */
     LOG_INFO(
         "THERMAL",
-        "Learning applied Heat=%.3f Cool=%.3f",
-        s_model.heat_power,
+        "Learning applied "
+        "HeatRate=%.4f "
+        "CoolRate=%.4f "
+        "WarmRate=%.4f "
+        "HeatPower=%.3f",
+        s_model.heat_rate,
+        s_model.cooling_rate,
+        s_model.warming_rate,
+        s_model.heat_power);
+}
+
+/*==========================================================
+ * Debug
+ *=========================================================*/
+
+void thermal_dump(void)
+{
+    printf("\n");
+
+    printf(
+        "Thermal model\n");
+
+    printf(
+        "------------------------------\n");
+
+    printf(
+        "Outside temperature : %.2f C\n",
+        s_model.outside_temperature);
+
+    printf(
+        "Heat power          : %.5f C/tick\n",
+        s_model.heat_power);
+
+    printf(
+        "Heat rate           : %.5f C/min\n",
+        s_model.heat_rate);
+
+    printf(
+        "Cooling rate        : %.5f C/min\n",
+        s_model.cooling_rate);
+
+    printf(
+        "Warming rate        : %.5f C/min\n",
+        s_model.warming_rate);
+
+    printf(
+        "Loss factor         : %.5f\n",
         s_model.loss_factor);
+
+    printf(
+        "Thermal mass        : %.2f\n",
+        s_model.thermal_mass);
+
+    printf("\n");
 }
