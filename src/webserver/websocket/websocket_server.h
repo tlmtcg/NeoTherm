@@ -125,4 +125,7 @@ bool websocket_server_send_close(
     uint16_t status_code,
     const char *reason);
 
+bool websocket_server_send_text_active(
+    const char *json);
+
 #endif /* WEBSOCKET_SERVER_H */

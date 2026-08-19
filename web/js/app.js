@@ -3,16 +3,134 @@ console.log("NeoTherm app.js chargé");
 let dashboardUpdating = false;
 
 /*==========================================================
+ * WebSocket
+ *=========================================================*/
+
+let websocket = null;
+
+/*==========================================================
  * Initialisation
  *=========================================================*/
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("NeoTherm web interface started");
 
+  /*
+   * Connexion WebSocket.
+   */
+  connectWebSocket();
+
+  /*
+   * Premier rafraîchissement HTTP.
+   */
   updateDashboard();
 
+  /*
+   * Rafraîchissement périodique du dashboard.
+   *
+   * Le WebSocket servira ensuite aux mises à jour
+   * temps réel.
+   */
   setInterval(updateDashboard, 2000);
 });
+
+/*==========================================================
+ * WebSocket
+ *=========================================================*/
+
+function connectWebSocket() {
+  /*
+   * Ne pas créer plusieurs connexions.
+   */
+  if (
+    websocket !== null &&
+    (
+      websocket.readyState === WebSocket.OPEN ||
+      websocket.readyState === WebSocket.CONNECTING
+    )
+  ) {
+    console.log("WS: connection already active");
+
+    return;
+  }
+
+  /*
+   * Même protocole que la page HTTP.
+   *
+   * http  -> ws
+   * https -> wss
+   */
+  const protocol =
+    window.location.protocol === "https:"
+      ? "wss:"
+      : "ws:";
+
+  const url =
+    protocol +
+    "//" +
+    window.location.host +
+    "/ws";
+
+  console.log("WS: connecting to", url);
+
+  websocket = new WebSocket(url);
+
+  /*--------------------------------------------------------
+   * Connexion établie
+   *-------------------------------------------------------*/
+
+  websocket.onopen = function () {
+    console.log("WS OPEN");
+  };
+
+  /*--------------------------------------------------------
+   * Message reçu
+   *-------------------------------------------------------*/
+
+  websocket.onmessage = function (event) {
+    console.log("WS MESSAGE:", event.data);
+
+    /*
+     * Pour l'instant on affiche simplement les messages.
+     *
+     * Le traitement JSON sera ajouté ici lorsque le protocole
+     * WebSocket côté serveur sera défini.
+     */
+  };
+
+  /*--------------------------------------------------------
+   * Erreur
+   *-------------------------------------------------------*/
+
+  websocket.onerror = function (event) {
+    console.error("WS ERROR:", event);
+  };
+
+  /*--------------------------------------------------------
+   * Connexion fermée
+   *-------------------------------------------------------*/
+
+  websocket.onclose = function (event) {
+    console.warn(
+      "WS CLOSE",
+      "code=",
+      event.code,
+      "reason=",
+      event.reason,
+      "clean=",
+      event.wasClean,
+    );
+
+    websocket = null;
+
+    /*
+     * Reconnexion automatique après 2 secondes.
+     */
+    setTimeout(() => {
+      connectWebSocket();
+    }, 2000);
+  };
+};
 
 /*==========================================================
  * Dashboard
@@ -20,29 +138,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function updateDashboard() {
   if (dashboardUpdating) {
-    console.warn("Dashboard update already running");
     return;
   }
 
   dashboardUpdating = true;
 
   try {
-    await updateThermostat();
-    await updateWeather();
-    await updateAlarms();
-    await updateClock();
+    await Promise.all([
+      updateThermostat(),
+      updateWeather(),
+      updateAlarms(),
+      updateClock(),
 
-    await updateRelay();
-    await updateClimate();
-    await updateThermalModel();
-    await updateLearning();
-    await updatePrediction();
-    await updateRuntime();
-    await updateScheduler();
-    await updateEvents();
-    await updateStorage();
-    await updateHistory();
-    await updateProgram();
+      updateRelay(),
+      updateClimate(),
+      updateThermalModel(),
+      updateLearning(),
+      updatePrediction(),
+      updateRuntime(),
+      updateScheduler(),
+      updateEvents(),
+      updateStorage(),
+      updateHistory(),
+      updateProgram(),
+    ]);
   } finally {
     dashboardUpdating = false;
   }
@@ -787,7 +906,7 @@ async function updateLearning() {
       formatNumber(data.cooling_rate) + " °C/min",
     );
 
-        setText(
+    setText(
       "ui-learning-warming-rate",
       formatNumber(data.warming_rate) + " °C/min",
     );
@@ -984,4 +1103,101 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+/*==========================================================
+ * Test WebSocket
+ *=========================================================*/
+
+function testWebSocketStatus() {
+  console.log("");
+  console.log("==============================");
+  console.log("WEBSOCKET STATUS TEST");
+  console.log("==============================");
+
+  if (!websocket ||
+      websocket.readyState !== WebSocket.OPEN) {
+    console.error("FAIL : WebSocket is not OPEN");
+    return;
+  }
+
+  const request = {
+    type: "get_status"
+  };
+
+  console.log(
+    "Sending:",
+    JSON.stringify(request)
+  );
+
+  websocket.send(
+    JSON.stringify(request)
+  );
+
+  console.log("PASS : Request sent");
+}
+
+
+/*==========================================================
+ * Test WebSocket Relay
+ *=========================================================*/
+
+function testWebSocketRelay() {
+  console.log("");
+  console.log("==============================");
+  console.log("WEBSOCKET RELAY TEST");
+  console.log("==============================");
+
+  if (
+    !websocket ||
+    websocket.readyState !== WebSocket.OPEN
+  ) {
+    console.error("FAIL : WebSocket is not OPEN");
+    return;
+  }
+
+  const request = {
+    type: "get_relay",
+  };
+
+  console.log(
+    "Sending:",
+    JSON.stringify(request)
+  );
+
+  websocket.send(
+    JSON.stringify(request)
+  );
+
+  console.log("PASS : Request sent");
+}
+
+function testWebSocketAlarms() {
+  console.log("");
+  console.log("==============================");
+  console.log("WEBSOCKET ALARMS TEST");
+  console.log("==============================");
+
+  if (
+    !websocket ||
+    websocket.readyState !== WebSocket.OPEN
+  ) {
+    console.error("FAIL : WebSocket is not OPEN");
+    return;
+  }
+
+  const request = {
+    type: "get_alarms"
+  };
+
+  console.log(
+    "Sending:",
+    JSON.stringify(request)
+  );
+
+  websocket.send(
+    JSON.stringify(request)
+  );
+
+  console.log("PASS : Request sent");
 }

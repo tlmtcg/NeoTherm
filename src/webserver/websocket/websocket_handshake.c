@@ -18,6 +18,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <errno.h>
 
 #endif
 
@@ -25,14 +26,24 @@
 
 /*==========================================================
  * Constantes WebSocket
- *==========================================================*/
+ *=========================================================*/
 
 #define WEBSOCKET_GUID \
     "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
 #define WEBSOCKET_VERSION "13"
 
-#define WS_ACCEPT_SIZE 29
+#define WS_ACCEPT_SIZE 29U
+
+/*
+ * Une clé Sec-WebSocket-Key valide est un Base64
+ * représentant 16 octets.
+ *
+ * Taille Base64 :
+ *
+ *     16 octets -> 24 caractères
+ */
+#define WEBSOCKET_KEY_LENGTH 24U
 
 /*==========================================================
  * SHA-1
@@ -50,7 +61,7 @@ typedef struct
 
 /*----------------------------------------------------------
  * Rotation gauche
- *----------------------------------------------------------*/
+ *---------------------------------------------------------*/
 
 static uint32_t sha1_rotate_left(
     uint32_t value,
@@ -63,7 +74,7 @@ static uint32_t sha1_rotate_left(
 
 /*----------------------------------------------------------
  * Transformation SHA-1
- *----------------------------------------------------------*/
+ *---------------------------------------------------------*/
 
 static void sha1_transform(
     sha1_context_t *ctx,
@@ -100,7 +111,7 @@ static void sha1_transform(
                 w[i - 8] ^
                 w[i - 14] ^
                 w[i - 16],
-                1);
+                1U);
     }
 
     a = ctx->state[0];
@@ -144,7 +155,7 @@ static void sha1_transform(
         }
 
         temp =
-            sha1_rotate_left(a, 5) +
+            sha1_rotate_left(a, 5U) +
             f +
             e +
             k +
@@ -152,7 +163,7 @@ static void sha1_transform(
 
         e = d;
         d = c;
-        c = sha1_rotate_left(b, 30);
+        c = sha1_rotate_left(b, 30U);
         b = a;
         a = temp;
     }
@@ -166,7 +177,7 @@ static void sha1_transform(
 
 /*----------------------------------------------------------
  * SHA-1 init
- *----------------------------------------------------------*/
+ *---------------------------------------------------------*/
 
 static void sha1_init(
     sha1_context_t *ctx)
@@ -185,7 +196,7 @@ static void sha1_init(
 
 /*----------------------------------------------------------
  * SHA-1 update
- *----------------------------------------------------------*/
+ *---------------------------------------------------------*/
 
 static void sha1_update(
     sha1_context_t *ctx,
@@ -194,6 +205,11 @@ static void sha1_update(
 {
     size_t index;
     size_t part_length;
+
+    if (length == 0U)
+    {
+        return;
+    }
 
     index =
         (size_t)((ctx->bit_count / 8U) % 64U);
@@ -225,7 +241,7 @@ static void sha1_update(
                 &data[i]);
         }
 
-        index = 0;
+        index = 0U;
 
         data +=
             part_length;
@@ -234,7 +250,7 @@ static void sha1_update(
             part_length;
     }
 
-    if (length > 0)
+    if (length > 0U)
     {
         memcpy(
             &ctx->buffer[index],
@@ -245,7 +261,7 @@ static void sha1_update(
 
 /*----------------------------------------------------------
  * SHA-1 final
- *----------------------------------------------------------*/
+ *---------------------------------------------------------*/
 
 static void sha1_final(
     sha1_context_t *ctx,
@@ -265,7 +281,8 @@ static void sha1_final(
         0,
         sizeof(padding));
 
-    padding[0] = 0x80;
+    padding[0] =
+        0x80U;
 
     index =
         (size_t)((ctx->bit_count / 8U) % 64U);
@@ -336,7 +353,7 @@ static void sha1_final(
 
 /*==========================================================
  * Base64
- *==========================================================*/
+ *=========================================================*/
 
 static const char s_base64_table[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -345,7 +362,7 @@ static const char s_base64_table[] =
 
 /*----------------------------------------------------------
  * Base64 encode
- *----------------------------------------------------------*/
+ *---------------------------------------------------------*/
 
 static bool base64_encode(
     const uint8_t *input,
@@ -355,8 +372,23 @@ static bool base64_encode(
 {
     size_t required;
 
-    size_t i = 0;
-    size_t o = 0;
+    size_t i = 0U;
+    size_t o = 0U;
+
+    if (input == NULL ||
+        output == NULL)
+    {
+        return false;
+    }
+
+    /*
+     * Protection contre overflow.
+     */
+    if (input_length >
+        (SIZE_MAX - 3U) / 4U * 3U)
+    {
+        return false;
+    }
 
     required =
         ((input_length + 2U) / 3U) * 4U + 1U;
@@ -368,7 +400,7 @@ static bool base64_encode(
 
     while (i < input_length)
     {
-        uint32_t value = 0;
+        uint32_t value = 0U;
 
         size_t remaining =
             input_length - i;
@@ -376,49 +408,51 @@ static bool base64_encode(
         value |=
             (uint32_t)input[i] << 16;
 
-        if (remaining > 1)
+        if (remaining > 1U)
         {
             value |=
-                (uint32_t)input[i + 1] << 8;
+                (uint32_t)input[i + 1U] << 8;
         }
 
-        if (remaining > 2)
+        if (remaining > 2U)
         {
             value |=
-                input[i + 2];
+                input[i + 2U];
         }
 
         output[o++] =
             s_base64_table[
-                (value >> 18) & 0x3F];
+                (value >> 18U) & 0x3FU];
 
         output[o++] =
             s_base64_table[
-                (value >> 12) & 0x3F];
+                (value >> 12U) & 0x3FU];
 
-        if (remaining > 1)
+        if (remaining > 1U)
         {
             output[o++] =
                 s_base64_table[
-                    (value >> 6) & 0x3F];
+                    (value >> 6U) & 0x3FU];
         }
         else
         {
-            output[o++] = '=';
+            output[o++] =
+                '=';
         }
 
-        if (remaining > 2)
+        if (remaining > 2U)
         {
             output[o++] =
                 s_base64_table[
-                    value & 0x3F];
+                    value & 0x3FU];
         }
         else
         {
-            output[o++] = '=';
+            output[o++] =
+                '=';
         }
 
-        i += 3;
+        i += 3U;
     }
 
     output[o] =
@@ -429,14 +463,33 @@ static bool base64_encode(
 
 /*==========================================================
  * Réception HTTP
- *==========================================================*/
+ *=========================================================*/
 
+/**
+ * Reçoit la requête HTTP du handshake.
+ *
+ * Important :
+ *
+ * On s'arrête dès que \r\n\r\n est détecté.
+ *
+ * Le handshake actuel ne conserve volontairement
+ * pas d'octets WebSocket supplémentaires.
+ *
+ * Le navigateur envoie normalement la requête HTTP
+ * séparément du premier frame WebSocket.
+ */
 static bool websocket_receive_http_request(
     websocket_socket_t socket,
     char *buffer,
     size_t buffer_size)
 {
-    size_t total = 0;
+    size_t total = 0U;
+
+    if (buffer == NULL ||
+        buffer_size < 4U)
+    {
+        return false;
+    }
 
     while (total < buffer_size - 1U)
     {
@@ -460,11 +513,45 @@ static bool websocket_receive_http_request(
 
 #endif
 
-        if (received <= 0)
+#ifdef _WIN32
+
+        if (received == SOCKET_ERROR)
+        {
+            int error =
+                WSAGetLastError();
+
+            LOG_ERROR(
+                "WEBSOCKET_HANDSHAKE",
+                "Failed to receive HTTP request (%d)",
+                error);
+
+            return false;
+        }
+
+#else
+
+        if (received < 0)
+        {
+            if (errno == EINTR)
+            {
+                continue;
+            }
+
+            LOG_ERROR(
+                "WEBSOCKET_HANDSHAKE",
+                "Failed to receive HTTP request: %s",
+                strerror(errno));
+
+            return false;
+        }
+
+#endif
+
+        if (received == 0)
         {
             LOG_ERROR(
                 "WEBSOCKET_HANDSHAKE",
-                "Failed to receive HTTP request");
+                "Client closed connection during handshake");
 
             return false;
         }
@@ -495,7 +582,7 @@ static bool websocket_receive_http_request(
 
 /*==========================================================
  * Recherche d'un header HTTP
- *==========================================================*/
+ *=========================================================*/
 
 static bool websocket_get_header(
     const char *request,
@@ -506,7 +593,17 @@ static bool websocket_get_header(
     const char *line =
         request;
 
-    size_t name_length =
+    size_t name_length;
+
+    if (request == NULL ||
+        name == NULL ||
+        value == NULL ||
+        value_size == 0U)
+    {
+        return false;
+    }
+
+    name_length =
         strlen(name);
 
     while (line != NULL &&
@@ -523,24 +620,28 @@ static bool websocket_get_header(
         }
 
         /*
-         * Première ligne HTTP :
-         *
-         * GET / HTTP/1.1
-         *
-         * Elle n'est pas un header.
+         * Ne pas considérer la ligne GET
+         * comme un header.
          */
-        if ((size_t)(line_end - line) >
-            name_length)
+        if (line != request)
         {
-            if (strncasecmp(
+            const char *colon =
+                strchr(
                     line,
-                    name,
-                    name_length) == 0)
-            {
-                const char *colon =
-                    line + name_length;
+                    ':');
 
-                if (*colon == ':')
+            if (colon != NULL &&
+                colon < line_end)
+            {
+                size_t header_name_length =
+                    (size_t)(colon - line);
+
+                if (header_name_length ==
+                        name_length &&
+                    strncasecmp(
+                        line,
+                        name,
+                        name_length) == 0)
                 {
                     const char *start =
                         colon + 1;
@@ -558,10 +659,10 @@ static bool websocket_get_header(
                             line_end - start);
 
                     while (
-                        length > 0 &&
+                        length > 0U &&
                         isspace(
                             (unsigned char)
-                                start[length - 1]))
+                                start[length - 1U]))
                     {
                         --length;
                     }
@@ -592,21 +693,30 @@ static bool websocket_get_header(
 }
 
 /*==========================================================
- * Vérification token HTTP
- *==========================================================*/
+ * Recherche token HTTP
+ *=========================================================*/
 
 static bool websocket_header_contains_token(
     const char *header,
     const char *token)
 {
-    const char *p =
+    const char *p;
+
+    size_t token_length;
+
+    if (header == NULL ||
+        token == NULL)
+    {
+        return false;
+    }
+
+    p =
         header;
 
-    size_t token_length =
+    token_length =
         strlen(token);
 
-    while (p != NULL &&
-           *p != '\0')
+    while (*p != '\0')
     {
         while (
             *p == ' ' ||
@@ -614,6 +724,11 @@ static bool websocket_header_contains_token(
             *p == ',')
         {
             ++p;
+        }
+
+        if (*p == '\0')
+        {
+            break;
         }
 
         const char *end =
@@ -635,10 +750,20 @@ static bool websocket_header_contains_token(
         }
 
         while (
-            length > 0 &&
+            length > 0U &&
             isspace(
-                (unsigned char)p[length - 1]))
+                (unsigned char)
+                    p[length - 1U]))
         {
+            --length;
+        }
+
+        while (
+            length > 0U &&
+            isspace(
+                (unsigned char)*p))
+        {
+            ++p;
             --length;
         }
 
@@ -664,8 +789,69 @@ static bool websocket_header_contains_token(
 }
 
 /*==========================================================
+ * Validation Sec-WebSocket-Key
+ *=========================================================*/
+
+static bool websocket_validate_client_key(
+    const char *key)
+{
+    size_t length;
+
+    if (key == NULL)
+    {
+        return false;
+    }
+
+    length =
+        strlen(key);
+
+    /*
+     * Une clé WebSocket v13 doit faire
+     * exactement 24 caractères Base64.
+     */
+    if (length != WEBSOCKET_KEY_LENGTH)
+    {
+        return false;
+    }
+
+    /*
+     * Validation Base64 stricte.
+     *
+     * Format :
+     *
+     * 22 caractères Base64
+     * puis ==
+     */
+    for (size_t i = 0; i < 22U; ++i)
+    {
+        unsigned char c =
+            (unsigned char)key[i];
+
+        bool valid =
+            (c >= 'A' && c <= 'Z') ||
+            (c >= 'a' && c <= 'z') ||
+            (c >= '0' && c <= '9') ||
+            c == '+' ||
+            c == '/';
+
+        if (!valid)
+        {
+            return false;
+        }
+    }
+
+    if (key[22] != '=' ||
+        key[23] != '=')
+    {
+        return false;
+    }
+
+    return true;
+}
+
+/*==========================================================
  * Calcul Sec-WebSocket-Accept
- *==========================================================*/
+ *=========================================================*/
 
 static bool websocket_compute_accept(
     const char *client_key,
@@ -678,7 +864,19 @@ static bool websocket_compute_accept(
 
     sha1_context_t sha1;
 
-    int length =
+    int length;
+
+    if (!websocket_validate_client_key(
+            client_key))
+    {
+        LOG_ERROR(
+            "WEBSOCKET_HANDSHAKE",
+            "Invalid Sec-WebSocket-Key");
+
+        return false;
+    }
+
+    length =
         snprintf(
             input,
             sizeof(input),
@@ -713,14 +911,20 @@ static bool websocket_compute_accept(
 
 /*==========================================================
  * Envoi complet
- *==========================================================*/
+ *=========================================================*/
 
 static bool websocket_send_all(
     websocket_socket_t socket,
     const char *data,
     size_t length)
 {
-    size_t total = 0;
+    size_t total = 0U;
+
+    if (data == NULL ||
+        length == 0U)
+    {
+        return false;
+    }
 
     while (total < length)
     {
@@ -733,22 +937,56 @@ static bool websocket_send_all(
                 (int)(length - total),
                 0);
 
+        if (sent == SOCKET_ERROR)
+        {
+            int error =
+                WSAGetLastError();
+
+            LOG_ERROR(
+                "WEBSOCKET_HANDSHAKE",
+                "Failed to send handshake (%d)",
+                error);
+
+            return false;
+        }
+
 #else
+
+        int flags = 0;
+
+#ifdef MSG_NOSIGNAL
+        flags |= MSG_NOSIGNAL;
+#endif
 
         ssize_t sent =
             send(
                 socket,
                 data + total,
                 length - total,
-                0);
+                flags);
+
+        if (sent < 0)
+        {
+            if (errno == EINTR)
+            {
+                continue;
+            }
+
+            LOG_ERROR(
+                "WEBSOCKET_HANDSHAKE",
+                "Failed to send handshake: %s",
+                strerror(errno));
+
+            return false;
+        }
 
 #endif
 
-        if (sent <= 0)
+        if (sent == 0)
         {
             LOG_ERROR(
                 "WEBSOCKET_HANDSHAKE",
-                "Failed to send handshake");
+                "Handshake send returned zero");
 
             return false;
         }
@@ -762,7 +1000,7 @@ static bool websocket_send_all(
 
 /*==========================================================
  * Validation requête
- *==========================================================*/
+ *=========================================================*/
 
 static bool websocket_validate_request(
     const char *request,
@@ -770,16 +1008,25 @@ static bool websocket_validate_request(
     size_t client_key_size)
 {
     char upgrade[64];
+
     char connection[128];
+
     char version[32];
 
+    if (request == NULL ||
+        client_key == NULL ||
+        client_key_size == 0U)
+    {
+        return false;
+    }
+
     /*
-     * La requête doit commencer par GET.
+     * Méthode GET.
      */
     if (strncmp(
             request,
             "GET ",
-            4) != 0)
+            4U) != 0)
     {
         LOG_ERROR(
             "WEBSOCKET_HANDSHAKE",
@@ -817,6 +1064,10 @@ static bool websocket_validate_request(
 
     /*
      * Connection.
+     *
+     * Peut contenir plusieurs tokens :
+     *
+     * Connection: keep-alive, Upgrade
      */
     if (!websocket_get_header(
             request,
@@ -870,7 +1121,7 @@ static bool websocket_validate_request(
     }
 
     /*
-     * Clé.
+     * Sec-WebSocket-Key.
      */
     if (!websocket_get_header(
             request,
@@ -885,11 +1136,12 @@ static bool websocket_validate_request(
         return false;
     }
 
-    if (client_key[0] == '\0')
+    if (!websocket_validate_client_key(
+            client_key))
     {
         LOG_ERROR(
             "WEBSOCKET_HANDSHAKE",
-            "Empty Sec-WebSocket-Key");
+            "Invalid Sec-WebSocket-Key");
 
         return false;
     }
@@ -899,7 +1151,7 @@ static bool websocket_validate_request(
 
 /*==========================================================
  * API publique
- *==========================================================*/
+ *=========================================================*/
 
 bool websocket_handshake(
     websocket_socket_t socket)
@@ -913,9 +1165,10 @@ bool websocket_handshake(
 
     char response[1024];
 
+    int response_length;
+
     /*
-     * Réception de la requête HTTP envoyée
-     * par le navigateur.
+     * Réception de la requête HTTP.
      */
     memset(
         request,
@@ -960,7 +1213,7 @@ bool websocket_handshake(
         client_key);
 
     /*
-     * Calcul de Sec-WebSocket-Accept.
+     * Calcul Sec-WebSocket-Accept.
      */
     if (!websocket_compute_accept(
             client_key,
@@ -977,7 +1230,7 @@ bool websocket_handshake(
     /*
      * Réponse HTTP 101.
      */
-    int response_length =
+    response_length =
         snprintf(
             response,
             sizeof(response),

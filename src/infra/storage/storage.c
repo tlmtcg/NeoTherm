@@ -112,14 +112,13 @@ bool storage_save_runtime(
             cfg->date_time.second);
 
     fprintf(fp,
-        "weather_update_period=%u\n",
-        cfg->weather_update_period_sec);
+            "weather_update_period=%u\n",
+            cfg->weather_update_period_sec);
 
     fprintf(fp,
-        "weather_provider=%s\n",
-        weather_provider_to_string(
-            cfg->weather_provider));
-    
+            "weather_provider=%s\n",
+            weather_provider_to_string(
+                cfg->weather_provider));
 
     if (fclose(fp) != 0)
     {
@@ -301,8 +300,8 @@ storage_load_result_t storage_load_runtime(
         return STORAGE_LOAD_ERROR;
     }
 
-    LOG_INFO("STORAGE",
-             "Runtime initialized");
+    LOG_DEBUG("STORAGE",
+              "Runtime configuration loaded");
 
     return STORAGE_LOAD_OK;
 }

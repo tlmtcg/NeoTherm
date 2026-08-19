@@ -3,42 +3,45 @@
 
 #include <stdbool.h>
 
-#ifdef _WIN32
+#include "websocket_server.h"
 
-#include <winsock2.h>
+/*==========================================================
+ * Initialisation
+ *=========================================================*/
 
 bool websocket_init(void);
 
+/*==========================================================
+ * Acceptation d'un client
+ *=========================================================*/
+
 bool websocket_accept(
-    SOCKET client_socket,
+    websocket_server_socket_t client_socket,
     const char *request);
 
+/*==========================================================
+ * Mise à jour
+ *=========================================================*/
+
 void websocket_update(void);
+
+/*==========================================================
+ * Envoi
+ *=========================================================*/
 
 void websocket_broadcast(
     const char *message);
 
-void websocket_stop(void);
-
-bool websocket_is_connected(void);
-
-#else
-
-bool websocket_init(void);
-
-bool websocket_accept(
-    int client_socket,
-    const char *request);
-
-void websocket_update(void);
-
-void websocket_broadcast(
-    const char *message);
+/*==========================================================
+ * Arrêt
+ *=========================================================*/
 
 void websocket_stop(void);
 
+/*==========================================================
+ * Etat
+ *=========================================================*/
+
 bool websocket_is_connected(void);
 
-#endif
-
-#endif
+#endif /* WEBSOCKET_H */

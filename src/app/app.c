@@ -73,14 +73,14 @@ bool app_run(void)
     /*
      * Démarrage du serveur Web.
      */
-    if (!webserver_start())
-    {
-        LOG_ERROR(
-            "APP",
-            "Unable to start web server");
+    // if (!webserver_start())
+    // {
+    //     LOG_ERROR(
+    //         "APP",
+    //         "Unable to start web server");
 
-        return false;
-    }
+    //     return false;
+    // }
 
     while (!app_exit_requested())
     {

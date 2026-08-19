@@ -207,6 +207,7 @@ add_executable(
         src/webserver/websocket/websocket_handshake.c
         src/webserver/websocket/websocket_frame.c
         src/webserver/websocket/websocket_server.c
+        src/webserver/websocket/websocket_api.c
 )
 
 

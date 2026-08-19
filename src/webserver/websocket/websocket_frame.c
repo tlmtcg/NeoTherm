@@ -1,51 +1,94 @@
 #include "websocket_frame.h"
 
-#include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 #include "logger.h"
 
 /*==========================================================
  * Constantes
- *==========================================================*/
+ *=========================================================*/
 
 #define WEBSOCKET_MAX_CONTROL_PAYLOAD 125U
 
 /*==========================================================
  * Utilitaires internes
- *==========================================================*/
+ *=========================================================*/
 
 /**
- * Génère une clé de masquage.
- *
- * Pour un client WebSocket, chaque trame doit utiliser
- * une nouvelle clé de masquage.
+ * Vérifie si un opcode est un opcode de contrôle.
  */
-static void websocket_generate_mask(
-    uint8_t mask[4])
+static bool websocket_opcode_is_control(
+    uint8_t opcode)
 {
-    static bool initialized = false;
+    return opcode >= 0x08U;
+}
 
-    if (!initialized)
+/*----------------------------------------------------------
+ * Vérification opcode
+ *---------------------------------------------------------*/
+
+static bool websocket_opcode_is_valid(
+    uint8_t opcode)
+{
+    switch (opcode)
     {
-        srand(
-            (unsigned int)time(NULL));
+        case WEBSOCKET_OPCODE_CONTINUATION:
+        case WEBSOCKET_OPCODE_TEXT:
+        case WEBSOCKET_OPCODE_BINARY:
+        case WEBSOCKET_OPCODE_CLOSE:
+        case WEBSOCKET_OPCODE_PING:
+        case WEBSOCKET_OPCODE_PONG:
+            return true;
 
-        initialized = true;
-    }
-
-    for (int i = 0; i < 4; ++i)
-    {
-        mask[i] =
-            (uint8_t)(rand() & 0xFF);
+        default:
+            return false;
     }
 }
 
 /*----------------------------------------------------------
- * Masquage / démasquage
- *----------------------------------------------------------*/
+ * Vérification code CLOSE
+ *---------------------------------------------------------*/
 
+static bool websocket_close_status_valid(
+    uint16_t status_code)
+{
+    /*
+     * Codes réservés / invalides RFC 6455.
+     */
+    if (status_code < 1000U)
+    {
+        return false;
+    }
+
+    if (status_code >= 1004U &&
+        status_code <= 1006U)
+    {
+        return false;
+    }
+
+    if (status_code >= 1012U &&
+        status_code <= 1016U)
+    {
+        return false;
+    }
+
+    if (status_code >= 1100U)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+/*----------------------------------------------------------
+ * Masque WebSocket
+ *---------------------------------------------------------*/
+
+/**
+ * Applique un masque WebSocket.
+ *
+ * Utilisé uniquement pour les trames reçues du client.
+ */
 static void websocket_apply_mask(
     uint8_t *data,
     size_t length,
@@ -54,33 +97,33 @@ static void websocket_apply_mask(
     for (size_t i = 0; i < length; ++i)
     {
         data[i] ^=
-            mask[i % 4];
+            mask[i % 4U];
     }
 }
 
 /*----------------------------------------------------------
- * Taille de l'en-tête
- *----------------------------------------------------------*/
+ * Taille en-tête serveur
+ *---------------------------------------------------------*/
 
 static size_t websocket_header_size(
     size_t payload_length)
 {
     if (payload_length <= 125U)
     {
-        return 2U + 4U;
+        return 2U;
     }
 
     if (payload_length <= 65535U)
     {
-        return 2U + 2U + 4U;
+        return 4U;
     }
 
-    return 2U + 8U + 4U;
+    return 10U;
 }
 
 /*==========================================================
- * Encodage générique
- *==========================================================*/
+ * Encodage serveur
+ *=========================================================*/
 
 static bool websocket_frame_encode(
     uint8_t opcode,
@@ -92,9 +135,6 @@ static bool websocket_frame_encode(
 {
     size_t header_size;
     size_t total_size;
-
-    uint8_t mask[4];
-
     size_t offset = 0;
 
     if (encoded != NULL)
@@ -108,34 +148,51 @@ static bool websocket_frame_encode(
         return false;
     }
 
-    if (payload_length > 0 &&
+    if (payload_length > 0U &&
         payload == NULL)
     {
         return false;
     }
 
-    /*
-     * Les trames de contrôle doivent être FIN=1
-     * et leur payload <= 125 octets.
-     */
-    if (opcode == WEBSOCKET_OPCODE_CLOSE ||
-        opcode == WEBSOCKET_OPCODE_PING ||
-        opcode == WEBSOCKET_OPCODE_PONG)
+    if (!websocket_opcode_is_valid(opcode))
     {
-        if (payload_length >
-            WEBSOCKET_MAX_CONTROL_PAYLOAD)
-        {
-            LOG_ERROR(
-                "WEBSOCKET_FRAME",
-                "Control frame payload too large");
+        LOG_ERROR(
+            "WEBSOCKET_FRAME",
+            "Invalid opcode: 0x%02X",
+            opcode);
 
-            return false;
-        }
+        return false;
+    }
+
+    /*
+     * Les trames de contrôle :
+     *
+     * FIN = 1
+     * payload <= 125
+     */
+    if (websocket_opcode_is_control(opcode) &&
+        payload_length > WEBSOCKET_MAX_CONTROL_PAYLOAD)
+    {
+        LOG_ERROR(
+            "WEBSOCKET_FRAME",
+            "Control frame payload too large");
+
+        return false;
     }
 
     header_size =
         websocket_header_size(
             payload_length);
+
+    if (payload_length >
+        SIZE_MAX - header_size)
+    {
+        LOG_ERROR(
+            "WEBSOCKET_FRAME",
+            "Frame size overflow");
+
+        return false;
+    }
 
     total_size =
         header_size +
@@ -153,31 +210,32 @@ static bool websocket_frame_encode(
     /*
      * FIN = 1
      * RSV1/2/3 = 0
-     * OPCODE
+     * MASK = 0
      */
     buffer[offset++] =
         0x80U |
         (opcode & 0x0FU);
 
     /*
-     * Client -> serveur :
-     *
-     * MASK = 1
+     * Payload <= 125
      */
     if (payload_length <= 125U)
     {
         buffer[offset++] =
-            0x80U |
             (uint8_t)payload_length;
     }
+
+    /*
+     * Payload 126 .. 65535
+     */
     else if (payload_length <= 65535U)
     {
         buffer[offset++] =
-            0x80U | 126U;
+            126U;
 
         buffer[offset++] =
             (uint8_t)(
-                (payload_length >> 8) &
+                (payload_length >> 8U) &
                 0xFFU);
 
         buffer[offset++] =
@@ -185,18 +243,18 @@ static bool websocket_frame_encode(
                 payload_length &
                 0xFFU);
     }
+
+    /*
+     * Payload > 65535
+     */
     else
     {
-        buffer[offset++] =
-            0x80U | 127U;
-
         uint64_t length =
             (uint64_t)payload_length;
 
-        /*
-         * RFC 6455 :
-         * longueur 64 bits big endian.
-         */
+        buffer[offset++] =
+            127U;
+
         for (int i = 7; i >= 0; --i)
         {
             buffer[offset++] =
@@ -207,40 +265,16 @@ static bool websocket_frame_encode(
         }
     }
 
-    /*
-     * Génération du masque.
-     */
-    websocket_generate_mask(mask);
-
-    memcpy(
-        &buffer[offset],
-        mask,
-        sizeof(mask));
-
-    offset +=
-        sizeof(mask);
-
-    /*
-     * Copie du payload.
-     */
-    if (payload_length > 0)
+    if (payload_length > 0U)
     {
         memcpy(
             &buffer[offset],
             payload,
             payload_length);
 
-        /*
-         * Application du masque.
-         */
-        websocket_apply_mask(
-            &buffer[offset],
-            payload_length,
-            mask);
+        offset +=
+            payload_length;
     }
-
-    offset +=
-        payload_length;
 
     *encoded =
         offset;
@@ -250,7 +284,7 @@ static bool websocket_frame_encode(
 
 /*==========================================================
  * TEXT
- *==========================================================*/
+ *=========================================================*/
 
 bool websocket_frame_encode_text(
     const char *text,
@@ -260,7 +294,7 @@ bool websocket_frame_encode_text(
     size_t *encoded)
 {
     if (text == NULL &&
-        length > 0)
+        length > 0U)
     {
         return false;
     }
@@ -276,7 +310,7 @@ bool websocket_frame_encode_text(
 
 /*==========================================================
  * PING
- *==========================================================*/
+ *=========================================================*/
 
 bool websocket_frame_encode_ping(
     const uint8_t *payload,
@@ -296,7 +330,7 @@ bool websocket_frame_encode_ping(
 
 /*==========================================================
  * PONG
- *==========================================================*/
+ *=========================================================*/
 
 bool websocket_frame_encode_pong(
     const uint8_t *payload,
@@ -316,7 +350,7 @@ bool websocket_frame_encode_pong(
 
 /*==========================================================
  * CLOSE
- *==========================================================*/
+ *=========================================================*/
 
 bool websocket_frame_encode_close(
     uint16_t status_code,
@@ -328,7 +362,18 @@ bool websocket_frame_encode_close(
     uint8_t payload[
         WEBSOCKET_MAX_CONTROL_PAYLOAD];
 
-    size_t reason_length = 0;
+    size_t reason_length = 0U;
+
+    if (!websocket_close_status_valid(
+            status_code))
+    {
+        LOG_ERROR(
+            "WEBSOCKET_FRAME",
+            "Invalid CLOSE status code: %u",
+            status_code);
+
+        return false;
+    }
 
     if (reason != NULL)
     {
@@ -347,12 +392,12 @@ bool websocket_frame_encode_close(
     }
 
     payload[0] =
-        (uint8_t)(status_code >> 8);
+        (uint8_t)(status_code >> 8U);
 
     payload[1] =
         (uint8_t)(status_code & 0xFFU);
 
-    if (reason_length > 0)
+    if (reason_length > 0U)
     {
         memcpy(
             &payload[2],
@@ -370,10 +415,11 @@ bool websocket_frame_encode_close(
 }
 
 /*==========================================================
- * Décodage
- *==========================================================*/
+ * Décodage client -> serveur
+ *=========================================================*/
 
-bool websocket_frame_decode(
+websocket_frame_decode_status_t
+websocket_frame_decode(
     uint8_t *buffer,
     size_t buffer_size,
     websocket_frame_t *frame,
@@ -383,6 +429,7 @@ bool websocket_frame_decode(
     uint8_t byte1;
 
     uint8_t opcode;
+
     bool fin;
     bool masked;
 
@@ -390,24 +437,26 @@ bool websocket_frame_decode(
 
     size_t offset;
 
+    uint8_t mask[4];
+
     if (consumed != NULL)
     {
-        *consumed = 0;
+        *consumed = 0U;
     }
 
     if (buffer == NULL ||
         frame == NULL ||
         consumed == NULL)
     {
-        return false;
+        return WEBSOCKET_FRAME_INVALID;
     }
 
     /*
-     * Il faut au minimum les deux premiers octets.
+     * Minimum : 2 octets.
      */
     if (buffer_size < 2U)
     {
-        return false;
+        return WEBSOCKET_FRAME_INCOMPLETE;
     }
 
     byte0 =
@@ -416,73 +465,163 @@ bool websocket_frame_decode(
     byte1 =
         buffer[1];
 
-    fin =
-        (byte0 & 0x80U) != 0;
+    /*------------------------------------------------------
+     * FIN
+     *------------------------------------------------------*/
 
-    /*
-     * RSV1/RSV2/RSV3 doivent être à zéro
-     * puisque nous ne gérons pas d'extensions.
-     */
-    if ((byte0 & 0x70U) != 0)
+    fin =
+        (byte0 & 0x80U) != 0U;
+
+    /*------------------------------------------------------
+     * RSV
+     *------------------------------------------------------*/
+
+    if ((byte0 & 0x70U) != 0U)
     {
         LOG_ERROR(
             "WEBSOCKET_FRAME",
             "Unsupported RSV bits");
 
-        return false;
+        return WEBSOCKET_FRAME_INVALID;
     }
+
+    /*------------------------------------------------------
+     * OPCODE
+     *------------------------------------------------------*/
 
     opcode =
         byte0 & 0x0FU;
 
+    if (!websocket_opcode_is_valid(opcode))
+    {
+        LOG_ERROR(
+            "WEBSOCKET_FRAME",
+            "Unsupported opcode: 0x%02X",
+            opcode);
+
+        return WEBSOCKET_FRAME_INVALID;
+    }
+
+    /*------------------------------------------------------
+     * Fragmentation
+     *
+     * Notre couche actuelle ne supporte pas la
+     * fragmentation des messages.
+     *
+     * On refuse donc toute trame de données
+     * dont FIN = 0.
+     *------------------------------------------------------*/
+
+    if (!fin &&
+        !websocket_opcode_is_control(opcode))
+    {
+        LOG_ERROR(
+            "WEBSOCKET_FRAME",
+            "Fragmented data frame not supported");
+
+        return WEBSOCKET_FRAME_INVALID;
+    }
+
+    /*
+     * Une continuation n'est pas supportée.
+     */
+    if (opcode == WEBSOCKET_OPCODE_CONTINUATION)
+    {
+        LOG_ERROR(
+            "WEBSOCKET_FRAME",
+            "Continuation frame not supported");
+
+        return WEBSOCKET_FRAME_INVALID;
+    }
+
+    /*------------------------------------------------------
+     * MASK
+     *------------------------------------------------------*/
+
     masked =
-        (byte1 & 0x80U) != 0;
+        (byte1 & 0x80U) != 0U;
+
+    /*
+     * Client -> serveur :
+     * MASK doit obligatoirement être 1.
+     */
+    if (!masked)
+    {
+        LOG_ERROR(
+            "WEBSOCKET_FRAME",
+            "Received unmasked client frame");
+
+        return WEBSOCKET_FRAME_INVALID;
+    }
 
     payload_length =
         byte1 & 0x7FU;
 
-    offset = 2U;
+    offset =
+        2U;
 
-    /*
-     * Longueur 126.
-     */
+    /*------------------------------------------------------
+     * Longueur 126
+     *------------------------------------------------------*/
+
     if (payload_length == 126U)
     {
-        if (buffer_size < offset + 2U)
+        if (buffer_size <
+            offset + 2U)
         {
-            return false;
+            return WEBSOCKET_FRAME_INCOMPLETE;
         }
 
         payload_length =
-            ((uint64_t)buffer[offset] << 8) |
-            ((uint64_t)buffer[offset + 1]);
+            ((uint64_t)buffer[offset] << 8U) |
+            (uint64_t)buffer[offset + 1U];
 
-        offset += 2U;
+        offset +=
+            2U;
+
+        /*
+         * Encodage minimal obligatoire.
+         *
+         * Une longueur <= 125 aurait dû utiliser
+         * le format court.
+         */
+        if (payload_length < 126U)
+        {
+            LOG_ERROR(
+                "WEBSOCKET_FRAME",
+                "Non-minimal payload length");
+
+            return WEBSOCKET_FRAME_INVALID;
+        }
     }
 
-    /*
-     * Longueur 127.
-     */
+    /*------------------------------------------------------
+     * Longueur 127
+     *------------------------------------------------------*/
+
     else if (payload_length == 127U)
     {
-        if (buffer_size < offset + 8U)
+        if (buffer_size <
+            offset + 8U)
         {
-            return false;
+            return WEBSOCKET_FRAME_INCOMPLETE;
         }
 
-        payload_length = 0;
+        payload_length =
+            0U;
 
         for (int i = 0; i < 8; ++i)
         {
             payload_length =
-                (payload_length << 8) |
-                buffer[offset + i];
+                (payload_length << 8U) |
+                (uint64_t)buffer[offset + i];
         }
 
-        offset += 8U;
+        offset +=
+            8U;
 
         /*
-         * Le bit 63 doit être à zéro selon RFC 6455.
+         * Bit 63 doit être à zéro.
          */
         if (payload_length &
             (1ULL << 63))
@@ -491,17 +630,28 @@ bool websocket_frame_decode(
                 "WEBSOCKET_FRAME",
                 "Invalid 64-bit payload length");
 
-            return false;
+            return WEBSOCKET_FRAME_INVALID;
+        }
+
+        /*
+         * Encodage minimal :
+         * 65536 minimum pour utiliser 127.
+         */
+        if (payload_length < 65536ULL)
+        {
+            LOG_ERROR(
+                "WEBSOCKET_FRAME",
+                "Non-minimal 64-bit payload length");
+
+            return WEBSOCKET_FRAME_INVALID;
         }
     }
 
-    /*
-     * Les trames de contrôle doivent être :
-     *
-     * FIN = 1
-     * longueur <= 125
-     */
-    if (opcode >= 0x8U)
+    /*------------------------------------------------------
+     * Trames de contrôle
+     *------------------------------------------------------*/
+
+    if (websocket_opcode_is_control(opcode))
     {
         if (!fin)
         {
@@ -509,47 +659,52 @@ bool websocket_frame_decode(
                 "WEBSOCKET_FRAME",
                 "Fragmented control frame");
 
-            return false;
+            return WEBSOCKET_FRAME_INVALID;
         }
 
-        if (payload_length > 125U)
+        if (payload_length >
+            WEBSOCKET_MAX_CONTROL_PAYLOAD)
         {
             LOG_ERROR(
                 "WEBSOCKET_FRAME",
                 "Control frame too large");
 
-            return false;
+            return WEBSOCKET_FRAME_INVALID;
         }
     }
 
-    /*
-     * Vérification de la présence du masque.
-     *
-     * Pour une trame reçue par le serveur :
-     * MASK doit être 1.
-     *
-     * Notre fonction de décodage est utilisée côté
-     * serveur, donc on exige ici MASK=1.
-     */
-    if (!masked)
-    {
-        LOG_ERROR(
-            "WEBSOCKET_FRAME",
-            "Received unmasked client frame");
+    /*------------------------------------------------------
+     * CLOSE
+     *------------------------------------------------------*/
 
-        return false;
+    if (opcode == WEBSOCKET_OPCODE_CLOSE)
+    {
+        /*
+         * Payload CLOSE :
+         *
+         * 0 octet          -> autorisé
+         * 2..125 octets    -> autorisé
+         * 1 octet          -> interdit
+         */
+        if (payload_length == 1U)
+        {
+            LOG_ERROR(
+                "WEBSOCKET_FRAME",
+                "Invalid CLOSE payload length");
+
+            return WEBSOCKET_FRAME_INVALID;
+        }
     }
 
-    /*
-     * Vérification de la taille du masque.
-     */
+    /*------------------------------------------------------
+     * Masque
+     *------------------------------------------------------*/
+
     if (buffer_size <
         offset + 4U)
     {
-        return false;
+        return WEBSOCKET_FRAME_INCOMPLETE;
     }
-
-    uint8_t mask[4];
 
     memcpy(
         mask,
@@ -559,27 +714,37 @@ bool websocket_frame_decode(
     offset +=
         sizeof(mask);
 
-    /*
-     * Vérification que le payload complet est disponible.
-     */
+    /*------------------------------------------------------
+     * Vérification taille payload
+     *------------------------------------------------------*/
+
     if (payload_length >
         (uint64_t)(buffer_size - offset))
     {
         /*
-         * La trame est incomplète.
+         * La trame est simplement incomplète.
          */
-        return false;
+        return WEBSOCKET_FRAME_INCOMPLETE;
     }
 
     /*
-     * Attention :
-     *
-     * buffer contient la trame reçue du client.
-     * Le payload est donc masqué.
-     *
-     * On le démasque directement dans le buffer.
+     * Protection uint64_t -> size_t.
      */
-    if (payload_length > 0)
+    if (payload_length >
+        (uint64_t)SIZE_MAX)
+    {
+        LOG_ERROR(
+            "WEBSOCKET_FRAME",
+            "Payload length exceeds size_t");
+
+        return WEBSOCKET_FRAME_INVALID;
+    }
+
+    /*------------------------------------------------------
+     * Démasquage
+     *------------------------------------------------------*/
+
+    if (payload_length > 0U)
     {
         websocket_apply_mask(
             &buffer[offset],
@@ -587,9 +752,10 @@ bool websocket_frame_decode(
             mask);
     }
 
-    /*
-     * Remplissage de la structure.
-     */
+    /*------------------------------------------------------
+     * Structure résultat
+     *------------------------------------------------------*/
+
     frame->fin =
         fin;
 
@@ -611,5 +777,5 @@ bool websocket_frame_decode(
     *consumed =
         offset;
 
-    return true;
+    return WEBSOCKET_FRAME_COMPLETE;
 }

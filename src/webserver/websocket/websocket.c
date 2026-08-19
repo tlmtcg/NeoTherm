@@ -1,19 +1,7 @@
 #include "websocket.h"
 
-#ifdef _WIN32
-
-#include <stdio.h>
-#include <string.h>
-
-/*==========================================================
- * Etat privé
- *=========================================================*/
-
-static SOCKET s_client_socket =
-    INVALID_SOCKET;
-
-static bool s_connected =
-    false;
+#include "websocket_server.h"
+#include "websocket_handshake.h"
 
 /*==========================================================
  * Initialisation
@@ -21,68 +9,30 @@ static bool s_connected =
 
 bool websocket_init(void)
 {
-    s_client_socket =
-        INVALID_SOCKET;
-
-    s_connected =
-        false;
-
-    printf(
-        "WebSocket initialized\n");
-
-    return true;
+    return websocket_server_init();
 }
 
 /*==========================================================
- * Handshake
+ * Acceptation
  *=========================================================*/
 
 bool websocket_accept(
-    SOCKET client_socket,
+    websocket_socket_t client_socket,
     const char *request)
 {
-    if (client_socket ==
-        INVALID_SOCKET)
-    {
-        return false;
-    }
-
-    if (request == NULL)
-    {
-        return false;
-    }
-
     /*
-     * Première version :
+     * Le handshake est maintenant entièrement géré
+     * par websocket_server_accept().
      *
-     * on vérifie simplement que la requête
-     * demande bien /ws.
+     * request n'est plus utilisé :
+     * websocket_handshake() lit directement la requête
+     * HTTP depuis le socket.
      */
 
-    if (strstr(
-            request,
-            "GET /ws") == NULL)
-    {
-        return false;
-    }
+    (void)request;
 
-    /*
-     * Pour l'instant nous ne faisons pas
-     * encore le véritable handshake WebSocket.
-     *
-     * Cette étape sera ajoutée juste après.
-     */
-
-    s_client_socket =
-        client_socket;
-
-    s_connected =
-        true;
-
-    printf(
-        "WebSocket client accepted\n");
-
-    return true;
+    return websocket_server_accept(
+        client_socket);
 }
 
 /*==========================================================
@@ -91,14 +41,21 @@ bool websocket_accept(
 
 void websocket_update(void)
 {
-    if (!s_connected)
+    if (!websocket_server_is_connected())
     {
         return;
     }
 
     /*
-     * La gestion des frames WebSocket
-     * sera ajoutée ici.
+     * websocket_server_receive() utilise maintenant
+     * le socket actif enregistré par le serveur.
+     *
+     * Le socket n'est cependant pas exposé par
+     * websocket_server.h.
+     *
+     * Cette fonction sera donc complétée lorsque
+     * l'API publique du serveur fournira une fonction
+     * receive() sans argument.
      */
 }
 
@@ -109,24 +66,18 @@ void websocket_update(void)
 void websocket_broadcast(
     const char *message)
 {
-    if (!s_connected)
-    {
-        return;
-    }
-
-    if (message == NULL)
-    {
-        return;
-    }
-
     /*
-     * Temporairement :
-     * affichage uniquement.
+     * Le serveur ne gère actuellement qu'un seul
+     * client WebSocket actif.
+     *
+     * Le socket actif n'est pas encore exposé ici.
+     *
+     * Cette fonction sera donc reliée à
+     * websocket_server_send_text() lorsque l'API
+     * sera finalisée.
      */
 
-    printf(
-        "WebSocket TX: %s\n",
-        message);
+    (void)message;
 }
 
 /*==========================================================
@@ -135,21 +86,7 @@ void websocket_broadcast(
 
 void websocket_stop(void)
 {
-    if (s_client_socket !=
-        INVALID_SOCKET)
-    {
-        closesocket(
-            s_client_socket);
-
-        s_client_socket =
-            INVALID_SOCKET;
-    }
-
-    s_connected =
-        false;
-
-    printf(
-        "WebSocket stopped\n");
+    websocket_server_shutdown();
 }
 
 /*==========================================================
@@ -158,43 +95,5 @@ void websocket_stop(void)
 
 bool websocket_is_connected(void)
 {
-    return s_connected;
+    return websocket_server_is_connected();
 }
-
-#else
-
-bool websocket_init(void)
-{
-    return true;
-}
-
-bool websocket_accept(
-    int client_socket,
-    const char *request)
-{
-    (void)client_socket;
-    (void)request;
-
-    return false;
-}
-
-void websocket_update(void)
-{
-}
-
-void websocket_broadcast(
-    const char *message)
-{
-    (void)message;
-}
-
-void websocket_stop(void)
-{
-}
-
-bool websocket_is_connected(void)
-{
-    return false;
-}
-
-#endif

@@ -30,6 +30,7 @@
 #include "../core/thermal_learning/thermal_learning.h"
 #include "../core/thermal_prediction/thermal_prediction.h"
 #include "webserver.h"
+#include "websocket/websocket_server.h"
 
 bool system_init(void)
 {
@@ -106,7 +107,32 @@ bool system_init(void)
 
     thermostat_init();
 
-    webserver_init();
+    if (!websocket_server_init())
+{
+    LOG_ERROR(
+        "SYSTEM",
+        "WebSocket server initialization failed");
+
+    return false;
+}
+
+    if (!webserver_init())
+{
+    LOG_ERROR(
+        "SYSTEM",
+        "Webserver initialization failed");
+
+    return false;
+}
+
+if (!webserver_start())
+{
+    LOG_ERROR(
+        "SYSTEM",
+        "Webserver start failed");
+
+    return false;
+}
 
     thermostat_set_mode(THERMOSTAT_AUTO);
 
